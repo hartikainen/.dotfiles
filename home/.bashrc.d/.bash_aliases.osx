@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Lock screen.
+
+alias afk="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Shorter commands for `Homebrew`.
+
+alias brew-all="brew update \
+                && brew upgrade \
+                && brew cleanup \
+                && brew cask cleanup \
+                && brew doctor"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Clear DNS cache.
+
+alias clear-dns-cache="sudo dscacheutil -flushcache; \
+                       sudo killall -HUP mDNSResponder"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Empty the trash, the main HDD and on all mounted volumes,
+# and clear Apple’s system logs to improve shell startup speed.
+
+alias empty-trash="sudo rm -frv /Volumes/*/.Trashes; \
+                   sudo rm -frv ~/.Trash; \
+                   sudo rm -frv /private/var/log/asl/*.asl; \
+                   sqlite3 ~/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV* 'delete from LSQuarantineEvent'"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Hide/Show desktop icons.
+
+alias hide-desktop-icons="defaults write com.apple.finder CreateDesktop -bool false \
+                            && killall Finder"
+
+alias show-desktop-icons="defaults write com.apple.finder CreateDesktop -bool true \
+                            && killall Finder"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Get local IP.
+
+alias local-ip="ipconfig getifaddr en1"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Update applications and CLTs.
+
+alias update-everything="sudo softwareupdate --install --all \
+                         && brew-all \
+                         && conda update conda"

@@ -4,26 +4,36 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
     && . "../utils.sh"
 
 declare -r LOCAL_SHELL_CONFIG_FILE="${HOME}/.bash.local"
-declare -r CONDA_DIRECTORY="${HOME}/miniconda"
-declare -r MINICONDA_LATEST_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+declare -r CONDA_DIRECTORY="${HOME}/conda"
+declare -r CONDA_LATEST_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 configure_conda() {
 
-    declare -r CONFIGS="
-# Conda
-export PATH=\"${CONDA_DIRECTORY}/bin:\${PATH}\"
-"
+    declare -r CONFIGS="# Conda
+source ${CONDA_DIRECTORY}/etc/profile.d/conda.sh
+conda activate base"
 
-    if ! grep -Fxq "export PATH=\"${CONDA_DIRECTORY}/bin:\${PATH}\"" ${LOCAL_SHELL_CONFIG_FILE}; then
+    num_lines=$(echo "${CONFIGS}" | wc -l)
+    matching_lines=$(grep -Exq "${CONFIGS}" "${LOCAL_SHELL_CONFIG_FILE}")
+    num_matching_lines=$(echo "${matching_lines}" | wc -l)
+
+    echo "num_lines=${num_lines}"
+    echo "num_matching_lines=${num_matching_lines}"
+
+    if [ "${num_lines}" -ne "${num_matching_lines}" ]; then
+        echo "does not exist yet"
         execute \
-            "printf '%s' '${CONFIGS}' >> ${LOCAL_SHELL_CONFIG_FILE} \
+            "printf '\n%s\n' '${CONFIGS}' >> ${LOCAL_SHELL_CONFIG_FILE} \
                  && . ${LOCAL_SHELL_CONFIG_FILE}"
+    else
+        echo "exists"
+        echo "${LOCAL_SHELL_CONFIG_FILE}"
     fi
 
-    print_success "Miniconda (configure)"
+    print_success "Conda (configure)"
 
 }
 
@@ -34,10 +44,10 @@ install_conda() {
 
     tmp_file="$(mktemp /tmp/XXXXX)"
 
-    download "${MINICONDA_LATEST_URL}" "${tmp_file}"
+    download "${CONDA_LATEST_URL}" "${tmp_file}"
     # -b for batch/silent mode
-    execute "bash ${tmp_file} -b -p $HOME/miniconda" \
-            "Miniconda (install)"
+    execute "bash ${tmp_file} -b -p $HOME/conda" \
+            "Conda (install)"
 
     configure_conda
 
@@ -49,7 +59,7 @@ update_conda() {
 
     execute \
         "conda update -n base conda" \
-        "Miniconda (update)"
+        "Conda (update)"
 
 }
 
@@ -57,7 +67,7 @@ main() {
 
     print_in_purple "\n   Conda\n\n"
 
-    [ -d "$CONDA_DIRECTORY" ] || install_conda
+    [ -d "${CONDA_DIRECTORY}" ] || install_conda
 
     update_conda
 }

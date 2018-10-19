@@ -5,9 +5,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-echo "TODO: set the keyboard speed"
-exit(0)
-
 print_in_purple "\n   Keyboard\n\n"
 
 execute "defaults write -g AppleKeyboardUIMode -int 3" \

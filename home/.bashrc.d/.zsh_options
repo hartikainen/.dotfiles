@@ -1,0 +1,34 @@
+# Zsh options.
+# http://zsh.sourceforge.net/Doc/Release/Options.html
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Automatically prepend `cd` to directory names.
+
+setopt AUTO_CD
+setopt AUTO_PUSHD
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Autocorrect typos in path names when using the `cd` command.
+
+setopt CORRECT
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Include filenames beginning with a "." in the filename expansion.
+
+setopt GLOB_DOTS
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Append to the history file rather then overwriting it.
+
+setopt APPEND_HISTORY
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Match filenames in a case-insensitive fashion when performing
+# filename expansion.
+
+setopt CASE_GLOB

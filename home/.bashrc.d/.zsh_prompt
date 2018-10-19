@@ -1,0 +1,70 @@
+#!/bin/bash
+
+cd "$(dirname $(realpath ${(%):-%x}))" \
+    && . "../../setup/utils.sh"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+set_prompts() {
+    local cyan=""
+    local green=""
+    local orange=""
+    local white=""
+    local yellow=""
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    if [ "$(tput colors 2> /dev/null || printf "0")" -ge 256 ]; then
+
+        # Solarized colors.
+        # https://github.com/altercation/solarized/tree/master/iterm2-colors-solarized#the-values
+
+        local cyan=37
+        local green=64
+        local orange=166
+        local white=15
+        local yellow=136
+
+    fi
+
+    local ret_status="%B%(?:%F{${green}}➜%f :%F{${red}}➜%f )"
+
+    NEWLINE=$'\n'
+
+    PROMPT='${ret_status}'
+
+    PROMPT+="%F{${orange}}%n%f"   # username
+    PROMPT+="%F{${white}}@%f"     # @
+    PROMPT+="%F{${yellow}}%m%f"   # hostname
+    PROMPT+="%F{${white}}:%f"     # :
+    PROMPT+=" %F{${green}}%~%f"   # workdir
+    PROMPT+=' $(git_prompt_info)' # branch
+    PROMPT+='${NEWLINE}'
+    PROMPT+="%F{${white}}"
+    PROMPT+='$ '
+    PROMPT+="%f%b"
+
+    ZSH_THEME_GIT_PROMPT_PREFIX="%F{${white}}on%f %F{${cyan}}"
+    ZSH_THEME_GIT_PROMPT_SUFFIX="%f "
+    ZSH_THEME_GIT_PROMPT_DIRTY="%F{${blue}} %F{${yellow}}✗"
+    ZSH_THEME_GIT_PROMPT_CLEAN="%F{${blue}} "
+
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+main() {
+
+    set_prompts
+
+}
+
+main
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Cleanup.
+
+unset -f main
+unset -f set_prompts

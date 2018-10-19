@@ -20,6 +20,7 @@ create_symlinks() {
         "home/.gitignore"
 
         "home/.inputrc"
+        "home/.xsessionrc"
         "home/.tmux.conf"
 
     )

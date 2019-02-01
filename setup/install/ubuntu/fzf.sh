@@ -1,0 +1,40 @@
+#!/bin/bash
+
+cd "$(dirname "${BASH_SOURCE[0]}")" \
+    && . "../../utils.sh" \
+    && . "./utils.sh"
+
+declare -r FZF_DIRECTORY="${HOME}/.fzf"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+install_fzf() {
+
+    execute "git clone \
+                 --depth 1 \
+                 https://github.com/junegunn/fzf.git \
+                 ${FZF_DIRECTORY}" \
+            "zfz (clone to ${FZF_DIRECTORY})"
+    execute "${FZF_DIRECTORY}/install" "zfz (install)"
+
+}
+
+update_fzf() {
+
+    execute "cd ${FZF_DIRECTORY} && git pull" "zfz (git pull)"
+    execute "${FZF_DIRECTORY}/install" "zfz (install/update)"
+
+}
+
+main () {
+
+    print_in_purple "\n   fzf\n\n"
+
+    [ -d "${FZF_DIRECTORY}" ] || install_fzf
+
+    update_fzf
+
+}
+
+main

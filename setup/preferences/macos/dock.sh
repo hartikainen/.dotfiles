@@ -47,4 +47,7 @@ execute "defaults write com.apple.dock showhidden -bool true" \
 execute "defaults write com.apple.dock tilesize -int 60" \
     "Set icon size"
 
+execute "defaults write com.apple.dock static-only -bool true" \
+    "Only show active apps in the Dock."
+
 killall "Dock" &> /dev/null

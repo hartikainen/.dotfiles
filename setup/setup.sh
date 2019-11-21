@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. "$(dirname "${BASH_SOURCE[0]}")/utils.sh"
+# . "$(dirname "${BASH_SOURCE[0]}")/utils.sh"
 
 declare -r GITHUB_REPOSITORY="hartikainen/dotfiles"
 
@@ -114,7 +114,7 @@ download_dotfiles() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    cd "$dotfilesDirectory/src/os" \
+    cd "$dotfilesDirectory/setup" \
         || return 1
 
 }
@@ -204,7 +204,6 @@ main() {
         . "utils.sh" || exit 1
     else
         download_utils || exit 1
-        . "utils.sh" || exit 1
     fi
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

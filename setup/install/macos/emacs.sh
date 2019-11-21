@@ -8,12 +8,14 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 main() {
 
     brew_install \
-        "Emacs" \
-        "brew install emacs \
-             --with-cocoa \
-             --with-gnutls \
-             --with-rsvg \
-             --with-imagemagick"
+        "Emacs >= 26" \
+        "emacs" \
+        "homebrew/cask" \
+        "cask" \
+        "--with-cocoa \
+         --with-gnutls \
+         --with-rsvg \
+         --with-imagemagick"
 
 }
 

@@ -13,7 +13,6 @@ alias afk="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resource
 alias brew-all="brew update \
                 && brew upgrade \
                 && brew cleanup \
-                && brew cask cleanup \
                 && brew doctor"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -29,7 +29,7 @@ main() {
     [ -d "${OH_MY_ZSH_DIRECTORY}" ] || install_oh_my_zsh
 
     # This should be defined by oh-my-zsh
-    upgrade_oh_my_zsh
+    zsh -c upgrade_oh_my_zsh
 
 }
 

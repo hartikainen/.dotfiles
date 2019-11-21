@@ -253,7 +253,7 @@ main() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    ./clone_github_repositories.sh
+    # ./clone_github_repositories.sh
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -137,7 +137,7 @@ download_utils() {
 verify_os() {
 
     declare -r MINIMUM_MACOS_VERSION="10.10"
-    declare -r MINIMUM_UBUNTU_VERSION="14.04"
+    declare -r MINIMUM_UBUNTU_VERSION="16.04"
 
     local os_name=""
     local os_version=""
@@ -212,13 +212,11 @@ main() {
     # Ensure the OS is supported and
     # it's above the required version.
 
-    verify_os \
-        || exit 1
+    verify_os || exit 1
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    skip_questions "$@" \
-        && skipQuestions=true
+    skip_questions "$@" && skipQuestions=true
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

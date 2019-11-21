@@ -22,7 +22,7 @@ execute "defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Track
          defaults -currentHost write -g com.apple.trackpad.trackpadCornerClickBehavior -int 0" \
         "Map 'click or tap with two fingers' to the secondary click"
 
-exceute "defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerHorizSwipeGesture -int 2 && \
+execute "defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerHorizSwipeGesture -int 2 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerVertSwipeGesture -int 2 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerHorizSwipeGesture -int 0 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0 && \

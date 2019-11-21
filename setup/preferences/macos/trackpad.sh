@@ -26,5 +26,7 @@ execute "defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Track
 exceute "defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerHorizSwipeGesture -int 2 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerVertSwipeGesture -int 2 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerHorizSwipeGesture -int 0 && \
-         defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0" \
+         defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0 && \
+         defaults write com.apple.trackpad.threeFingerDragGesture -int 1 && \
+         defaults write com.apple.trackpad.threeFingerTapGesture -int 2" \
          "Set 'Swipe between full-screen apps' action to 4 fingers instead of 3 fingers'"

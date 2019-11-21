@@ -5,6 +5,9 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 declare -r NVIDIA_DRIVER_URL="http://us.download.nvidia.com/XFree86/Linux-x86_64/390.87/NVIDIA-Linux-x86_64-390.87.run"
 
+
+#TODO(hartikainen): These should be installed from apt-get!
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # disable_nvidia_nouveau_driver() {

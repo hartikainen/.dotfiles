@@ -6,7 +6,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 echo "TODO: check these! (e.g. defaults read com.apple.AppleMultitouchTrackpad)"
-exit(0)
 
 print_in_purple "\n   Trackpad\n\n"
 

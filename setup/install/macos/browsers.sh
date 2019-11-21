@@ -12,7 +12,7 @@ main() {
 
     printf "\n"
 
-    brew_install "Chrome" "google-chrome" "caskroom/cask" "cask"
+    brew_install "Chrome" "google-chrome" "homebrew/cask" "cask"
 
 }
 

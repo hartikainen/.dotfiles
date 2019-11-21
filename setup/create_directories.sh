@@ -11,7 +11,7 @@ create_directories() {
         # TODO(hartikainen):
         # - This should be conditional on os
         # - Move this somewhere else
-        # "${HOME}/Desktop/screenshots"
+        "${HOME}/Desktop/screenshots"
     )
 
     for i in "${DIRECTORIES[@]}"; do

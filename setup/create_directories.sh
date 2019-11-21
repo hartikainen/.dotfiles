@@ -8,7 +8,10 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 create_directories() {
 
     declare -a DIRECTORIES=(
-        "${HOME}/Desktop/screenshots"
+        # TODO(hartikainen):
+        # - This should be conditional on os
+        # - Move this somewhere else
+        # "${HOME}/Desktop/screenshots"
     )
 
     for i in "${DIRECTORIES[@]}"; do

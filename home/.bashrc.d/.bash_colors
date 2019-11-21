@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ -n "$ZSH_VERSION" ]; then
+    # For zsh
+    cd "$(dirname "${(%):-%x}")" \
+        && . "../../setup/utils.sh"
+else
+    # For bash
+    cd "$(dirname "$(readlink "${BASH_SOURCE[0]}")")" \
+        && . "../../setup/utils.sh"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Load OS specific colors.
+
+. "./.bash_colors.$(get_os)"

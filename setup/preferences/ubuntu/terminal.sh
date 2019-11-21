@@ -9,6 +9,11 @@ main() {
 
     print_in_purple "\n   Terminal\n\n"
 
+    execute "gsettings set org.gnome.Terminal.Legacy.Keybindings:/org/gnome/terminal/legacy/keybindings/ prev-tab '<Primary><Shift>Tab'"
+
+    execute "gsettings set org.gnome.Terminal.Legacy.Keybindings:/org/gnome/terminal/legacy/keybindings/ next-tab '<Primary>Tab'"
+
+
     execute "gsettings set org.gnome.desktop.interface monospace-font-name 'Monospace 12'" \
             "Change font size"
 

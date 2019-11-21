@@ -1,5 +1,19 @@
 #!/bin/bash
 
+extract() {
+
+    local archive="$1"
+    local outputDir="$2"
+
+    if command -v "tar" &> /dev/null; then
+        tar -zxf "$archive" --strip-components 1 -C "$outputDir"
+        return $?
+    fi
+
+    return 1
+
+}
+
 download() {
 
     local url="$1"
@@ -7,19 +21,21 @@ download() {
 
     if command -v "curl" &> /dev/null; then
 
-        curl -LsSo "$output" "$url" &> /dev/null
-        #     │││└─ write output to file
-        #     ││└─ show error messages
-        #     │└─ don't show the progress meter
+        echo curl -LSo "$output" "$url"
+        curl -LSo "$output" "$url"
+        #     ││└─ write output to file
+        #     │└─ show error messages
         #     └─ follow redirects
 
         return $?
 
     elif command -v "wget" &> /dev/null; then
 
-        wget -qO "$output" "$url" &> /dev/null
-        #     │└─ write output to file
-        #     └─ don't show output
+        echo wget --progress=bar:force --show-progress -qO "$output" "$url" &> /dev/null
+        wget --progress=bar:force --show-progress -qO "$output" "$url" &> /dev/null
+        #                           │              │└─ write output to file
+        #                           │              └─ don't show output
+        #                           └─ force progress bar in any verbosity
 
         return $?
     fi
@@ -151,9 +167,9 @@ get_os() {
 
     kernelName="$(uname -s)"
 
-    if [ "$kernelName" == "Darwin" ]; then
+    if [ "$kernelName" = "Darwin" ]; then
         os="macos"
-    elif [ "$kernelName" == "Linux" ] && [ -e "/etc/lsb-release" ]; then
+    elif [ "$kernelName" = "Linux" ] && [ -e "/etc/lsb-release" ]; then
         os="ubuntu"
     else
         os="$kernelName"

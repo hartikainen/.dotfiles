@@ -1,7 +1,14 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../setup/utils.sh"
+if [ -n "$ZSH_VERSION" ]; then
+    # For zsh
+    cd "$(dirname "${(%):-%x}")" \
+        && . "../../setup/utils.sh"
+else
+    # For bash
+    cd "$(dirname "${BASH_SOURCE[0]}")" \
+        && . "../../setup/utils.sh"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -36,4 +43,4 @@ alias emacsw="emacs -w"
 
 # Load OS specific aliases.
 
-. ".bash_aliases.$(get_os)"
+source ".bash_aliases.$(get_os)"

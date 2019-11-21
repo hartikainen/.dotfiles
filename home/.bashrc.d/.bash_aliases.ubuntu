@@ -49,4 +49,5 @@ alias open="xdg-open"
 alias update-everything="sudo apt-get update \
                          && sudo apt-get upgrade \
                          && npm install -g npm \
-                         && npm upgrade -g"
+                         ; npm upgrade -g \
+                         ; conda update conda"

@@ -9,7 +9,6 @@
 #  - The actual colors are configured through the `LS_COLORS`
 #    environment variable (built-in defaults are used if this
 #    variable is not set).
-
 LS_COLORS=""
 
 LS_COLORS+="no=0;39:"   # Global default

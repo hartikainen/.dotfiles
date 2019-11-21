@@ -13,6 +13,9 @@ main() {
 
     ./build-essentials.sh
 
+    ./zsh.sh
+    ./../oh_my_zsh.sh
+
     ./../conda.sh
 
     ./browsers.sh

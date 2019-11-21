@@ -21,7 +21,9 @@ create_symlinks() {
 
         "home/.inputrc"
         "home/.tmux.conf"
+        "home/.xsessionrc"
 
+        "home/.zshrc"
     )
 
     local i=""

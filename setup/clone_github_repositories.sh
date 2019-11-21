@@ -12,7 +12,7 @@ clone_repositories() {
     [ -d "${REPOSITORIES_DIR}" ] || execute "mkdir ${REPOSITORIES_DIR}"
 
     declare -a REPOSITORY_URLS=(
-        "git@github.com:haarnoja/softqlearning-private"
+        "git@github.com:rail-berkeley/softlearning"
     )
 
     for repository_url in "${REPOSITORY_URLS[@]}"; do

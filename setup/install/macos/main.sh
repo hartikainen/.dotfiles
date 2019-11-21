@@ -11,7 +11,10 @@ main() {
     ./xcode.sh
     ./homebrew.sh
     ./iterm2.sh
+
     ./bash.sh
+    ./zsh.sh
+    ./../oh_my_zsh.sh
 
     ./../conda.sh
 

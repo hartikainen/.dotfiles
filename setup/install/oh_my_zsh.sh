@@ -1,8 +1,7 @@
 #!/bin/bash
 
 cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh" \
-    && . "./utils.sh"
+    && . "../utils.sh"
 
 declare -r OH_MY_ZSH_DIRECTORY="${HOME}/.oh-my-zsh"
 declare -r OH_MY_ZSH_LATEST_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"

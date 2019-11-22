@@ -11,11 +11,11 @@ create_bash_local() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    if [ ! -e "$FILE_PATH" ] || [ -z "$FILE_PATH" ]; then
-        printf "%s\n\n" "#!/bin/bash" >> "$FILE_PATH"
+    if [ ! -e "${FILE_PATH}" ] || [ -z "${FILE_PATH}" ]; then
+        printf "%s\n\n" "#!/bin/bash" >> "${FILE_PATH}"
     fi
 
-    print_result $? "$FILE_PATH"
+    print_result $? "${FILE_PATH}"
 
 }
 
@@ -25,11 +25,15 @@ create_zsh_local() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    if [ ! -e "$FILE_PATH" ] || [ -z "$FILE_PATH" ]; then
-        printf "%s\n\n" "#!/bin/zsh" >> "$FILE_PATH"
+    if [ ! -e "${FILE_PATH}" ] || [ -z "${FILE_PATH}" ]; then
+        printf \
+            "%s\n\n%s\n\n" \
+            "#!/bin/zsh" \
+            "[ -f ~/.bash.local ] && source ~/.bash.local" \
+            >> "${FILE_PATH}"
     fi
 
-    print_result $? "$FILE_PATH"
+    print_result $? "${FILE_PATH}"
 
 }
 
@@ -71,10 +75,10 @@ create_gitconfig_local() {
     name = ${GIT_NAME}
     email = ${GIT_EMAIL}
     # signingkey =" \
-        >> "$FILE_PATH"
+        >> "${FILE_PATH}"
     fi
 
-    print_result $? "$FILE_PATH"
+    print_result $? "${FILE_PATH}"
 
 }
 

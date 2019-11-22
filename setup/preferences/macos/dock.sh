@@ -47,6 +47,9 @@ execute "defaults write com.apple.dock showhidden -bool true" \
 execute "defaults write com.apple.dock tilesize -int 60" \
     "Set icon size"
 
+execute "defaults write com.apple.dock show-recents -bool false" \
+    "Do not show recent applications in Dock"
+
 execute "defaults write com.apple.dock static-only -bool true" \
     "Only show active apps in the Dock."
 

@@ -24,6 +24,7 @@ execute "./set_terminal_theme.applescript" \
 
 # If there is a Touch Bar, ensure the Touch ID is used when
 # `sudo` is required.
+# TODO(hartikainen): Check this.
 
 if ioreg | grep -q "AppleEmbeddedOSSupportHost" \
     && ! grep -q "pam_tid.so" "/etc/pam.d/sudo"; then

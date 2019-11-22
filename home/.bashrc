@@ -49,6 +49,7 @@ source_files() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 source_files
 unset -f source_files
 

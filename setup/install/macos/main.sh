@@ -17,6 +17,7 @@ main() {
 
     ./zsh.sh
     ./../oh_my_zsh.sh
+    ./fzf.sh
 
     ./../conda.sh
 

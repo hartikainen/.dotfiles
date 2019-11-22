@@ -12,7 +12,7 @@ main() {
 
     brew_install "fzf" "fzf"
     # To install useful key bindings and fuzzy completion:
-    $(brew --prefix)/opt/fzf/install
+    execute "$(brew --prefix)/opt/fzf/install --all"
 
 }
 

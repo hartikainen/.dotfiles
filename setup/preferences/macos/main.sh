@@ -22,5 +22,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 ./photos.sh
 ./safari.sh
 ./terminal.sh
+./iterm2.sh
 ./trackpad.sh
 ./ui_and_ux.sh

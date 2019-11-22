@@ -5,8 +5,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-echo "TODO: check these! (e.g. defaults read com.apple.AppleMultitouchTrackpad)"
-
 print_in_purple "\n   Trackpad\n\n"
 
 execute "defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -int 0 && \
@@ -26,6 +24,7 @@ execute "defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerHori
          defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerVertSwipeGesture -int 2 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerHorizSwipeGesture -int 0 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0 && \
-         defaults write com.apple.trackpad.threeFingerDragGesture -int 1 && \
-         defaults write com.apple.trackpad.threeFingerTapGesture -int 2" \
-         "Set 'Swipe between full-screen apps' action to 4 fingers instead of 3 fingers'"
+
+         defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true && \
+         defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true" \
+        "Set 'Swipe between full-screen apps' action to 4 fingers instead of 3 fingers'"

@@ -8,7 +8,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 main() {
 
     print_in_purple "\n   Cleanup\n\n"
-    brew_cleanup
 
 }
 

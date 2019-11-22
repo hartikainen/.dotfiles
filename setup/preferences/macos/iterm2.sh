@@ -24,6 +24,7 @@ copy_profiles() {
                 echo "Skipping '${profile_file_name}'"
             fi
         else
+            mkdir -p "${dynamic_profiles_dir_path}"
             cp "${profile_file_path}" "${dynamic_profiles_dir_path}/${profile_file_name}"
         fi
 

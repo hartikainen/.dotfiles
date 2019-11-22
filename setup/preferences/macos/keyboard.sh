@@ -11,7 +11,7 @@ print_in_purple "\n   Keyboard\n\n"
 KEYBOARD_VENDOR=$(ioreg -Src IOHIDInterface | awk '$2 == "\"VendorID\"" { print $4 }') # 1452
 KEYBOARD_PRODUCT=$(ioreg -Src IOHIDInterface | awk '$2 == "\"ProductID\"" { print $4 }') # 610
 
-if [ -z "${KEYBOARD_VENDOR}" && -z "${KEYBOARD_PRODUCT}" ]; then
+if [ -z "${KEYBOARD_VENDOR}" ] && [ -z "${KEYBOARD_PRODUCT}" ]; then
     KEYBOARD_NUMBER=0 # TODO(hartikainen): Not sure if this can be hard-coded
     KEYBOARD_ID="${KEYBOARD_VENDOR}-${KEYBOARD_PRODUCT}-${KEYBOARD_ID}"
 

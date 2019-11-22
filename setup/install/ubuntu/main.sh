@@ -13,13 +13,14 @@ main() {
 
     ./build-essentials.sh
 
+    ./git.sh
+
     ./zsh.sh
     ./../oh_my_zsh.sh
 
     ./../conda.sh
 
     ./browsers.sh
-    ./git.sh
     ./image_tools.sh
     ./misc.sh
     ./misc_tools.sh

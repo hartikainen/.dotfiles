@@ -10,16 +10,17 @@ main() {
 
     ./xcode.sh
     ./homebrew.sh
+    ./bash.sh
+    ./git.sh
+
     ./iterm2.sh
 
-    ./bash.sh
     ./zsh.sh
     ./../oh_my_zsh.sh
 
     ./../conda.sh
 
     ./browsers.sh
-    ./git.sh
     ./gpg.sh
     ./image_tools.sh
     ./video_tools.sh

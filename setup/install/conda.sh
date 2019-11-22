@@ -27,14 +27,10 @@ conda activate base"
     matching_lines=$(grep -Exq "${CONFIGS}" "${LOCAL_SHELL_CONFIG_FILE}")
     num_matching_lines=$(echo "${matching_lines}" | wc -l)
 
-    echo "num_lines=${num_lines}"
-    echo "num_matching_lines=${num_matching_lines}"
-
     if [ "${num_lines}" -ne "${num_matching_lines}" ]; then
         echo "does not exist yet"
-        execute \
-            "printf '\n%s\n' '${CONFIGS}' >> ${LOCAL_SHELL_CONFIG_FILE} \
-                 && . ${LOCAL_SHELL_CONFIG_FILE}"
+        printf "\n%s\n" "${CONFIGS}" >> ${LOCAL_SHELL_CONFIG_FILE} \
+            && . ${LOCAL_SHELL_CONFIG_FILE}
     else
         echo "exists"
         echo "${LOCAL_SHELL_CONFIG_FILE}"

@@ -17,6 +17,9 @@ install_oh_my_zsh() {
     execute "RUNZSH=no ZSH=${OH_MY_ZSH_DIRECTORY} sh ${tmp_file}" \
             "oh-my-zsh (install)"
 
+    execute "mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc" \
+            "oh-my-zsh (oh-my-zsh annoyingly replaces the .zshrc. Undo this to use our file.)"
+
 }
 
 
@@ -29,7 +32,7 @@ main() {
     [ -d "${OH_MY_ZSH_DIRECTORY}" ] || install_oh_my_zsh
 
     # This should be defined by oh-my-zsh
-    zsh -c upgrade_oh_my_zsh
+    zsh -c upgrade_oh_my_zsh || true
 
 }
 

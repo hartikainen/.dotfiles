@@ -28,10 +28,10 @@ execute "defaults write -g ApplePressAndHoldEnabled -bool false" \
 execute "defaults write -g 'InitialKeyRepeat_Level_Saved' -int 10" \
     "Set delay until repeat"
 
-execute "defaults write -g 'InitialKeyRepeat' -int 0.1" \
+execute "defaults write -g 'InitialKeyRepeat' -int 8" \
     "Set delay until repeat"
 
-execute "defaults write -g KeyRepeat -int 0.01" \
+execute "defaults write -g KeyRepeat -int 1" \
     "Set the key repeat rate to fast"
 
 # execute "defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false" \

@@ -4,6 +4,43 @@
 
 # Create data URI from a file.
 
+github-clone() {
+
+    # https://github.com/rail-berkeley/softlearning.git
+
+    [ -z "${1}" ] && printf "Usage: '%s', e.g. '%s'.\n" \
+                            "github-clone [repositoty-path]" \
+                            "github-clone rail-berkeley/softlearning"
+
+    local repository_url="${1}"
+
+    local left_trimmed_url="${repository_url##git@github.com:}"
+    local trimmed_url="${left_trimmed_url%.git*}"
+    local repository_name="$(basename "${trimmed_url}")"
+    local user_name="$(basename "${trimmed_url%/${repository_name}}")"
+
+    if [ -z "${repository_name}" ] || [ -z "${user_name}" ]; then
+        printf "Incorrect arguments: '${1}'. Usage: '%s', e.g. '%s'.\n" \
+               "github-clone [repositoty-path]" \
+               "github-clone rail-berkeley/softlearning"
+        return
+    fi
+
+    local repositories_dir="${HOME/github}"
+    local user_dir="${repositories_dir}/${user_name}"
+    local repository_dir="${user_dir}/${repository_name}"
+
+    [ -d "${repository_dir}" ] \
+        && printf "Already exists: %s (at %s)\n" \
+                  "${repository_url}" \
+                  "${repository_dir}" \
+        && return
+
+
+    git clone "${repository_url}" "${repository_dir}"
+
+}
+
 datauri() {
 
     local mimeType=""

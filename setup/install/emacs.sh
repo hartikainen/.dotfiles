@@ -22,7 +22,7 @@ main() {
 
     print_in_purple "\n   Emacs\n\n"
 
-    "./$(get_os)/emacs.sh"
+    "./$(get_os_name)/emacs.sh"
 
     printf "\n"
 

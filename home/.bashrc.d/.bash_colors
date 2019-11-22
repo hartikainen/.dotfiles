@@ -17,4 +17,4 @@ fi
 
 # Load OS specific colors.
 
-. "./.bash_colors.$(get_os)"
+. "./.bash_colors.$(get_os_name)"

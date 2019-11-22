@@ -9,7 +9,7 @@ main() {
 
     print_in_purple "\n   Docker\n\n"
 
-    "./$(get_os)/docker.sh"
+    "./$(get_os_name)/docker.sh"
 
 }
 

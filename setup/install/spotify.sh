@@ -9,7 +9,7 @@ main() {
 
     print_in_purple "\n   Spotify\n\n"
 
-    "./$(get_os)/spotify.sh"
+    "./$(get_os_name)/spotify.sh"
 
 }
 

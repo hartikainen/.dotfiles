@@ -43,4 +43,4 @@ alias emacsw="emacs -w"
 
 # Load OS specific aliases.
 
-source ".bash_aliases.$(get_os)"
+source ".bash_aliases.$(get_os_name)"

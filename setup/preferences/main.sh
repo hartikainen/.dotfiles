@@ -9,7 +9,7 @@ main () {
 
     print_in_purple "\n • Preferences\n"
 
-    "./$(get_os)/main.sh"
+    "./$(get_os_name)/main.sh"
 
 }
 

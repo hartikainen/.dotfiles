@@ -6,10 +6,10 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 declare -r LOCAL_SHELL_CONFIG_FILE="${HOME}/.bash.local"
 declare -r CONDA_DIRECTORY="${HOME}/conda"
 
-if [ "$(get_os)" == "macos" ]; then
+if [ "$(get_os_name)" == "macos" ]; then
     # https://repo.anaconda.com/miniconda/
     CONDA_FILENAME="Miniconda3-latest-MacOSX-x86_64.sh"
-elif [ "$(get_os)" == "ubuntu" ]; then
+elif [ "$(get_os_name)" == "ubuntu" ]; then
     CONDA_FILENAME="Miniconda3-latest-Linux-x86_64.sh"
 fi
 declare -r CONDA_LATEST_URL="https://repo.continuum.io/miniconda/${CONDA_FILENAME}"

@@ -9,8 +9,8 @@ main() {
 
     print_in_purple "\n • Nvidia Drivers\n\n"
 
-    # "./$(get_os)/nvidia_drivers.sh"
-    "./$(get_os)/cuda.sh"
+    # "./$(get_os_name)/nvidia_drivers.sh"
+    "./$(get_os_name)/cuda.sh"
 
 }
 

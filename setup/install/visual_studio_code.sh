@@ -9,7 +9,7 @@ main() {
 
     print_in_purple "\n   Visual Studio Code\n\n"
 
-    "./$(get_os)/visual_studio_code.sh"
+    "./$(get_os_name)/visual_studio_code.sh"
 
 }
 

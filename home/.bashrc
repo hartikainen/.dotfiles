@@ -68,7 +68,7 @@ source_bash_files() {
     cd "${CURRENT_DIRECTORY}"
 
     # shellcheck disable=SC2034
-    declare -r OS="$(get_os)"
+    declare -r OS="$(get_os_name)"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -122,22 +122,38 @@ mkd() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Process phone images.
+# Process phone photo.
 
-ppi() {
-    command -v "convert" &> /dev/null \
-        || exit 0;
+ppp() {
 
-    declare query="${1:-*.jpg}"
-    declare geometry="${2:-50%}"
+    # Check if ImageMagick's convert command-line tool is installed.
 
-    for i in "$query"; do
-        if [[ "$(echo ${i##*.} | tr '[:upper:]' '[:lower:]')" != "png" ]]; then
-            imgName="${i%.*}.png"
-        else
-            imgName="_${i%.*}.png"
-        fi
-        convert "$i" \
+    if ! command -v "convert" $> /dev/null; then
+        printf "Please install ImageMagick's 'convert' command-line tool!"
+        exit;
+    fi
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    declare option="$1"
+    declare photo="${2:-*.jpg}"
+    declare geometry="${3:-50%}"
+
+    if [ "$option" != "clean" ] &&
+       [ "$option" != "resize" ]; then
+        option="resize"
+        photo="${1:-*.jpg}"
+        geometry="${2:-50%}"
+    fi
+
+    if [[ "$(echo "${photo##*.}" | tr '[:upper:]' '[:lower:]')" != "png" ]]; then
+        newPhotoName="${photo%.*}.png"
+    else
+        newPhotoName="_${photo%.*}.png"
+    fi
+
+    if [ "$option" == "resize" ]; then
+        convert "$photo" \
             -colorspace RGB \
             +sigmoidal-contrast 11.6933 \
             -define filter:filter=Sinc \
@@ -149,11 +165,24 @@ ppi() {
             -gravity center \
             -resize "$geometry" \
             +append \
-            "$imgName" \
+            "$newPhotoName" \
         && printf "* %s (%s)\n" \
-            "$imgName" \
+            "$newPhotoName" \
             "$geometry"
-    done
+
+        return
+    fi
+
+    convert "$photo" \
+        -morphology Convolve DoG:10,10,0 \
+        -negate \
+        -normalize \
+        -blur 0x1 \
+        -channel RBG \
+        -level 10%,91%,0.1 \
+        "$newPhotoName" \
+        && printf "* %s\n" "$newPhotoName"
+
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

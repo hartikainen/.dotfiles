@@ -132,7 +132,11 @@ ppi() {
     declare geometry="${2:-50%}"
 
     for i in "$query"; do
-        imgName="${i%.*}.png"
+        if [[ "$(echo ${i##*.} | tr '[:upper:]' '[:lower:]')" != "png" ]]; then
+            imgName="${i%.*}.png"
+        else
+            imgName="_${i%.*}.png"
+        fi
         convert "$i" \
             -colorspace RGB \
             +sigmoidal-contrast 11.6933 \

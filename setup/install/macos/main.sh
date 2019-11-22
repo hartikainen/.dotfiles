@@ -22,6 +22,7 @@ main() {
     ./git.sh
     ./gpg.sh
     ./image_tools.sh
+    ./video_tools.sh
     ./misc.sh
     ./misc_tools.sh
     ./tmux.sh

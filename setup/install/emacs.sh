@@ -26,7 +26,7 @@ create_emacs_conda_environment() {
         "conda create --name emacs 'python>=3.7' || true" \
         "Emacs (create conda env)"
 
-    EMACS_CONDA_PACKAGES=(
+    local EMACS_CONDA_PACKAGES=(
         "jedi"
         "autopep8"
         "yapf"
@@ -35,7 +35,7 @@ create_emacs_conda_environment() {
     )
 
     execute \
-        "conda activate emacs && pip install ${EMACS_CONDA_PACKAGES[@]}" \
+        "conda activate emacs && pip install ${EMACS_CONDA_PACKAGES[*]}" \
         "Emacs (install conda packages)"
 
 }

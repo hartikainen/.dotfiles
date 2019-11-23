@@ -4,7 +4,7 @@
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-declare dotfilesDirectory="$HOME/dotfiles"
+declare dotfilesDirectory="${HOME}/.dotfiles"
 declare skipQuestions=false
 
 # ----------------------------------------------------------------------

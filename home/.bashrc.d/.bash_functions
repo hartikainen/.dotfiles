@@ -26,7 +26,7 @@ github-clone() {
         return
     fi
 
-    local repositories_dir="${HOME/github}"
+    local repositories_dir="${HOME}/github"
     local user_dir="${repositories_dir}/${user_name}"
     local repository_dir="${user_dir}/${repository_name}"
 

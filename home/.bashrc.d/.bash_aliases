@@ -35,8 +35,7 @@ alias rm="rm -rf --"
 alias t="tmux"
 alias y="yarn"
 
-# alias emacs="emacs26"
-alias emacs="emacs26 -nw"
+alias emacs="emacs -nw"
 alias emacsw="emacs -w"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

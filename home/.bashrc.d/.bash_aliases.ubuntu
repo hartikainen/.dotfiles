@@ -51,3 +51,9 @@ alias update-everything="sudo apt-get update \
                          && npm install -g npm \
                          ; npm upgrade -g \
                          ; conda update conda"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Run emacs26 and not the old system default one.
+
+alias emacs="emacs26"

@@ -4,6 +4,24 @@
 
 # Create data URI from a file.
 
+disk-usage() {
+
+    set -x
+    local folder=""
+    [ -z "${1}" ] && folder="/home/"
+    sudo du -h -d 1 -t 1G "${folder}" | sort -hr
+    set +x
+
+}
+
+disk-free() {
+
+    set -x
+    df -h | sort -hr
+    set +x
+
+}
+
 github-clone() {
 
     # https://github.com/rail-berkeley/softlearning.git

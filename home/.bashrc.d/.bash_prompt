@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# A Fix to get around PS issues with tramp
+# TODO(hartikainen): Emacs tramp should set its TERM to "tramp",
+# and this should check for "tramp" instead of "dumb".
+[[ $TERM == "dumb" ]] && PS1='$ ' && return
+
 cd "$(dirname "${BASH_SOURCE[0]}")" \
     && . "../../setup/utils.sh"
 

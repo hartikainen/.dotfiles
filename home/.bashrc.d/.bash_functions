@@ -25,9 +25,13 @@ wait-for-pid() {
 
 disk-usage() {
 
-    set -x
     local folder=""
-    [ -z "${1}" ] && folder="/home/"
+    if [ -z "${1}" ]; then
+        folder="/home/"
+    else
+        folder="${1}"
+    fi
+    set -x
     sudo du -h -d 1 -t 1G "${folder}" | sort -hr
     set +x
 

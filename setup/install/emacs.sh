@@ -32,6 +32,7 @@ create_emacs_conda_environment() {
         "yapf"
         "black"
         "flake8"
+        "rope"
     )
 
     execute \

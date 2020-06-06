@@ -30,6 +30,7 @@ copy_public_ssh_key_to_clipboard () {
 
     else
         print_warning "Please copy the public SSH key ($1) to clipboard"
+        cat "${1}"
     fi
 
 }

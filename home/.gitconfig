@@ -16,7 +16,7 @@
     }; f"
 
     prune-merged = "!f() { \
-        git branch --merged \
+        git branch --merged $([[ $1 != \"-f\" ]] && git rev-parse master) \
         | egrep -v \"(^\\*|^\\s*(master|develop)$)\" \
         | xargs -n 1 git branch -d; \
     }; f"

@@ -6,9 +6,20 @@
 
     # Function shortcuts
 
-    # prune-merged = "!f() { \
-    #     git branch -d $(git branch --merged | egrep -v \"(^\*|master|dev)\")
-    # }; f"
+    log-branch = "!f() { \
+        git log \
+            --graph \
+            --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset%n' \
+            --abbrev-commit \
+            --date=relative \
+            --branches; \
+    }; f"
+
+    prune-merged = "!f() { \
+        git branch --merged \
+        | egrep -v '(^\\*|master|dev)' \
+        | xargs -n 1 git branch -d; \
+    }; f"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

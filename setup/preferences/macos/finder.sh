@@ -27,6 +27,9 @@ execute "defaults write com.apple.finder FXDefaultSearchScope -string 'SCcf'" \
 execute "defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false" \
     "Disable warning when changing a file extension"
 
+execute "defaults write com.apple.finder AppleShowAllFiles -bool true" \
+    "Show all files"
+
 execute "defaults write com.apple.finder FXPreferredViewStyle -string 'clmv'" \
     "Use column view in all Finder windows by default"
 

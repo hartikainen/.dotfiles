@@ -170,6 +170,14 @@ verify_os() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+    # Check if the OS is `Debian`.
+
+    elif [ "$os_name" == "debian" ]; then
+
+        return 0
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     else
         printf "Sorry, this script is intended only for macOS and Ubuntu!"
     fi

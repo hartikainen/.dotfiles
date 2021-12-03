@@ -49,7 +49,7 @@ install_conda() {
 
     download "${CONDA_LATEST_URL}" "${tmp_file}"
     # -b for batch/silent mode
-    execute "bash ${tmp_file} -b -p $HOME/conda" \
+    execute "bash ${tmp_file} -u -b -p $HOME/conda" \
             "Conda (install)"
 
     configure_conda
@@ -70,7 +70,7 @@ main() {
 
     print_in_purple "\n   Conda\n\n"
 
-    [ -d "${CONDA_DIRECTORY}" ] || install_conda
+    [ -d "${CONDA_DIRECTORY}" ] && [ ! -z "$(ls -A ${CONDA_DIRECTORY})" ] || install_conda
 
     update_conda
 }

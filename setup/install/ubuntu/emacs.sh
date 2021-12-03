@@ -11,7 +11,7 @@ main () {
 
     update
 
-    install_package "Emacs 26" "emacs26"
+    install_package "Emacs 27" "emacs27"
 
 }
 

@@ -7,7 +7,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 main() {
 
-    brew_install "Emacs >= 26" "emacs"
+    brew_install "Emacs" "brew install --cask emacs"
 
 }
 

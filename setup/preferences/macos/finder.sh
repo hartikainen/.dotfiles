@@ -7,6 +7,20 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 print_in_purple "\n   Finder\n\n"
 
+execute "defaults write com.apple.finder ShowStatusBar -bool true && \
+         defaults write com.apple.finder ShowPathbar -bool true" \
+    "Show status bar and path bar"
+
+execute "defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true && \
+         defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true && \
+         defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true && \
+         defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true" \
+    "Expand save and print panel by default"
+
+
+execute "defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false" \
+    "Save to disk, and not to iCloud, by default"
+
 execute "defaults write com.apple.frameworks.diskimages auto-open-ro-root -bool true && \
          defaults write com.apple.frameworks.diskimages auto-open-rw-root -bool true && \
          defaults write com.apple.finder OpenWindowForNewRemovableDisk -bool true" \

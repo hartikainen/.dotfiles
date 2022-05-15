@@ -9,6 +9,7 @@
 # make TAB cycle through them.
 
 TAB: menu-complete
+"\e[Z": menu-complete-backward
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -11,6 +11,8 @@ if [ "$(get_os_name)" == "macos" ]; then
     CONDA_FILENAME="Miniconda3-latest-MacOSX-x86_64.sh"
 elif [ "$(get_os_name)" == "ubuntu" ]; then
     CONDA_FILENAME="Miniconda3-latest-Linux-x86_64.sh"
+elif [ "$(get_os_name)" == "debian" ]; then
+    CONDA_FILENAME="Miniconda3-latest-Linux-x86_64.sh"
 fi
 declare -r CONDA_LATEST_URL="https://repo.continuum.io/miniconda/${CONDA_FILENAME}"
 
@@ -73,6 +75,7 @@ main() {
     [ -d "${CONDA_DIRECTORY}" ] && [ ! -z "$(ls -A ${CONDA_DIRECTORY})" ] || install_conda
 
     update_conda
+
 }
 
 main

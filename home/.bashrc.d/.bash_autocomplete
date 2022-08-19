@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ -n "$ZSH_VERSION" ]; then
+    # For zsh
+    cd "$(dirname "${(%):-%x}")" \
+        && . "../../setup/utils.sh"
+else
+    # For bash
+    cd "$(dirname "${BASH_SOURCE[0]}")" \
+        && . "../../setup/utils.sh"
+fi
+
+# Load OS specific autocomplete.
+
+source ".bash_autocomplete.$(get_os_name)"

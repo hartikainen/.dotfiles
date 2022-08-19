@@ -2,11 +2,9 @@
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Create data URI from a file.
-
 wait-for-pid() {
     local pid="${1}"
-    local me="$(basename $0)($$):"
+    local me="$(basename -- $0)($$):"
 
     if [ -z "$pid" ]; then
         echo "${me} a PID is required as an argument" >&2
@@ -81,6 +79,8 @@ github-clone() {
     git clone "${repository_url}" "${repository_dir}"
 
 }
+
+# Create data URI from a file.
 
 datauri() {
 

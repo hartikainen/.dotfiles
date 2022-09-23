@@ -11,6 +11,7 @@ set_prompts() {
     local orange=""
     local white=""
     local yellow=""
+    local red=""
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -24,6 +25,7 @@ set_prompts() {
         local orange=166
         local white=15
         local yellow=136
+        local red=124
 
     fi
 
@@ -31,15 +33,15 @@ set_prompts() {
 
     NEWLINE=$'\n'
 
-    PROMPT='${ret_status}'
+    PROMPT="${ret_status}"
 
     PROMPT+="%F{${orange}}%n%f"   # username
     PROMPT+="%F{${white}}@%f"     # @
     PROMPT+="%F{${yellow}}%m%f"   # hostname
     PROMPT+="%F{${white}}:%f"     # :
     PROMPT+=" %F{${green}}%~%f"   # workdir
-    PROMPT+=' $(git_prompt_info)' # branch
-    PROMPT+='${NEWLINE}'
+    PROMPT+=" $(git_prompt_info)" # branch
+    PROMPT+="${NEWLINE}"
     PROMPT+="%F{${white}}"
     PROMPT+='$ '
     PROMPT+="%f%b"

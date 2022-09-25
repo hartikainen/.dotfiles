@@ -32,7 +32,6 @@ source_files() {
 
     declare -r -a FILES_TO_SOURCE=(
         ".bashrc.d/.bash_aliases"
-        ".bashrc.d/.bash_autocomplete"
         ".bashrc.d/.bash_exports"
         ".bashrc.d/.bash_functions"
         ".bashrc.d/.bash_colors"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-extract() {
+function extract() {
 
     local archive="$1"
     local outputDir="$2"
@@ -14,7 +14,7 @@ extract() {
 
 }
 
-download() {
+function download() {
 
     local url="$1"
     local output="$2"
@@ -44,24 +44,24 @@ download() {
 
 }
 
-answer_is_yes() {
+function answer_is_yes() {
     [[ "$REPLY" =~ ^[Yy]$ ]] \
         && return 0 \
         || return 1
 }
 
-ask() {
+function ask() {
     print_question "$1"
     read -r
 }
 
-ask_for_confirmation() {
+function ask_for_confirmation() {
     print_question "$1 (y/n) "
     read -r -n 1
     printf "\n"
 }
 
-ask_for_sudo() {
+function ask_for_sudo() {
 
     # Ask for the administrator password upfront.
 
@@ -80,11 +80,11 @@ ask_for_sudo() {
 
 }
 
-cmd_exists() {
+function cmd_exists() {
     command -v "$1" &> /dev/null
 }
 
-kill_all_subprocesses() {
+function kill_all_subprocesses() {
 
     local i=""
 
@@ -95,7 +95,7 @@ kill_all_subprocesses() {
 
 }
 
-execute() {
+function execute() {
 
     local -r CMDS="$1"
     local -r MSG="${2:-$1}"
@@ -154,11 +154,11 @@ execute() {
 
 }
 
-get_answer() {
+function get_answer() {
     printf "%s" "$REPLY"
 }
 
-get_os_name() {
+function get_os_name() {
 
     local os=""
     local kernelName=""
@@ -179,7 +179,7 @@ get_os_name() {
 
 }
 
-get_os_version() {
+function get_os_version() {
 
     local os=""
     local version=""
@@ -198,11 +198,11 @@ get_os_version() {
 
 }
 
-is_git_repository() {
+function is_git_repository() {
     git rev-parse &> /dev/null
 }
 
-is_supported_version() {
+function is_supported_version() {
 
     declare -a v1=(${1//./ })
     declare -a v2=(${2//./ })
@@ -231,7 +231,7 @@ is_supported_version() {
 
 }
 
-mkd() {
+function mkd() {
     if [ -n "$1" ]; then
         if [ -e "$1" ]; then
             if [ ! -d "$1" ]; then
@@ -245,44 +245,44 @@ mkd() {
     fi
 }
 
-print_error() {
+function print_error() {
     print_in_red "   [✖] $1 $2\n"
 }
 
-print_error_stream() {
+function print_error_stream() {
     while read -r line; do
         print_error "↳ ERROR: $line"
     done
 }
 
-print_in_color() {
+function print_in_color() {
     printf "%b" \
         "$(tput setaf "$2" 2> /dev/null)" \
         "$1" \
         "$(tput sgr0 2> /dev/null)"
 }
 
-print_in_green() {
+function print_in_green() {
     print_in_color "$1" 2
 }
 
-print_in_purple() {
+function print_in_purple() {
     print_in_color "$1" 5
 }
 
-print_in_red() {
+function print_in_red() {
     print_in_color "$1" 1
 }
 
-print_in_yellow() {
+function print_in_yellow() {
     print_in_color "$1" 3
 }
 
-print_question() {
+function print_question() {
     print_in_yellow "   [?] $1"
 }
 
-print_result() {
+function print_result() {
 
     if [ "$1" -eq 0 ]; then
         print_success "$2"
@@ -294,22 +294,22 @@ print_result() {
 
 }
 
-print_success() {
+function print_success() {
     print_in_green "   [✔] $1\n"
 }
 
-print_warning() {
+function print_warning() {
     print_in_yellow "   [!] $1\n"
 }
 
-set_trap() {
+function set_trap() {
 
     trap -p "$1" | grep "$2" &> /dev/null \
         || trap '$2' "$1"
 
 }
 
-skip_questions() {
+function skip_questions() {
 
      while :; do
         case $1 in
@@ -323,7 +323,7 @@ skip_questions() {
 
 }
 
-show_spinner() {
+function show_spinner() {
 
     local -r FRAMES='/-\|'
 

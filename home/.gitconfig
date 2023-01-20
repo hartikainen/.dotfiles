@@ -108,3 +108,7 @@
     #     by the local ones
 
     path = ~/.gitconfig.local
+
+[status]
+
+    showUntrackedFiles = all

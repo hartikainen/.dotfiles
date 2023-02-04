@@ -12,7 +12,7 @@ create_symlinks() {
         "home/.bash_profile"
         "home/.bashrc"
         "home/.bashrc.d"
-        "home/.config/yapf/style"
+        "home/.config"
         "home/.curlrc"
 
         "home/.gitattributes"

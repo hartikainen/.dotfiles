@@ -1,0 +1,123 @@
+#!/bin/bash
+
+_conda_env_name() {
+  if [[ -n $CONDA_PREFIX ]]; then
+      # if [[ $(basename $CONDA_PREFIX) =~ @(conda|conda3|miniconda3|miniconda)$ ]]; then
+      if [[ "$(basename $CONDA_PREFIX)" =~ "^(conda|miniconda|anaconda)3?$" ]]; then
+        # Without this, it would display conda version
+        echo "base"
+      else
+        # For all environments that aren't (base)
+        echo "$(basename $CONDA_PREFIX)"
+      fi
+  # When no conda environment is active, don't show anything
+  else
+    echo ""
+  fi
+}
+
+function _ps1 () {
+  local GREEN="%F{64}"
+  local BOLD_GREEN="%B${GREEN}"
+  local NO_STYLE="%f"
+  local BOLD_NO_STYLE="${NO_STYLE}%b"
+
+  local CONDA_ENV_NAME_STYLE="${BOLD_GREEN}"
+  local PATH_STYLE="${GREEN}"
+
+  local conda_env_name=`_conda_env_name`
+  local cur_pwd=${PWD//$HOME/\~}
+
+  if [[ "$conda_env_name" != "" ]]
+  then
+    echo -e "[${CONDA_ENV_NAME_STYLE}${conda_env_name}${BOLD_NO_STYLE}]─[${PATH_STYLE}${cur_pwd}${NO_STYLE}]"
+  else
+    echo -e "[${PATH_STYLE}${cur_pwd}${NO_STYLE}]"
+  fi
+}
+
+function _status () {
+  local status_num=$?
+  local BOLD_RED="%B%F{124}"
+  local NO_STYLE="%f%b"
+
+  local ERROR_STYLE="${BOLD_RED}"
+
+  echo -e "%(?..[${ERROR_STYLE}%?${NO_STYLE}]─)"
+  exit "${status_num}"
+}
+
+function _user_host () {
+  local RED="%F{124}"
+  local ORANGE="%F{166}"
+  local YELLOW="%F{136}"
+  local NO_STYLE="%f"
+
+  local USER_STYLE="${ORANGE}"
+  local HOST_STYLE="${YELLOW}"
+  local ROOT_STYLE="${RED}"
+
+  local user_name="%n"
+  local machine_name="%m"
+
+  if [[ ${EUID} == 0 ]] ; then
+    echo -e "[${ROOT_STYLE}${machine_name}${NO_STYLE}]─";
+  else
+    echo -e "[${USER_STYLE}${user_name}${NO_STYLE}@${HOST_STYLE}${machine_name}${NO_STYLE}]─";
+  fi
+}
+
+
+set_prompts() {
+
+    local cyan=""
+    local green=""
+    local orange=""
+    local white=""
+    local yellow=""
+    local red=""
+    local blue=""
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    if [ "$(tput colors 2> /dev/null || printf "0")" -ge 256 ]; then
+
+        # Solarized colors.
+        # https://github.com/altercation/solarized/tree/master/iterm2-colors-solarized#the-values
+
+        local cyan=37
+        local green=64
+        local orange=166
+        local white=15
+        local yellow=136
+        local red=124
+        local blue=33
+    fi
+
+    NEWLINE=$'\n'
+
+    export PROMPT="┌─\$(_status)\$(_user_host)\$(_ps1)${NEWLINE}└──╼ "
+
+    export ZSH_THEME_GIT_PROMPT_PREFIX="%F{${white}}on%f %F{${cyan}}"
+    export ZSH_THEME_GIT_PROMPT_SUFFIX="%f "
+    export ZSH_THEME_GIT_PROMPT_DIRTY="%F{${blue}} %F{${yellow}}✗"
+    export ZSH_THEME_GIT_PROMPT_CLEAN="%F{${blue}} "
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+main() {
+
+    set_prompts
+
+}
+
+main
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Cleanup.
+
+unset -f main
+unset -f set_prompts

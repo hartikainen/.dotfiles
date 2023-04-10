@@ -1,0 +1,4 @@
+channels:
+  - conda-forge
+  - defaults
+changeps1: False

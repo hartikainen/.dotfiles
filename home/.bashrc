@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# TODO(hartikainen): Figure what the right way to set these is for different
+# shell types (e.g. interactive vs. non-interactive).
+: "${XDG_CONFIG_HOME:=${HOME}/.config}"
+: "${XDG_STATE_HOME:=${HOME}/.local/state}"
+: "${XDG_CACHE_HOME:=${HOME}/.cache}"
+: "${XDG_DATA_HOME:=${HOME}/.local/share}"
+
 # Enable `conda`-command.
 __conda_setup="$("${HOME}/conda/bin/conda" 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
@@ -9,56 +16,52 @@ else
 fi
 unset __conda_setup
 
-# If not running interactively, don't do anything
+# Return if not running interactively.
 case $- in
     *i*) ;;
-      *) return;;
+    *) return;;
 esac
 
-# if [ -d "${HOME}/.bashrc.d" ]; then
-#     for file in $(/bin/ls "${HOME}/.bashrc.d/*.bashrc"); do
-#         source $file;
-#     done
-# fi
+# Only variables needed by external commands or non-interactive sub shells
+# should be exported.
+export XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_DATA_HOME
+export EDITOR="emacs" VISUAL="emacs"
+
+export SHELL_SESSION_DIR="${XDG_STATE_HOME}/bash/sessions"
+export SHELL_SESSION_FILE="${SHELL_SESSION_DIR}/${TERM_SESSION_ID}"
+
+[ -f "${XDG_CONFIG_HOME}/fzf/fzf.sh" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.sh"
+[ -f "${XDG_CONFIG_HOME}/fzf/fzf.bash" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.bash"
+
 
 source_files() {
 
     declare -r -a FILES_TO_SOURCE=(
-        ".bashrc.d/.bash_aliases"
-        ".bashrc.d/.bash_autocomplete"
-        ".bashrc.d/.bash_exports"
-        ".bashrc.d/.bash_functions"
-        ".bashrc.d/.bash_colors"
+        "${XDG_CONFIG_HOME}/bash/aliases"
+        "${XDG_CONFIG_HOME}/bash/autocomplete"
+        "${XDG_CONFIG_HOME}/bash/exports"
+        "${XDG_CONFIG_HOME}/bash/functions"
+        "${XDG_CONFIG_HOME}/bash/colors"
 
-        ".bashrc.d/.bash_options"
-        ".bashrc.d/.bash_prompt"
+        "${XDG_CONFIG_HOME}/bash/options"
+        "${XDG_CONFIG_HOME}/bash/prompt"
 
         # For local settings that should
         # not be under version control.
-        ".bash.local"
+        "${XDG_CONFIG_HOME}/bash/local"
     )
 
-    declare -r CURRENT_DIRECTORY="$(pwd)"
+    local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/../..")"
+    . "${DOTFILES_ROOT}/setup/utils.sh"
 
-    cd "$(dirname "$(readlink "${BASH_SOURCE[0]}")")" \
-        && . "../setup/utils.sh"
-
-    cd "${CURRENT_DIRECTORY}"
-
-    for f in ${FILES_TO_SOURCE[*]}; do
-
-        file="${HOME}/${f}"
-
-        [ -r "${file}" ] \
-            && . "${file}"
-
+    for file in "${FILES_TO_SOURCE[@]}"; do
+        [ -r "${file}" ] && source "${file}"
     done
 
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 source_files
 unset -f source_files
 

@@ -1,4 +1,0 @@
-Things TODO:
-- Make the repo initialization in `update_content.sh` a bit safer
-- Fix the macos caps lock -> ctrl logic
--

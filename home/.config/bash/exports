@@ -76,3 +76,9 @@ export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 # Make Python use UTF-8 encoding for output to stdin/stdout/stderr.
 
 export PYTHONIOENCODING="UTF-8"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Rust's cargo home path.
+
+export CARGO_HOME="${CARGO_HOME:=${XDG_DATA_HOME}/cargo}"

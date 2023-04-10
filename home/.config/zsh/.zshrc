@@ -2,12 +2,18 @@
 
 [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
 
-# Path to your oh-my-zsh installation.
-export ZSH="${HOME}/.oh-my-zsh"
+# Path to your oh-my-zsh installation. TODO(hartikainen): should this be `XDG_CONFIG_HOME`?
+export ZSH="${XDG_DATA_HOME}/oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
 
 HIST_STAMPS="%d-%m-%y %T"
+# `HISTFILE` is used only by interactive shells, that is, sub shells and
+# external commands don't need this var. Thus, we don't need to export it.
+mkdir -p "${XDG_STATE_HOME}/zsh"
+HISTFILE="${XDG_STATE_HOME}/zsh/history"
+mkdir -p "${XDG_CACHE_HOME}/zsh"
+ZSH_CACHE_DIR="${XDG_CACHE_HOME}/zsh"
 
 plugins=(
     docker
@@ -20,8 +26,16 @@ plugins=(
     # brew
 )
 
+# Only variables needed by external commands or non-interactive sub shells
+# should be exported.
+export XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_DATA_HOME
+export EDITOR="emacs" VISUAL="emacs"
+
+# export "${CARGO_HOME:=${XDG_DATA_HOME}/cargo}"
+
 [ -f "${ZSH}/oh-my-zsh.sh" ] && source "${ZSH}/oh-my-zsh.sh"
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f "${XDG_CONFIG_HOME}/fzf/fzf.sh" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.sh"
+[ -f "${XDG_CONFIG_HOME}/fzf/fzf.zsh" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.zsh"
 
 zstyle ':completion:*' special-dirs false
 
@@ -31,37 +45,25 @@ zstyle ':completion:*' special-dirs false
 source_files() {
 
     declare -r -a FILES_TO_SOURCE=(
-        ".bashrc.d/.bash_aliases"
-        ".bashrc.d/.bash_exports"
-        ".bashrc.d/.bash_functions"
-        ".bashrc.d/.bash_colors"
+        "${XDG_CONFIG_HOME}/bash/aliases"
+        "${XDG_CONFIG_HOME}/bash/exports"
+        "${XDG_CONFIG_HOME}/bash/functions"
+        "${XDG_CONFIG_HOME}/bash/colors"
 
         # zsh-specific files
-        ".bashrc.d/.zsh_options"
-        ".bashrc.d/.zsh_prompt"
+        "${XDG_CONFIG_HOME}/zsh/options"
+        "${XDG_CONFIG_HOME}/zsh/conda_prompt"
 
         # For local settings that should
         # not be under version control.
-        ".zsh.local"
+        "${XDG_CONFIG_HOME}/zsh/local"
     )
+    
+    local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/../..")"
+    . "${DOTFILES_ROOT}/setup/utils.sh"
 
-    declare -r CURRENT_DIRECTORY="$(pwd)"
-
-    cd "$(dirname "$(readlink "${(%):-%x}")")" \
-        && . "../setup/utils.sh"
-
-    cd "${CURRENT_DIRECTORY}"
-
-    # shellcheck disable=SC2034
-    declare -r OS="$(get_os_name)"
-
-    for f in ${FILES_TO_SOURCE[*]}; do
-
-        file="${HOME}/${f}"
-
-        [ -r "${file}" ] \
-            && . "${file}"
-
+    for file in "${FILES_TO_SOURCE[@]}"; do
+        [ -r "${file}" ] && source "${file}"
     done
 
 }

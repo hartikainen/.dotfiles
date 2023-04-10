@@ -1,8 +1,5 @@
 #!/bin/bash
 
-cd "$(dirname "${(%):-%x}")" \
-    && . "../../setup/utils.sh"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 set_prompts() {

@@ -7,7 +7,14 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 create_bash_local() {
 
-    declare -r FILE_PATH="$HOME/.bash.local"
+    if [ -z ${XDG_CONFIG_HOME+x} ]; then
+        echo "$(basename -- "${BASH_SOURCE[0]}"):
+The \$XDG_CONFIG_HOME variable must be set for this setup script to function
+properly."
+        exit 1
+    fi
+
+    declare -r FILE_PATH="${XDG_CONFIG_HOME}/bash/local"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -21,7 +28,7 @@ create_bash_local() {
 
 create_zsh_local() {
 
-    declare -r FILE_PATH="$HOME/.zsh.local"
+    declare -r FILE_PATH="${XDG_CONFIG_HOME}/zsh/local"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -29,7 +36,7 @@ create_zsh_local() {
         printf \
             "%s\n\n%s\n\n" \
             "#!/bin/zsh" \
-            "[ -f ~/.bash.local ] && source ~/.bash.local" \
+            '[ -f "${XDG_CONFIG_HOME}/bash/local" ] && source "${XDG_CONFIG_HOME}/bash/local"' \
             >> "${FILE_PATH}"
     fi
 
@@ -39,7 +46,7 @@ create_zsh_local() {
 
 create_gitconfig_local() {
 
-    declare -r FILE_PATH="$HOME/.gitconfig.local"
+    declare -r FILE_PATH="${XDG_CONFIG_HOME}/git/config.local"
     declare GIT_NAME=""
     declare GIT_EMAIL=""
 

@@ -4,7 +4,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
     && . "../../utils.sh" \
     && . "./utils.sh"
 
-declare -r FZF_DIRECTORY="${HOME}/.fzf"
+declare -r FZF_DIRECTORY="${XDG_CONFIG_HOME:=${HOME}/.config}/fzf"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -23,7 +23,7 @@ install_fzf() {
 update_fzf() {
 
     execute "cd ${FZF_DIRECTORY} && git pull" "zfz (git pull)"
-    execute "${FZF_DIRECTORY}/install" "zfz (install/update)"
+    execute "${FZF_DIRECTORY}/install --xdg" "zfz (install/update)"
 
 }
 

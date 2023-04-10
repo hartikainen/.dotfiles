@@ -1,2 +1,3 @@
+# TODO(hartikainen): Not sure if this works under `${XDG_CONFIG_HOME}/.config`.
 xinput set-prop "Apple Inc. Magic Trackpad 2" "Synaptics Finger" 0 10 0
 xinput set-prop "Apple Inc. Magic Trackpad 2" "Synaptics Scrolling Distance" -182 -182

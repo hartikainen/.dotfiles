@@ -13,7 +13,7 @@ main() {
     brew_install "fzf" "fzf"
     brew_install "ripgrep" "ripgrep"
     # To install useful key bindings and fuzzy completion:
-    execute "$(brew --prefix)/opt/fzf/install --all"
+    execute "$(brew --prefix)/opt/fzf/install --xdg --all"
 
 }
 

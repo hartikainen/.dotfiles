@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# . "$(dirname "${BASH_SOURCE[0]}")/utils.sh"
-
 declare -r GITHUB_REPOSITORY="hartikainen/.dotfiles"
 
 declare -r DOTFILES_ORIGIN="git@github.com:$GITHUB_REPOSITORY.git"
@@ -136,7 +134,7 @@ download_utils() {
 
 verify_os() {
 
-    declare -r MINIMUM_MACOS_VERSION="10.10"
+    declare -r MINIMUM_MACOS_VERSION="12.6"
     declare -r MINIMUM_UBUNTU_VERSION="16.04"
 
     local os_name="$(get_os_name)"
@@ -239,6 +237,19 @@ main() {
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     ./create_symbolic_links.sh "$@"
+
+    if [ -f "${HOME}/.bashrc" ] && [ -z ${XDG_CONFIG_HOME+x} ] || [ -z ${XDG_DATA_HOME+x} ]; then
+        source "${HOME}/.bashrc"
+    fi
+
+    if [ -z ${XDG_CONFIG_HOME+x} ] || [ -z ${XDG_DATA_HOME+x} ]; then
+        echo '
+$XDG_CONFIG_HOME and $XDG_DATA_HOME variables must be set for this setup script
+to function properly.'
+        exit 1
+    fi
+
+    export XDG_CONFIG_HOME XDG_DATA_HOME
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

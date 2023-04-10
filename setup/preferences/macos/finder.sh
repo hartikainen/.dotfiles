@@ -17,7 +17,6 @@ execute "defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool 
          defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true" \
     "Expand save and print panel by default"
 
-
 execute "defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false" \
     "Save to disk, and not to iCloud, by default"
 

@@ -9,21 +9,10 @@ create_symlinks() {
 
     declare -a FILES_TO_SYMLINK=(
 
-        "home/.bash_profile"
-        "home/.bashrc"
-        "home/.bashrc.d"
         "home/.config"
-        "home/.curlrc"
+        "home/.bashrc"
+        "home/.zshenv"
 
-        "home/.gitattributes"
-        "home/.gitconfig"
-        "home/.gitignore"
-
-        "home/.inputrc"
-        "home/.tmux.conf"
-        "home/.xsessionrc"
-
-        "home/.zshrc"
     )
 
     local i=""
@@ -42,7 +31,6 @@ create_symlinks() {
 
         sourceFile="$(cd .. && pwd)/$i"
         targetFile="$HOME/${i##home/}"
-        # "$(printf "%s" "$i" | sed "s/.*\/\(.*\)/\1/g")"
 
         if [ ! -e "$targetFile" ] || $skipQuestions; then
 

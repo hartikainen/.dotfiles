@@ -1,14 +1,7 @@
 #!/bin/bash
 
-if [ -n "$ZSH_VERSION" ]; then
-    # For zsh
-    cd "$(dirname "${(%):-%x}")" \
-        && . "../../setup/utils.sh"
-else
-    # For bash
-    cd "$(dirname "${BASH_SOURCE[0]}")" \
-        && . "../../setup/utils.sh"
-fi
+local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/../..")"
+source "${DOTFILES_ROOT}/setup/utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -19,21 +12,11 @@ alias cd..="cd .."
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-alias :q="exit"
 alias c="clear"
-alias ch="history -c && > ~/.bash_history"
-alias e="vim --"
-alias g="git"
 alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
-alias ll="ls -l"
-alias m="man"
+alias ll="ls -lah"
 alias map="xargs -n1"
-alias n="npm"
 alias path='printf "%b\n" "${PATH//:/\\n}"'
-alias q="exit"
-alias rm="rm -rf --"
-alias t="tmux"
-alias y="yarn"
 
 alias emacs="emacs -nw"
 alias emacsw="emacs -w"
@@ -42,4 +25,12 @@ alias emacsw="emacs -w"
 
 # Load OS specific aliases.
 
-source ".bash_aliases.$(get_os_name)"
+if [ -n "$ZSH_VERSION" ]; then
+    # For zsh
+    # shellcheck source=/dev/null
+    . "$(dirname "${(%):-%x}")/aliases.$(get_os_name)"
+else
+    # For bash
+    # shellcheck source=/dev/null
+    . "$(dirname "${BASH_SOURCE[0]}")/aliases.$(get_os_name)"
+fi

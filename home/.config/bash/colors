@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Load OS specific colors.
+
+if [ -n "$ZSH_VERSION" ]; then
+    # For zsh
+    # shellcheck source=/dev/null
+    . "$(dirname "${(%):-%x}")/colors.$(get_os_name)"
+else
+    # For bash
+    # shellcheck source=/dev/null
+    . "$(dirname "${BASH_SOURCE[0]}")/colors.$(get_os_name)"
+fi

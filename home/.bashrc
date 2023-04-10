@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Enable `conda`-command.
+__conda_setup="$("${HOME}/conda/bin/conda" 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    echo 'Unable to provide `conda` command.'
+fi
+unset __conda_setup
+
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;

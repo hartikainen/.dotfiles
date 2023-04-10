@@ -97,6 +97,18 @@ export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:+$FZF_DEFAULT_OPTS }--no-height"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# Enable `conda`-command.
+
+__conda_setup="$("${HOME}/conda/bin/conda" 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    echo 'Unable to provide `conda` command.'
+fi
+unset __conda_setup
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # Clear system messages (system copyright notice, the date
 # and time of the last login, the message of the day, etc.).
 

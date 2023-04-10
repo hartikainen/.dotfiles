@@ -74,16 +74,20 @@ brew_tap() {
 
 brew_update() {
 
-    execute \
-        "brew update" \
-        "Homebrew (update)"
+    if ! cmd_exists "brew"; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+
+    execute "brew update" "Homebrew (update)"
 
 }
 
 brew_upgrade() {
 
-    execute \
-        "brew upgrade" \
-        "Homebrew (upgrade)"
+    if ! cmd_exists "brew"; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+
+    execute "brew upgrade" "Homebrew (upgrade)"
 
 }

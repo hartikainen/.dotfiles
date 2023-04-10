@@ -3,28 +3,34 @@
 cd "$(dirname "${BASH_SOURCE[0]}")" \
     && . "../utils.sh"
 
-declare -r LOCAL_SHELL_CONFIG_FILE="${HOME}/.bash.local"
-declare -a EMACS_SETTINGS_REMOTE="git@github.com:hartikainen/myemacs.git"
-declare -a EMACS_SETTINGS_DIR="${HOME}/.emacs.d"
-
+declare -r DOOM_INSTALL_DIR="${XDG_CONFIG_HOME}/emacs"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-clone_emacs_settings() {
+install_doom_emacs() {
 
-    [ -d "${EMACS_SETTINGS_DIR}" ] || execute \
-        "git clone ${EMACS_SETTINGS_REMOTE} ${EMACS_SETTINGS_DIR}"
+    if [ ! -f "${DOOM_INSTALL_DIR}/bin/doom" ]; then
+        execute \
+            "git clone --depth 1 https://github.com/doomemacs/doomemacs ${DOOM_INSTALL_DIR}" \
+            "Emacs (clone doom)"
+        execute "bash -i -c '${DOOM_INSTALL_DIR}/bin/doom install -!'"
+    else
+        print_success "Skip doom install (already installed)"
+    fi
 
-    print_success "Emacs (clone settings)"
+}
+
+upgrade_doom_emacs() {
+
+    execute "bash -i -c '${DOOM_INSTALL_DIR}/bin/doom upgrade'"
+    execute "bash -i -c '${DOOM_INSTALL_DIR}/bin/doom sync'"
+
 }
 
 create_emacs_conda_environment() {
 
-    # Need to source this to activate conda
-    . "${LOCAL_SHELL_CONFIG_FILE}"
-
     execute \
-        "conda create --name emacs 'python>=3.7' || true" \
-        "Emacs (create conda env)"
+        'bash -i -c "conda create --name emacs \"python>=3.10\" || true"' \
+        "conda create --name emacs 'python>=3.10'"
 
     local EMACS_CONDA_PACKAGES=(
         "jedi"
@@ -35,9 +41,10 @@ create_emacs_conda_environment() {
         "rope"
     )
 
+    pip_install_command="pip install -U ${EMACS_CONDA_PACKAGES[*]}"
     execute \
-        "conda activate emacs && pip install ${EMACS_CONDA_PACKAGES[*]}" \
-        "Emacs (install conda packages)"
+        "bash -i -c 'conda activate emacs && $pip_install_command'" \
+        "pip install ${EMACS_CONDA_PACKAGES[*]}"
 
 }
 
@@ -49,9 +56,12 @@ main() {
 
     "./$(get_os_name)/emacs.sh"
 
-    printf "\n"
+    print_in_purple "\n   Doom Emacs\n\n"
 
-    clone_emacs_settings
+    install_doom_emacs
+    upgrade_doom_emacs
+
+    print_in_purple "\n   Create Emacs Conda environment\n\n"
 
     create_emacs_conda_environment
 

@@ -17,7 +17,11 @@ brew_install() {
     # Check if `Homebrew` is installed.
 
     if ! cmd_exists "brew"; then
-        print_error "$FORMULA_READABLE_NAME ('Homebrew' is not installed)"
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+
+    if ! cmd_exists "brew"; then
+        print_error "$FORMULA_READABLE_NAME (\`brew\` not found installed)"
         return 1
     fi
 

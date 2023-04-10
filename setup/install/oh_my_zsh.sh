@@ -29,11 +29,16 @@ properly."
     tmp_file="$(mktemp /tmp/XXXXX)"
 
     download "${OH_MY_ZSH_LATEST_URL}" "${tmp_file}"
-    execute "RUNZSH=no ZSH=${OH_MY_ZSH_DIRECTORY} sh ${tmp_file}" \
-            "oh-my-zsh (install)"
+    ZDOTDIR="${XDG_CONFIG_HOME}/zsh"
+    local install_zsh_command=$(printf 'RUNZSH=no \\
+KEEP_ZSHRC=yes \\
+ZSH=%s \\
+ZDOTDIR=%s \\
+sh %s \\
+' "${OH_MY_ZSH_DIRECTORY}" "${ZDOTDIR}" "${tmp_file}")
 
-    execute "mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc" \
-            "oh-my-zsh (oh-my-zsh annoyingly replaces the .zshrc. Undo this to use our file.)"
+    execute "RUNZSH=no KEEP_ZSHRC=yes ZSH=${OH_MY_ZSH_DIRECTORY} sh ${tmp_file}" \
+            "oh-my-zsh (install)"
 
 }
 
@@ -46,7 +51,8 @@ main() {
 
     [ -d "${OH_MY_ZSH_DIRECTORY}" ] || install_oh_my_zsh
 
-    zsh -c "omz update" || true
+    execute 'zsh -ic "omz update"' \
+            "oh-my-zsh (update)"
 
 }
 

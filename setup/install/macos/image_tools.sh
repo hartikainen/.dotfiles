@@ -10,7 +10,7 @@ main() {
 
     print_in_purple "\n   Image Tools\n\n"
 
-    brew_install "GIMP" "lisanet-gimp" "--cask"
+    brew_install "GIMP" "gimp" "--cask"
     brew_install "ImageMagick" "imagemagick"
 
 }

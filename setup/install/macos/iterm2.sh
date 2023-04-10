@@ -10,7 +10,7 @@ main() {
 
     print_in_purple "\n   iTerm2\n\n"
 
-    brew_install "iTerm2" "iterm2" "homebrew/cask" "cask"
+    brew_install "iTerm2" "iterm2" "--cask"
 
 }
 

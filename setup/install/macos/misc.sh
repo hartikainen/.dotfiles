@@ -10,8 +10,8 @@ main() {
 
     print_in_purple "\n   Miscellaneous\n\n"
 
-    # brew_install "Android File Transfer" "android-file-transfer" "homebrew/cask" "cask"
-    brew_install "VLC" "vlc" "homebrew/cask" "cask"
+    # brew_install "Android File Transfer" "android-file-transfer" "--cask"
+    brew_install "VLC" "vlc" "--cask"
 
 }
 

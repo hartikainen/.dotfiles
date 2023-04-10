@@ -10,7 +10,7 @@ main() {
 
     print_in_purple "\n   Miscellaneous Tools\n\n"
 
-    brew_install "Visual Studio Code" "visual-studio-code" "homebrew/cask" "cask"
+    brew_install "Visual Studio Code" "visual-studio-code" "--cask"
 
 }
 

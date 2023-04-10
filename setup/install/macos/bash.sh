@@ -87,8 +87,6 @@ main() {
     brew_install "Bash Completion 2" "bash-completion@2"
     brew_install "zsh-completions" "zsh-completions"
     brew_install "docker-completion" "docker-completion"
-    brew_install "docker-compose-completion" "docker-compose-completion"
-    brew_install "docker-machine-completion" "docker-machine-completion"
     brew_install "brew-cask-completion" "brew-cask-completion"
     brew_install "pip-completion" "pip-completion"
 

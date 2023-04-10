@@ -16,8 +16,9 @@
     }; f"
 
     prune-merged = "!f() { \
-        git branch --merged $([[ $1 != \"-f\" ]] && git rev-parse master) \
-        | egrep -v \"(^\\*|^\\s*(master|develop)$)\" \
+        local main_branch=\"$(git remote show origin | awk '/HEAD branch/ {print $NF}')\" \
+        && git branch --merged $([[ $1 != \"-f\" ]] && git rev-parse ${main_branch}) \
+        | egrep -v \"(^\\*|^\\s*(master|main|develop)$)\" \
         | xargs -n 1 git branch -d; \
     }; f"
 

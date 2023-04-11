@@ -8,7 +8,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 change_default_bash() {
 
-    declare -r LOCAL_SHELL_CONFIG_FILE="$HOME/.bash.local"
+    declare -r LOCAL_SHELL_CONFIG_FILE="${XDG_CONFIG_HOME}/bash/local"
 
     local configs=""
     local pathConfig=""
@@ -21,10 +21,9 @@ change_default_bash() {
     # Try to get the path of the `Bash`
     # version installed through `Homebrew`.
 
-    brewPrefix="$(brew_prefix)" \
-        || return 1
+    brewPrefix="$(brew_prefix)" || return 1
 
-    pathConfig="PATH=\"$brewPrefix/bin:\$PATH\""
+    pathConfig=$(printf 'PATH="%s${PATH:+:${PATH}}"' "${brewPrefix}/bin")
     configs="
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -82,7 +81,7 @@ main() {
 
     print_in_purple "\n   Bash\n\n"
 
-    brew_install "Bash" "bash"
+    brew_install "Bash" "bash" && change_default_bash
 
     brew_install "Bash Completion 2" "bash-completion@2"
     brew_install "zsh-completions" "zsh-completions"

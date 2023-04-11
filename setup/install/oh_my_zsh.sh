@@ -29,16 +29,13 @@ properly."
     tmp_file="$(mktemp /tmp/XXXXX)"
 
     download "${OH_MY_ZSH_LATEST_URL}" "${tmp_file}"
-    ZDOTDIR="${XDG_CONFIG_HOME}/zsh"
-    local install_zsh_command=$(printf 'RUNZSH=no \\
-KEEP_ZSHRC=yes \\
-ZSH=%s \\
-ZDOTDIR=%s \\
-sh %s \\
-' "${OH_MY_ZSH_DIRECTORY}" "${ZDOTDIR}" "${tmp_file}")
 
-    execute "RUNZSH=no KEEP_ZSHRC=yes ZSH=${OH_MY_ZSH_DIRECTORY} sh ${tmp_file}" \
-            "oh-my-zsh (install)"
+    ZDOTDIR="${XDG_CONFIG_HOME}/zsh"
+    local omz_options=""
+    omz_options=$(printf 'RUNZSH=no KEEP_ZSHRC=yes ZSH=%s ZDOTDIR=%s' \
+        "${OH_MY_ZSH_DIRECTORY}" "${ZDOTDIR}")
+
+    execute "${omz_options} sh ${tmp_file}" "oh-my-zsh (install)"
 
 }
 

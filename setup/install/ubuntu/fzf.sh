@@ -15,15 +15,27 @@ install_fzf() {
                  --depth 1 \
                  https://github.com/junegunn/fzf.git \
                  ${FZF_DIRECTORY}" \
-            "zfz (clone to ${FZF_DIRECTORY})"
-    execute "${FZF_DIRECTORY}/install" "zfz (install)"
+            "fzf (clone to ${FZF_DIRECTORY})"
+
+    # To install key bindings and fuzzy completion for fzf. We set
+    # `--no-{bash,zsh,fish}` because we assume that those are already
+    # configured by the user.
+    fzf_configure_command=$(printf '
+        %s/install \
+        --xdg \
+        --no-bash \
+        --no-zsh \
+        --no-fish
+    ' "${FZF_DIRECTORY}")
+
+    execute "$fzf_configure_command" "fzf (install)"
 
 }
 
 update_fzf() {
 
-    execute "cd ${FZF_DIRECTORY} && git pull" "zfz (git pull)"
-    execute "${FZF_DIRECTORY}/install --xdg" "zfz (install/update)"
+    execute "cd ${FZF_DIRECTORY} && git pull" "fzf (git pull)"
+    execute "${FZF_DIRECTORY}/install --xdg" "fzf (install/update)"
 
 }
 

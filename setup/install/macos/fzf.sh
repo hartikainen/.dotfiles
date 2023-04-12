@@ -10,10 +10,21 @@ main() {
 
     print_in_purple "\n   fzf\n\n"
 
-    brew_install "fzf" "fzf"
     brew_install "ripgrep" "ripgrep"
-    # To install useful key bindings and fuzzy completion:
-    execute "$(brew --prefix)/opt/fzf/install --xdg --all"
+    brew_install "fzf (install)" "fzf"
+
+    # To install key bindings and fuzzy completion for fzf. We set
+    # `--no-{bash,zsh,fish}` because we assume that those are already
+    # configured by the user.
+    fzf_configure_command=$(printf '
+        %s/opt/fzf/install \
+        --xdg \
+        --no-bash \
+        --no-zsh \
+        --no-fish
+    ' "$(brew_prefix)")
+
+    execute "$fzf_configure_command" "fzf (configure)"
 
 }
 

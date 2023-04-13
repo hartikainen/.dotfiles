@@ -238,6 +238,8 @@ main() {
 
     ./create_symbolic_links.sh "$@"
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     if [ -f "${HOME}/.bashrc" ] && [ -z ${XDG_CONFIG_HOME+x} ] || [ -z ${XDG_DATA_HOME+x} ]; then
         source "${HOME}/.bashrc"
     fi
@@ -261,18 +263,6 @@ to function properly.'
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    ./install/main.sh
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    ./preferences/main.sh
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    # ./clone_github_repositories.sh
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
     if cmd_exists "git"; then
 
         if [ "$(git config --get remote.origin.url)" != "$DOTFILES_ORIGIN" ]; then
@@ -286,6 +276,18 @@ to function properly.'
         fi
 
     fi
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    ./install/main.sh
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    ./preferences/main.sh
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    # ./clone_github_repositories.sh
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

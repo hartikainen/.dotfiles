@@ -276,7 +276,7 @@ to function properly.'
     if cmd_exists "git"; then
 
         if [ "$(git config --get remote.origin.url)" != "$DOTFILES_ORIGIN" ]; then
-            ./initialize_git_repository.sh "$DOTFILES_ORIGIN"
+            ./initialize_git_repository.sh "$dotfilesDirectory" "$DOTFILES_ORIGIN"
         fi
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

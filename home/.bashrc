@@ -7,6 +7,10 @@
 : "${XDG_CACHE_HOME:=${HOME}/.cache}"
 : "${XDG_DATA_HOME:=${HOME}/.local/share}"
 
+# Silence macos bash deprecation warning. See
+# https://support.apple.com/en-us/HT208050/ for more information.
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
 # Enable `conda`-command.
 __conda_setup="$("${HOME}/conda/bin/conda" 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then

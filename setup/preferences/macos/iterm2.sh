@@ -5,39 +5,25 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+write_preferences() {
 
-copy_profiles() {
+    if [ -z ${XDG_CONFIG_HOME+x} ]; then
+        echo "$(basename -- "${BASH_SOURCE[0]}"):
+The \$XDG_CONFIG_HOME variable must be set for this setup script to function
+properly."
+        exit 1
+    fi
 
-    dynamic_profiles_dir_path="${HOME}/Library/Application Support/iTerm2/DynamicProfiles"
-
-    for profile_file_path in $(ls ./iterm2_profiles/*.json); do
-        profile_file_name=$(basename "${profile_file_path}")
-
-        if [ -f "${dynamic_profiles_dir_path}/${profile_file_name}" ]; then
-            ask_for_confirmation \
-                "'${profile_file_name}' already exists, do you want to overwrite it?"
-
-            if answer_is_yes; then
-                rm "${dynamic_profiles_dir_path}/${profile_file_name}"
-                cp "${profile_file_path}" "${dynamic_profiles_dir_path}/${profile_file_name}"
-            else
-                echo "Skipping '${profile_file_name}'"
-            fi
-        else
-            mkdir -p "${dynamic_profiles_dir_path}"
-            cp "${profile_file_path}" "${dynamic_profiles_dir_path}/${profile_file_name}"
-        fi
-
-    done
+    execute "defaults write com.googlecode.iterm2 PrefsCustomFolder -string '${XDG_CONFIG_HOME}/iterm2'"
+    execute "defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -int 1"
 
 }
-
 
 main() {
 
     print_in_purple "\n   iTerm2\n\n"
 
-    copy_profiles
+    write_preferences
 
 }
 

@@ -44,7 +44,7 @@ execute "defaults write com.apple.dock show-process-indicators -bool true" \
 execute "defaults write com.apple.dock showhidden -bool true" \
     "Make icons of hidden applications translucent"
 
-execute "defaults write com.apple.dock tilesize -int 60" \
+execute "defaults write com.apple.dock tilesize -int 30" \
     "Set icon size"
 
 execute "defaults write com.apple.dock show-recents -bool false" \
@@ -52,5 +52,9 @@ execute "defaults write com.apple.dock show-recents -bool false" \
 
 execute "defaults write com.apple.dock static-only -bool true" \
     "Only show active apps in the Dock."
+
+execute "defaults write com.apple.dock orientation -string 'left'" \
+    "Only show active apps in the Dock."
+
 
 killall "Dock" &> /dev/null

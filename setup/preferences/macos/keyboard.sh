@@ -13,10 +13,10 @@ execute "defaults write -g AppleKeyboardUIMode -int 3" \
 execute "defaults write -g ApplePressAndHoldEnabled -bool false" \
     "Disable press-and-hold in favor of key repeat"
 
-execute "defaults write -g 'InitialKeyRepeat_Level_Saved' -int 20" \
+execute "defaults write -g InitialKeyRepeat_Level_Saved -int 20" \
     "Set delay until repeat"
 
-execute "defaults write -g 'InitialKeyRepeat' -int 15" \
+execute "defaults write -g InitialKeyRepeat -int 15" \
     "Set delay until repeat"
 
 execute "defaults write -g KeyRepeat -int 1" \
@@ -69,7 +69,7 @@ execute 'defaults write -g com.apple.keyboard.fnState -bool true' \
 # execute "${__swap_ctrl_caps_command}" "Swap Control <-> Caps Lock"
 # unset -f __swap_ctrl_caps_command
 
-# execute "defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false" \
+# execute "defaults write -g NSAutomaticCapitalizationEnabled -bool false" \
 #     "Disable automatic capitalization"
 
 # execute "defaults write -g NSAutomaticSpellingCorrectionEnabled -bool false" \

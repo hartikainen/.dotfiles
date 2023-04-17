@@ -35,10 +35,6 @@ execute "defaults write com.apple.screencapture location -string '$HOME/Desktop/
 execute "defaults write com.apple.screencapture type -string 'png'" \
     "Save screenshots as PNGs"
 
-# execute "defaults write com.apple.screensaver askForPassword -int 1 && \
-#          defaults write com.apple.screensaver askForPasswordDelay -int 0"\
-#     "Require password immediately after into sleep or screen saver mode"
-
 execute "defaults write -g AppleFontSmoothing -int 2" \
     "Enable subpixel font rendering on non-Apple LCDs"
 
@@ -72,31 +68,9 @@ execute "defaults write -g QLPanelAnimationDuration -float 0" \
 execute "defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bool false" \
     "Disable resume system-wide"
 
-# execute "sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string 'Laptop' && \
-#          sudo scutil --set ComputerName 'laptop' && \
-#          sudo scutil --set HostName 'laptop' && \
-#          sudo scutil --set LocalHostName 'laptop'" \
-#     "Set computer name"
-
 execute "sudo systemsetup -setrestartfreeze on" \
     "Restart automatically if the computer freezes"
 
-# execute "sudo defaults write /Library/Preferences/com.apple.Bluetooth.plist ControllerPowerState 0 && \
-#          sudo launchctl unload /System/Library/LaunchDaemons/com.apple.blued.plist && \
-#          sudo launchctl load /System/Library/LaunchDaemons/com.apple.blued.plist" \
-#     "Turn Bluetooth off"
-
-execute "for domain in ~/Library/Preferences/ByHost/com.apple.systemuiserver.*; do
-            sudo defaults write \"\${domain}\" dontAutoLoad -array \
-                '/System/Library/CoreServices/Menu Extras/TimeMachine.menu' \
-                '/System/Library/CoreServices/Menu Extras/Volume.menu'
-         done \
-            && sudo defaults write com.apple.systemuiserver menuExtras -array \
-                '/System/Library/CoreServices/Menu Extras/Bluetooth.menu' \
-                '/System/Library/CoreServices/Menu Extras/AirPort.menu' \
-                '/System/Library/CoreServices/Menu Extras/Battery.menu' \
-                '/System/Library/CoreServices/Menu Extras/Clock.menu'
-        " \
-    "Hide Time Machine and Volume icons from the menu bar"
-
-killall "SystemUIServer" &> /dev/null
+for service_name in "SystemUIServer" "cfprefsd" "corebrightnessd"; do
+    killall "$service_name"  &> /dev/null;
+done

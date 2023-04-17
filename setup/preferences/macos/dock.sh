@@ -19,9 +19,6 @@ execute "defaults write com.apple.dock enable-spring-load-actions-on-all-items -
 execute "defaults write com.apple.dock expose-animation-duration -float 0.1" \
     "Make all Mission Control related animations faster."
 
-execute "defaults write com.apple.dock expose-group-by-app -bool false" \
-    "Do not group windows by application in Mission Control"
-
 execute "defaults write com.apple.dock launchanim -bool false" \
     "Disable the opening of an application from the Dock animations."
 
@@ -35,7 +32,7 @@ execute "defaults write com.apple.dock mru-spaces -bool false" \
         "Do not automatically rearrange spaces based on most recent use"
 
 execute "defaults write com.apple.dock persistent-apps -array && \
-         defaults write com.apple.dock persistent-others -array " \
+         defaults write com.apple.dock persistent-others -array" \
     "Wipe all app icons"
 
 execute "defaults write com.apple.dock show-process-indicators -bool true" \

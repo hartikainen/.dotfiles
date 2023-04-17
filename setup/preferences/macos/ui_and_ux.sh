@@ -71,6 +71,27 @@ execute "defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bo
 execute "sudo systemsetup -setrestartfreeze on" \
     "Restart automatically if the computer freezes"
 
+# Change the settings directly in the core brightness plist (defaults doesn't deal with nested data structures well)
+__current_user_uid="$(dscl . -read "/Users/$(whoami)/" "GeneratedUID" | sed -e "s/^GeneratedUID: /CBUser-/")"
+__CoreBrightness_plist="/private/var/root/Library/Preferences/com.apple.CoreBrightness.plist"
+
+execute "sudo /usr/libexec/PlistBuddy -c \
+             'Set :${__current_user_uid}:CBBlueReductionStatus:BlueReductionEnabled 1' \
+             '${__CoreBrightness_plist}' && \
+         sudo /usr/libexec/PlistBuddy -c \
+             'Set :${__current_user_uid}:CBBlueReductionStatus:BlueReductionMode 2' \
+             '${__CoreBrightness_plist}' && \
+         sudo /usr/libexec/PlistBuddy -c \
+             'Set :${__current_user_uid}:CBBlueReductionStatus:BlueLightReductionSchedule:DayStartHour 6' \
+             '${__CoreBrightness_plist}' && \
+         sudo /usr/libexec/PlistBuddy -c \
+             'Set :${__current_user_uid}:CBBlueReductionStatus:BlueLightReductionSchedule:NightStartHour 1'8\
+             '${__CoreBrightness_plist}'" \
+         "Set Night Shift schedule"
+
+unset __current_user_uid
+unset __CoreBrightness_plist
+
 for service_name in "SystemUIServer" "cfprefsd" "corebrightnessd"; do
     killall "$service_name"  &> /dev/null;
 done

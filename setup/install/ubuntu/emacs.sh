@@ -11,7 +11,8 @@ main () {
 
     update
 
-    install_package "Emacs 27" "emacs27"
+    execute "sudo apt remove --autoremove -y emacs emacs-common"
+    install_package "Emacs 28" "emacs28-nativecomp"
 
 }
 

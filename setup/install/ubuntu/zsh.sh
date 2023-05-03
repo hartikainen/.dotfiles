@@ -11,7 +11,7 @@ main() {
 
     print_in_purple "\n   Zsh\n\n"
 
-    install_package zsh
+    install_package "zsh" "zsh"
 
 }
 

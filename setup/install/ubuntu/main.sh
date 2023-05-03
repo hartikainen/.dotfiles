@@ -21,7 +21,6 @@ main() {
 
     ./../conda.sh
 
-    ./browsers.sh
     ./image_tools.sh
     ./misc.sh
     ./misc_tools.sh

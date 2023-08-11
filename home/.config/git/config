@@ -54,7 +54,7 @@
     # attributesfile = ./attributes
     autocrlf = input
     editor = emacs
-	# excludesfile = ./ignore
+    # excludesfile = ./ignore
 
 [diff]
 
@@ -117,3 +117,13 @@
 [status]
 
     showUntrackedFiles = all
+
+[rebase]
+    updateRefs = true
+    autosquash = true
+
+[pull]
+    rebase = true
+
+[fetch]
+    prune = true

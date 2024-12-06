@@ -13,7 +13,6 @@ main() {
     ./bash.sh
     ./git.sh
 
-    ./iterm2.sh
     ./ghostty.sh
 
     ./zsh.sh

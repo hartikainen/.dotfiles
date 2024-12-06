@@ -19,6 +19,5 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 ./language_and_region.sh
 ./photos.sh
 ./terminal.sh
-./iterm2.sh
 ./trackpad.sh
 ./ui_and_ux.sh

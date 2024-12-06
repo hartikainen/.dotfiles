@@ -16,9 +16,6 @@ execute "defaults write com.apple.terminal SecureKeyboardEntry -bool true" \
 execute "defaults write com.apple.terminal StringEncodings -array 4" \
     "Only use UTF-8"
 
-execute "./set_terminal_theme.applescript" \
-    "Set custom terminal theme"
-
 # TODO(hartikainen): Use Touch ID for sudo?
 # if ! grep -q -F 'auth sufficient pam_tid.so' "/etc/pam.d/sudo"; then
 #     sudo sed -i '' $'2i\\\nauth sufficient pam_tid.so\\\n' "/etc/pam.d/sudo"

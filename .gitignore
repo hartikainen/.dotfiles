@@ -17,7 +17,6 @@ bats
 enabled/*
 /enabled
 tmp/
-home/.config/iterm2/AppSupport
 home/.config/bash/local
 home/.config/zsh/local
 home/.config/zsh/.zcompdump*

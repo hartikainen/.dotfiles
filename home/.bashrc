@@ -11,15 +11,6 @@
 # https://support.apple.com/en-us/HT208050/ for more information.
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-# Enable `conda`-command.
-__conda_setup="$("${HOME}/conda/bin/conda" 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    echo 'Unable to provide `conda` command.'
-fi
-unset __conda_setup
-
 # Return if not running interactively.
 case $- in
     *i*) ;;

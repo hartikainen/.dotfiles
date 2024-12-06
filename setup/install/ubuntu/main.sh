@@ -19,8 +19,6 @@ main() {
     ./../oh_my_zsh.sh
     ./fzf.sh
 
-    ./../conda.sh
-
     ./image_tools.sh
     ./misc.sh
     ./misc_tools.sh

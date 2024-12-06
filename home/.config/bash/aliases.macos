@@ -53,5 +53,4 @@ alias local-ip="ipconfig getifaddr en1"
 # Update applications and CLTs.
 
 alias update-everything="sudo softwareupdate --install --all \
-                         && brew-all \
-                         && conda update conda"
+                         && brew-all"

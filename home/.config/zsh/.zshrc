@@ -34,7 +34,6 @@ export EDITOR="emacs" VISUAL="emacs"
 # export "${CARGO_HOME:=${XDG_DATA_HOME}/cargo}"
 
 [ -f "${ZSH}/oh-my-zsh.sh" ] && source "${ZSH}/oh-my-zsh.sh"
-[ -f "${XDG_CONFIG_HOME}/fzf/fzf.sh" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.sh"
 [ -f "${XDG_CONFIG_HOME}/fzf/fzf.zsh" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.zsh"
 
 zstyle ':completion:*' special-dirs false

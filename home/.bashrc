@@ -34,7 +34,6 @@ export EDITOR="emacs" VISUAL="emacs"
 export SHELL_SESSION_DIR="${XDG_STATE_HOME}/bash/sessions"
 export SHELL_SESSION_FILE="${SHELL_SESSION_DIR}/${TERM_SESSION_ID}"
 
-[ -f "${XDG_CONFIG_HOME}/fzf/fzf.sh" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.sh"
 [ -f "${XDG_CONFIG_HOME}/fzf/fzf.bash" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.bash"
 
 

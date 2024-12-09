@@ -51,7 +51,6 @@ source_files() {
 
         # zsh-specific files
         "${XDG_CONFIG_HOME}/zsh/options"
-        "${XDG_CONFIG_HOME}/zsh/conda_prompt"
 
         # For local settings that should
         # not be under version control.
@@ -95,6 +94,11 @@ export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:+$FZF_DEFAULT_OPTS }--no-height"
 # # Directly execute the command (Ctrl-X Ctrl-R)
 # bind "$(bind -s | grep '^"\\C-r"' | sed 's/"/"\\C-x/;s/"$/\\C-m"/')"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
+  eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/oh-my-posh.toml)"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

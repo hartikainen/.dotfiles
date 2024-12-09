@@ -38,7 +38,6 @@ source_files() {
         "${XDG_CONFIG_HOME}/bash/colors"
 
         "${XDG_CONFIG_HOME}/bash/options"
-        "${XDG_CONFIG_HOME}/bash/prompt"
 
         # For local settings that should
         # not be under version control.
@@ -58,6 +57,12 @@ source_files() {
 
 source_files
 unset -f source_files
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
+  eval "$(oh-my-posh init bash --config ~/.config/oh-my-posh/oh-my-posh.toml)"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

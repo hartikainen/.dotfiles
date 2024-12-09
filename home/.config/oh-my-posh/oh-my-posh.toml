@@ -1,0 +1,93 @@
+version = 3
+final_space = true
+
+[[blocks]]
+  type = "prompt"
+  alignment = "left"
+
+  [[blocks.segments]]
+    type = "session"
+    style = "plain"
+    template = "<p:white>┏[</>{{ .UserName }}<p:white>]</>"
+    foreground = "p:green"
+
+  [[blocks.segments]]
+    type = "git"
+    style = "plain"
+    template = "<p:white>--[</>{{ .UpstreamIcon }}{{ .HEAD }} {{if .BranchStatus }}{{ .BranchStatus }}{{ end }}{{ if .Working.Changed }}<#8fbcbb> ●</>{{ end }}{{ if .Staging.Changed }}<p:green> ●</>{{ end }}<p:white>]</>"
+    foreground = "p:orange"
+
+    [blocks.segments.properties]
+      branch_icon = " "
+      fetch_stash_count = true
+      fetch_status = true
+      fetch_upstream_icon = true
+
+  [[blocks.segments]]
+    type = "python"
+    style = "plain"
+    powerline_symbol = ""
+    foreground = "p:orange"
+    template = "<p:white>--[</> {{ .Full}}::{{ .Venv }}<p:white>]</>"
+
+    [[properties]]
+      home_enabled = true
+
+  [[blocks.segments]]
+    type = "root"
+    style = "plain"
+    template = "<p:white>[</><p:white>]</>"
+    foreground = "p:red"
+
+  [[blocks.segments]]
+    type = "status"
+    style = "plain"
+    template = "<p:white>[</>{{ .Code }}:{{ reason .Code }}<p:white>]</>"
+    foreground = "p:red"
+    foreground_templates = ["{{ if gt .Code 0 }}#ef5350{{ end }}"]
+
+[[blocks]]
+  type = "prompt"
+  alignment = "right"
+
+  [[blocks.segments]]
+    type = "executiontime"
+    style = "diamond"
+    template = "{{ .FormattedMs }}"
+    foreground = "p:white"
+
+    [blocks.segments.properties]
+      style = "round"
+      threshold = 0.0
+
+[[blocks]]
+  type = "prompt"
+  alignment = "left"
+  newline = true
+
+  [[blocks.segments]]
+    type = "path"
+    style = "plain"
+    template = "<p:white>┖[</>{{ .Path }}<p:white>]</>"
+    foreground = "p:green"
+
+    [blocks.segments.properties]
+      style = "full"
+
+[[blocks]]
+  type = "prompt"
+  alignment = "left"
+  newline = true
+
+  [[blocks.segments]]
+    type = "text"
+    style = "plain"
+    template = "  "
+    foreground = "p:white"
+
+[palette]
+# Like in `gruvbox_material`
+green   = "#a9b665"
+white   = "#dfbf8e"
+orange  = "#e78a4e"
+red     = "#ea6962"

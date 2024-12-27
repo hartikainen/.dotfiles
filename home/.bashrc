@@ -17,6 +17,9 @@ case $- in
     *) return;;
 esac
 
+# Set the cursor to a block style
+echo -ne "\e[2 q"
+
 # Only variables needed by external commands or non-interactive sub shells
 # should be exported.
 export XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_DATA_HOME

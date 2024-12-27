@@ -2,6 +2,9 @@
 
 [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
 
+# Set the cursor to a block style
+echo -ne "\e[2 q"
+
 # Path to your oh-my-zsh installation. TODO(hartikainen): should this be `XDG_CONFIG_HOME`?
 export ZSH="${XDG_DATA_HOME}/oh-my-zsh"
 

@@ -24,6 +24,8 @@
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+[branch]
+    sort = -committerdate
 
 [color "branch"]
 
@@ -48,6 +50,9 @@
     changed = yellow reverse
     untracked = red reverse
 
+[commit]
+    verbose = true
+
 [core]
 
     abbrev = 12
@@ -55,15 +60,22 @@
     autocrlf = input
     editor = emacs
     # excludesfile = ./ignore
+    excludesfile = ~/.gitignore
+    pager = delta  # TODO(hartikainen): difftastic?
+
+[delta]
+    navigate = true  # use n and N to move between diff sections
 
 [diff]
 
+    algorithm = histogram
     # Show blocks of moved text of at least 20
     # alphanumeric characters differently than adds/deletes.
     #
     # https://git-scm.com/docs/git-diff#git-diff-zebra
-
     colorMoved = zebra
+    mnemonicPrefix = true
+    renames = true
 
 [diff "bin"]
 
@@ -71,37 +83,17 @@
 
     textconv = hexdump -v -C
 
-[init]
+[fetch]
 
-    defaultBranch = main
+    prune = true
+    pruneTags = true
+    all = true
 
-[pretty]
+[filter "lfs"]
 
-    custom = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
-    #                     │        │            │            │             └─ author name
-    #                     │        │            │            └─ message
-    #                     │        │            └─ date (relative)
-    #                     │        └─ decorations (branch, heads or tags)
-    #                     └─ hash (abbreviated)
-
-
-[push]
-
-    # Make `git push` automatically push relevant
-    # annotated tags when pushing branches out.
-
-    followTags = true
-
-[user]
-
-    # Do not guess the user's identity.
-    # https://github.com/git/git/blob/90f7b16b3adc78d4bbabbd426fb69aa78c714f71/Documentation/config.txt#L2847-L2855
-
-    useConfigOnly = true
-
-    # [!] DO NOT store sensitive information such as the Git user
-    # credentials (`name` / `email`), or things such as the `signingkey`
-    # in this file, add them in the local config (see `include.path` below)!
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
 
 [include]
 
@@ -114,34 +106,60 @@
 
     path = ./config.local
 
-[status]
+[init]
 
-    showUntrackedFiles = all
+    defaultBranch = main
 
-[rebase]
+[interactive]
+    diffFilter = delta --color-only
 
-    updateRefs = true
-    autosquash = true
+[pretty]
+
+    custom = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+    #                     │        │            │            │             └─ author name
+    #                     │        │            │            └─ message
+    #                     │        │            └─ date (relative)
+    #                     │        └─ decorations (branch, heads or tags)
+    #                     └─ hash (abbreviated)
+
 
 [pull]
 
     rebase = true
 
-[fetch]
+[push]
 
-    prune = true
+    # Make `git push` automatically push relevant
+    # annotated tags when pushing branches out.
 
-[filter "lfs"]
+    default = simple
+    autoSetupRemote = true
+    followTags = true
 
-    clean = git-lfs clean -- %f
-    smudge = git-lfs smudge -- %f
-    process = git-lfs filter-process
+[rebase]
 
-[core]
-    pager = delta
+    autoSquash = true
+    autoStash = true
+    updateRefs = true
 
-[interactive]
-    diffFilter = delta --color-only
+[rerere]
+    enabled = true
+    autoupdate = true
 
-[delta]
-    navigate = true  # use n and N to move between diff sections
+[status]
+
+    showUntrackedFiles = all
+
+[tag]
+    sort = version:refname
+
+[user]
+
+    # Do not guess the user's identity.
+    # https://github.com/git/git/blob/90f7b16b3adc78d4bbabbd426fb69aa78c714f71/Documentation/config.txt#L2847-L2855
+
+    useConfigOnly = true
+
+    # [!] DO NOT store sensitive information such as the Git user
+    # credentials (`name` / `email`), or things such as the `signingkey`
+    # in this file, add them in the local config (see `include.path` below)!

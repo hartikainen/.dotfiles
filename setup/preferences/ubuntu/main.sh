@@ -6,6 +6,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" || exit 1
 
 main() {
 
+    # ./keyboard.sh
     ./privacy.sh
     ./terminal.sh
     ./ui_and_ux.sh

@@ -9,7 +9,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" &&
 main() {
 
     update
-    upgrade
+    # upgrade
 
     ./build-essentials.sh
 
@@ -17,15 +17,15 @@ main() {
 
     ./zsh.sh
     ./../oh_my_zsh.sh
-    ./fzf.sh
+    # ./fzf.sh
 
-    ./image_tools.sh
-    ./misc.sh
+    # ./image_tools.sh
+    # ./misc.sh
     ./misc_tools.sh
     ./tmux.sh
-    ./../emacs.sh
+    # ./../emacs.sh
 
-    ./cleanup.sh
+    # ./cleanup.sh
 
 }
 

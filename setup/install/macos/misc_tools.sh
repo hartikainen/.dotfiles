@@ -11,7 +11,6 @@ main() {
     print_in_purple "\n   Miscellaneous Tools\n\n"
 
     brew_install "Visual Studio Code" "visual-studio-code" "--cask"
-    brew_install "Rectangle" "rectangle" "--cask"
 
 }
 

@@ -1,0 +1,26 @@
+macos-option-as-alt = true
+keybind = ctrl+;=text:\x1C
+
+scrollback-limit = 10_000_000
+shell-integration-features = cursor,sudo,ssh-env,ssh-terminfo,title
+
+link-url = true
+
+theme = Gruvbox Dark
+font-family = "Monaco"
+font-size = 15
+
+fullscreen = true
+
+window-padding-x = 10
+window-padding-y = 10
+window-padding-balance = true
+window-decoration = true
+window-inherit-working-directory = true
+working-directory = inherit
+quit-after-last-window-closed = true
+
+background-opacity = 0.9
+background-blur-radius = 20
+
+cursor-style = block

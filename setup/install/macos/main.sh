@@ -14,6 +14,7 @@ main() {
     ./git.sh
 
     ./iterm2.sh
+    ./ghostty.sh
 
     ./zsh.sh
     ./../oh_my_zsh.sh

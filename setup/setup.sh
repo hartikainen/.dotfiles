@@ -287,10 +287,6 @@ to function properly.'
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    # ./clone_github_repositories.sh
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
     if ! $skipQuestions; then
         ./restart.sh
     fi

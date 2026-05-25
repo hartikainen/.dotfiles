@@ -5,6 +5,11 @@ cd "$(dirname "${BASH_SOURCE[0]}")" &&
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+declare skipQuestions=false
+skip_questions "$@" && skipQuestions=true
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 create_bash_local() {
 
     if [ -z ${XDG_CONFIG_HOME+x} ]; then

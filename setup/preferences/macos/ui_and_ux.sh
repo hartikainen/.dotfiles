@@ -14,6 +14,11 @@ execute "defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool
 execute "defaults write com.apple.menuextra.battery ShowPercent -string 'YES'" \
     "Show battery percentage from the menu bar"
 
+execute "killall ControlCenter &>/dev/null && \
+         defaults -currentHost write com.apple.controlcenter Bluetooth -int 18 && \
+         defaults write com.apple.controlcenter 'NSStatusItem Visible Bluetooth' -bool true" \
+    "Show Bluetooth icon in the menu bar"
+
 execute "sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true" \
     "Show language menu in the top right corner of the boot screen"
 
@@ -92,6 +97,6 @@ execute "sudo /usr/libexec/PlistBuddy -c \
 unset __current_user_uid
 unset __CoreBrightness_plist
 
-for service_name in "SystemUIServer" "cfprefsd" "corebrightnessd"; do
+for service_name in "SystemUIServer" "cfprefsd" "corebrightnessd" "ControlCenter"; do
     killall "$service_name" &>/dev/null
 done

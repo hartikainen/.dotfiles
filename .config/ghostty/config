@@ -7,10 +7,10 @@ shell-integration-features = cursor,sudo,ssh-env,ssh-terminfo,title
 link-url = true
 
 theme = Gruvbox Dark
-font-family = "Monaco"
-font-size = 15
+# font-family = "Monaco"
+# font-size = 15
 
-fullscreen = true
+fullscreen = false
 
 window-padding-x = 10
 window-padding-y = 10

@@ -1,8 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../utils.sh"
-
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -22,7 +21,7 @@ setup_repository() {
             &&  sudo sh -c \
                 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main\" \
                 > /etc/apt/sources.list.d/vscode.list'" \
-            "Visual Studio Code (setup repository)"
+        "Visual Studio Code (setup repository)"
 
 }
 
@@ -32,7 +31,7 @@ install_visual_studio_code() {
              && sudo apt-get install apt-transport-https \
              && sudo apt-get install code \
              && code --version" \
-            "Visual Studio Code (install)"
+        "Visual Studio Code (install)"
 }
 
 update_visual_studio_code() {
@@ -47,7 +46,7 @@ update_visual_studio_code() {
 
 main() {
 
-    if ! command -v code > /dev/null 2>&1; then
+    if ! command -v code >/dev/null 2>&1; then
         setup_repository
         install_visual_studio_code
     else

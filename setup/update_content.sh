@@ -1,17 +1,17 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 main() {
 
-    ssh -T git@github.com &> /dev/null
+    ssh -T git@github.com &>/dev/null
 
     if [ $? -ne 1 ]; then
-        ./set_github_ssh_key.sh \
-            || return 1
+        ./set_github_ssh_key.sh ||
+            return 1
     fi
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,14 +22,16 @@ main() {
 
     if answer_is_yes; then
 
-        git fetch --all 1> /dev/null \
-            && git stash 1> /dev/null \
-            ; git reset \
-              --hard \
-              --recurse-submodules \
-              "origin/$(git branch --show-current)" \
-              1> /dev/null \
-            ; git submodule update --init --recursive 1> /dev/null
+        git fetch --all 1>/dev/null &&
+            git stash 1>/dev/null \
+            ;
+        git reset \
+            --hard \
+            --recurse-submodules \
+            "origin/$(git branch --show-current)" \
+            1>/dev/null \
+            ;
+        git submodule update --init --recursive 1>/dev/null
 
         print_result $? "Update content"
 

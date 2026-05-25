@@ -1,10 +1,9 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../utils.sh"
 
 declare -r DOCKER_GPG_URL="https://download.docker.com/linux/ubuntu/gpg"
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -24,7 +23,7 @@ setup_repository() {
                   'deb [arch=amd64] https://download.docker.com/linux/ubuntu \
                   \$(lsb_release -cs) \
                   stable'" \
-            "Docker (setup repository)"
+        "Docker (setup repository)"
 
 }
 
@@ -33,7 +32,7 @@ install_docker() {
     execute "sudo apt-get update \
              && sudo apt-get install docker-ce \
              && sudo docker run hello-world" \
-            "Docker (install)"
+        "Docker (install)"
 }
 
 update_docker() {
@@ -51,7 +50,7 @@ post_install_steps() {
     execute "sudo groupadd docker \
              && sudo usermod -aG docker ${USER} \
              && sudo systemctl enable docker" \
-            "Docker (post installation steps)"
+        "Docker (post installation steps)"
 
 }
 
@@ -59,7 +58,7 @@ post_install_steps() {
 
 main() {
 
-    if ! command -v docker > /dev/null 2>&1; then
+    if ! command -v docker >/dev/null 2>&1; then
         setup_repository
         install_docker
         post_install_steps

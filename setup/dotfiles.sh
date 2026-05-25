@@ -22,7 +22,7 @@ declare -r INSTALL_HELPERS_URL="https://raw.githubusercontent.com/hartikainen/.d
 _load_install_helpers() {
 
     local scriptDir
-    scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]:-.}")" 2> /dev/null && pwd)"
+    scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]:-.}")" 2>/dev/null && pwd)"
 
     if [ -n "$scriptDir" ] && [ -f "${scriptDir}/install_helpers.sh" ]; then
         cd "$scriptDir" || return 1
@@ -34,9 +34,9 @@ _load_install_helpers() {
     local tmpFile
     tmpFile="$(mktemp /tmp/dotfiles_install_helpers.XXXXX)"
 
-    if command -v curl > /dev/null; then
+    if command -v curl >/dev/null; then
         curl -LsSo "$tmpFile" "$INSTALL_HELPERS_URL"
-    elif command -v wget > /dev/null; then
+    elif command -v wget >/dev/null; then
         wget -qO "$tmpFile" "$INSTALL_HELPERS_URL"
     else
         printf "Need curl or wget to bootstrap.\n" >&2

@@ -1,8 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "./utils.sh"
-
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "./utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -15,10 +14,9 @@ install_spotify() {
              && echo deb http://repository.spotify.com stable non-free \
                 | sudo tee /etc/apt/sources.list.d/spotify.list \
              && sudo apt-get install spotify-client" \
-            "Spotify (setup repository)"
+        "Spotify (setup repository)"
 
 }
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

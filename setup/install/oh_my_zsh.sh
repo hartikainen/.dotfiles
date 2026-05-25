@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../utils.sh"
 
 if [ -z ${XDG_DATA_HOME+x} ]; then
     echo "$(basename -- "${BASH_SOURCE[0]}"):
@@ -20,7 +20,6 @@ declare -r OH_MY_ZSH_INSTALLER_REF="76ffd9e22acc7f11ca501f03d6999adbdb9baa61"
 declare -r OH_MY_ZSH_LATEST_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/${OH_MY_ZSH_INSTALLER_REF}/tools/install.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 
 install_oh_my_zsh() {
 
@@ -45,7 +44,6 @@ properly."
 
 }
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 main() {
@@ -55,7 +53,7 @@ main() {
     [ -d "${OH_MY_ZSH_DIRECTORY}" ] || install_oh_my_zsh
 
     execute 'zsh -ic "omz update"' \
-            "oh-my-zsh (update)"
+        "oh-my-zsh (update)"
 
 }
 

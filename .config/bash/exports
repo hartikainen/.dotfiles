@@ -10,7 +10,6 @@
 export EDITOR="emacs"
 export VISUAL="emacs"
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Ignore commands that start with spaces and duplicates.
@@ -48,8 +47,11 @@ export LC_ALL="en_US.UTF-8"
 
 # Use custom `less` colors for `man` pages.
 
-LESS_TERMCAP_md="$(tput bold 2> /dev/null; tput setaf 2 2> /dev/null)"
-LESS_TERMCAP_me="$(tput sgr0 2> /dev/null)"
+LESS_TERMCAP_md="$(
+    tput bold 2>/dev/null
+    tput setaf 2 2>/dev/null
+)"
+LESS_TERMCAP_me="$(tput sgr0 2>/dev/null)"
 export LESS_TERMCAP_md LESS_TERMCAP_me
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

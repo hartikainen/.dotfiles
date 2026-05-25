@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -19,7 +19,7 @@ properly."
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if [ ! -e "${FILE_PATH}" ] || [ -z "${FILE_PATH}" ]; then
-        printf "%s\n\n" "#!/bin/bash" >> "${FILE_PATH}"
+        printf "%s\n\n" "#!/bin/bash" >>"${FILE_PATH}"
     fi
 
     print_result $? "${FILE_PATH}"
@@ -37,7 +37,7 @@ create_zsh_local() {
             "%s\n\n%s\n\n" \
             "#!/bin/zsh" \
             '[ -f "${XDG_CONFIG_HOME}/bash/local" ] && source "${XDG_CONFIG_HOME}/bash/local"' \
-            >> "${FILE_PATH}"
+            >>"${FILE_PATH}"
     fi
 
     print_result $? "${FILE_PATH}"
@@ -68,7 +68,7 @@ create_gitconfig_local() {
         fi
 
         printf "%s\n" \
-"[commit]
+            "[commit]
 
     # Sign commits using GPG.
     # https://help.github.com/articles/signing-commits-using-gpg/
@@ -81,7 +81,7 @@ create_gitconfig_local() {
     name = ${GIT_NAME}
     email = ${GIT_EMAIL}
     # signingkey =" \
-        >> "${FILE_PATH}"
+            >>"${FILE_PATH}"
     fi
 
     print_result $? "${FILE_PATH}"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -138,8 +138,8 @@ list_config_files() {
 
     local root="$1"
 
-    if command -v git &> /dev/null \
-        && git -C "${root}" rev-parse --is-inside-work-tree &> /dev/null; then
+    if command -v git &>/dev/null &&
+        git -C "${root}" rev-parse --is-inside-work-tree &>/dev/null; then
         git -C "${root}" ls-files -z --recurse-submodules -- '.config/**'
     else
         (cd "${root}" && find ".config" -type f -print0)

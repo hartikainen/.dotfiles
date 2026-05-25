@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -15,4 +15,4 @@ execute "defaults write com.google.Chrome DisablePrintPreview -bool true && \
          defaults write com.google.Chrome.canary DisablePrintPreview -bool true" \
     "Use system-native print preview dialog"
 
-killall "Google Chrome" &> /dev/null
+killall "Google Chrome" &>/dev/null

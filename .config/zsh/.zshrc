@@ -46,13 +46,11 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
 fi
 
 [ -f "${ZSH}/oh-my-zsh.sh" ] && source "${ZSH}/oh-my-zsh.sh"
-command -v fzf &> /dev/null && source <(fzf --zsh)
-
+command -v fzf &>/dev/null && source <(fzf --zsh)
 
 zstyle ':completion:*' special-dirs false
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 
 source_files() {
 
@@ -69,7 +67,7 @@ source_files() {
         # not be under version control.
         "${XDG_CONFIG_HOME}/zsh/local"
     )
-    
+
     . "${DOTFILES_DIR}/setup/utils.sh"
 
     for file in "${FILES_TO_SOURCE[@]}"; do
@@ -85,14 +83,12 @@ unset -f source_files
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
-
 # # Directly execute the command (Ctrl-X Ctrl-R)
 # bind "$(bind -s | grep '^"\\C-r"' | sed 's/"/"\\C-x/;s/"$/\\C-m"/')"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ "$TERM_PROGRAM" != "Apple_Terminal" ] && command -v oh-my-posh > /dev/null; then
+if [ "$TERM_PROGRAM" != "Apple_Terminal" ] && command -v oh-my-posh >/dev/null; then
     eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/oh-my-posh.toml)"
 fi
 

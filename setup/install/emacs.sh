@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../utils.sh"
 
 declare -r DOOM_INSTALL_DIR="${XDG_CONFIG_HOME}/emacs"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

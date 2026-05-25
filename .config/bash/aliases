@@ -26,8 +26,11 @@ alias emacsw="emacs -w"
 # Load OS specific aliases.
 
 if [ -n "$ZSH_VERSION" ]; then
-    # For zsh
-    # shellcheck source=/dev/null
+    # For zsh. `${(%):-%x}` is the zsh idiom for "path to currently
+    # executing script". Not valid bash syntax — hence the SC2296
+    # disable, since the surrounding `$ZSH_VERSION` check guarantees
+    # bash never reaches this branch at runtime.
+    # shellcheck source=/dev/null disable=SC2296
     . "$(dirname "${(%):-%x}")/aliases.$(get_os_name)"
 else
     # For bash

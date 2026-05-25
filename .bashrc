@@ -50,9 +50,11 @@ source_files() {
         "${XDG_CONFIG_HOME}/bash/local"
     )
 
+    # shellcheck source=setup/utils.sh
     . "${DOTFILES_DIR}/setup/utils.sh"
 
     for file in "${FILES_TO_SOURCE[@]}"; do
+        # shellcheck source=/dev/null
         [ -r "${file}" ] && source "${file}"
     done
 

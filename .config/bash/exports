@@ -84,3 +84,20 @@ export PYTHONIOENCODING="UTF-8"
 # Rust's cargo home path.
 
 export CARGO_HOME="${CARGO_HOME:=${XDG_DATA_HOME}/cargo}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Configure fzf
+
+# Unset vars to prevent them from being appended to multiple times if shells
+# are nested and as a result exports are sourced multiple times.
+unset FZF_ALT_C_OPTS FZF_CTRL_R_OPTS FZF_DEFAULT_OPTS
+
+# View full path in preview window
+export FZF_ALT_C_OPTS="${FZF_ALT_C_OPTS:+$FZF_ALT_C_OPTS }--preview 'echo {}' --preview-window down:5:hidden:wrap --bind '?:toggle-preview'"
+
+# View full command in preview window
+export FZF_CTRL_R_OPTS="${FZF_CTRL_R_OPTS:+$FZF_CTRL_R_OPTS }--preview 'echo {}' --preview-window down:5:hidden:wrap --bind '?:toggle-preview'"
+
+# Prevent fzf from reducing height to 40% by default
+export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:+$FZF_DEFAULT_OPTS }--no-height"

@@ -83,5 +83,5 @@ fi
 
 # clear
 
-
-. "$HOME/.local/share/../bin/env"
+# Pick up things like `~/.local/bin` added to PATH by `uv`, `rustup`, etc.
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"

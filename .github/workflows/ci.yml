@@ -1,0 +1,145 @@
+name: ci
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: false
+
+      # Shellcheck doesn't understand zsh, so we skip `.zshenv` and
+      # everything under `.config/zsh/`. The doom submodule is elisp.
+      - name: shellcheck
+        uses: ludeeus/action-shellcheck@2.0.0
+        env:
+          SHELLCHECK_OPTS: --severity=warning --external-sources
+        with:
+          ignore_paths: >-
+            .config/zsh
+            .config/doom
+          ignore_names: >-
+            .zshenv
+
+      - name: install shfmt
+        uses: mfinelli/setup-shfmt@v4
+
+      # `shfmt -d` exits non-zero if any file needs reformatting. We use
+      # the same indentation style (`-i 4 -ci`) the existing scripts
+      # follow. Zsh and applescript files are excluded.
+      - name: shfmt
+        continue-on-error: true
+        run: |
+          mapfile -d '' files < <(git ls-files -z \
+            '*.sh' \
+            '.bashrc' \
+            ':!:.config/zsh/**' \
+            ':!:.config/doom/**' \
+            ':!:*.applescript')
+          shfmt -d -i 4 -ci "${files[@]}"
+
+  smoke:
+    name: smoke (${{ matrix.os }})
+    strategy:
+      # Surface failures on every platform in a single run instead of
+      # cancelling siblings when one fails.
+      fail-fast: false
+      matrix:
+        # Pin explicitly instead of `*-latest` so runner image bumps
+        # don't silently change what we're testing. `macos-14` is
+        # Apple Silicon (arm64); `ubuntu-24.04` is x86_64.
+        os: [ubuntu-24.04, macos-14]
+    runs-on: ${{ matrix.os }}
+    env:
+      # The setup scripts use a spinner that relies on `tput` escape
+      # sequences and a real TTY. The `$TRAVIS` check in
+      # `setup/utils.sh::show_spinner` switches to a simpler one-line
+      # output mode that works in CI logs.
+      TRAVIS: "true"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Doom is a private submodule (SSH); CI can't fetch it. The
+          # symlinker falls through cleanly when submodules aren't
+          # initialized (`git ls-files --recurse-submodules` just skips
+          # them), so we leave it off here.
+          submodules: false
+
+      - name: install zsh and dash (linux)
+        if: runner.os == 'Linux'
+        # `dash` lets us verify `.profile` is genuinely POSIX-portable
+        # (Ubuntu's `sh` is `dash`, but we install it explicitly to be
+        # robust against runner image changes). `zsh` is already on
+        # macOS runners as the default shell.
+        run: sudo apt-get update -qq && sudo apt-get install -y zsh dash
+
+      - name: install dash (macos)
+        if: runner.os == 'macOS'
+        # macOS ships `bash` and `zsh` but no `dash`. We install it via
+        # Homebrew purely to run the POSIX-sourcing assertion below.
+        run: brew install dash
+
+      - name: run dotfile setup
+        env:
+          DOTFILES_DIR: ${{ github.workspace }}
+        # Exercises the new lightweight entry point end-to-end:
+        # create_directories, symlinks, local configs, git init (skipped
+        # because origin already matches), update_content (skipped under
+        # -y). No sudo, no package installs.
+        run: ./setup/dotfiles.sh -y
+
+      - name: top-level files are symlinks
+        run: |
+          set -eux
+          test -L "$HOME/.profile"
+          test -L "$HOME/.bash_profile"
+          test -L "$HOME/.bashrc"
+          test -L "$HOME/.bash_logout"
+          test -L "$HOME/.zshenv"
+          test -L "$HOME/.Brewfile"
+
+      - name: ~/.config is a real directory, not a symlink
+        run: |
+          set -eux
+          test -d "$HOME/.config"
+          test ! -L "$HOME/.config"
+
+      - name: per-file symlinks exist under ~/.config
+        run: |
+          set -eux
+          test -L "$HOME/.config/git/config"
+          test -L "$HOME/.config/tmux/tmux.conf"
+          test -L "$HOME/.config/zsh/.zshrc"
+          test -L "$HOME/.config/bash/aliases"
+
+      - name: .profile loads under POSIX sh (dash)
+        # No bashisms allowed in .profile. Also verifies the XDG defaults
+        # land where we expect them.
+        run: |
+          dash -c '. "$HOME/.profile" && [ -n "$XDG_CONFIG_HOME" ] && [ -n "$DOTFILES_DIR" ]'
+
+      - name: bash login shell loads .profile via .bash_profile
+        env:
+          DOTFILES_DIR: ${{ github.workspace }}
+        # A login shell (-l) doesn't read .bashrc directly; it reads
+        # .bash_profile, which we wrote to source .profile then .bashrc.
+        run: |
+          bash -lc '[ -n "$XDG_CONFIG_HOME" ] && [ -n "$DOTFILES_DIR" ] && [ -n "$BASH_SILENCE_DEPRECATION_WARNING" ]'
+
+      - name: interactive bash starts cleanly
+        env:
+          DOTFILES_DIR: ${{ github.workspace }}
+        run: bash -ic 'true'
+
+      - name: interactive zsh starts cleanly
+        env:
+          DOTFILES_DIR: ${{ github.workspace }}
+        run: zsh -ic 'true'

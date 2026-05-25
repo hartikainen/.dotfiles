@@ -36,6 +36,14 @@ export EDITOR="emacs" VISUAL="emacs"
 
 # export "${CARGO_HOME:=${XDG_DATA_HOME}/cargo}"
 
+# Add Homebrew's site-functions to fpath before oh-my-zsh runs compinit, so
+# brew-installed completions are picked up without a second compinit pass.
+# `$HOMEBREW_PREFIX` is set by `brew shellenv` in `.zprofile`; using it avoids
+# the ~100-300ms subshell cost of `$(brew --prefix)` on every shell startup.
+if [ -n "$HOMEBREW_PREFIX" ]; then
+    fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
+fi
+
 [ -f "${ZSH}/oh-my-zsh.sh" ] && source "${ZSH}/oh-my-zsh.sh"
 [ -f "${XDG_CONFIG_HOME}/fzf/fzf.zsh" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.zsh"
 

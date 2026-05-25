@@ -28,6 +28,14 @@ setopt APPEND_HISTORY
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# Do not import new commands from other live sessions until this shell exits.
+# Overrides oh-my-zsh's default; relies on this file being sourced *after*
+# `oh-my-zsh.sh` (see `source_files` in `.zshrc`).
+
+unsetopt SHARE_HISTORY
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # Match filenames in a case-insensitive fashion when performing
 # filename expansion.
 

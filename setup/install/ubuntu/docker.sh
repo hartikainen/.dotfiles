@@ -3,7 +3,6 @@
 cd "$(dirname "${BASH_SOURCE[0]}")" \
     && . "../utils.sh"
 
-declare -r LOCAL_SHELL_CONFIG_FILE="$HOME/.bash.local"
 declare -r DOCKER_GPG_URL="https://download.docker.com/linux/ubuntu/gpg"
 
 
@@ -33,7 +32,7 @@ install_docker() {
 
     execute "sudo apt-get update \
              && sudo apt-get install docker-ce \
-             && sudo docker run hello-world" \ # Verify installation
+             && sudo docker run hello-world" \
             "Docker (install)"
 }
 
@@ -60,7 +59,7 @@ post_install_steps() {
 
 main() {
 
-    if [ ! "command -v docker >/dev/null 2>&1" ]; then
+    if ! command -v docker > /dev/null 2>&1; then
         setup_repository
         install_docker
         post_install_steps

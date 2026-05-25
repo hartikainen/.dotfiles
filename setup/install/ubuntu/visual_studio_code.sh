@@ -31,7 +31,7 @@ install_visual_studio_code() {
     execute "sudo apt-get update \
              && sudo apt-get install apt-transport-https \
              && sudo apt-get install code \
-             && code --version" \ # Verify installation
+             && code --version" \
             "Visual Studio Code (install)"
 }
 
@@ -47,7 +47,7 @@ update_visual_studio_code() {
 
 main() {
 
-    if [ ! "command -v code --version >/dev/null 2>&1" ]; then
+    if ! command -v code > /dev/null 2>&1; then
         setup_repository
         install_visual_studio_code
     else

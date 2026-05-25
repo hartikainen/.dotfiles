@@ -11,7 +11,13 @@ properly."
 fi
 
 declare -r OH_MY_ZSH_DIRECTORY="${XDG_DATA_HOME}/oh-my-zsh"
-declare -r OH_MY_ZSH_LATEST_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
+
+# Pin the installer to a specific commit instead of tracking `master` so
+# that we don't `curl | sh` whatever happens to be at HEAD when setup
+# runs. Bump this manually after reviewing upstream changes.
+# https://github.com/ohmyzsh/ohmyzsh/commits/master/tools/install.sh
+declare -r OH_MY_ZSH_INSTALLER_REF="76ffd9e22acc7f11ca501f03d6999adbdb9baa61"
+declare -r OH_MY_ZSH_LATEST_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/${OH_MY_ZSH_INSTALLER_REF}/tools/install.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -9,10 +9,11 @@ declare -r DOOM_INSTALL_DIR="${XDG_CONFIG_HOME}/emacs"
 install_doom_emacs() {
 
     if [ ! -f "${DOOM_INSTALL_DIR}/bin/doom" ]; then
+        rm -rf "${DOOM_INSTALL_DIR}"
         execute \
             "git clone --depth 1 https://github.com/doomemacs/doomemacs ${DOOM_INSTALL_DIR}" \
             "Emacs (clone doom)"
-        execute "bash -i -c '${DOOM_INSTALL_DIR}/bin/doom install -! && true'"
+        execute "${DOOM_INSTALL_DIR}/bin/doom install -!" "Emacs (install doom)"
     else
         print_success "Skip doom install (already installed)"
     fi

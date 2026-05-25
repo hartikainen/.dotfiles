@@ -44,7 +44,8 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
 fi
 
 [ -f "${ZSH}/oh-my-zsh.sh" ] && source "${ZSH}/oh-my-zsh.sh"
-[ -f "${XDG_CONFIG_HOME}/fzf/fzf.zsh" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.zsh"
+command -v fzf &> /dev/null && source <(fzf --zsh)
+
 
 zstyle ':completion:*' special-dirs false
 

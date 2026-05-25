@@ -32,7 +32,6 @@ plugins=(
 # Only variables needed by external commands or non-interactive sub shells
 # should be exported.
 export XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_DATA_HOME
-export EDITOR="emacs" VISUAL="emacs"
 
 # export "${CARGO_HOME:=${XDG_DATA_HOME}/cargo}"
 

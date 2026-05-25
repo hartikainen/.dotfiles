@@ -8,6 +8,8 @@
 # Make `vim` the default editor.
 
 export EDITOR="emacs"
+export VISUAL="emacs"
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

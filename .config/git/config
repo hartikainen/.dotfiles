@@ -15,12 +15,13 @@
             --branches; \
     }; f"
 
-    prune-merged = "!f() { \
-        local main_branch=\"$(git remote show origin | awk '/HEAD branch/ {print $NF}')\" \
-        && git branch --merged $([[ $1 != \"-f\" ]] && git rev-parse ${main_branch}) \
+    prune-merged = "!bash -c ' \
+        main_branch=\"$(git remote show origin | awk '\\''/HEAD branch/ {print $NF}'\\'')\" \
+        && git branch --merged $([[ $1 != \"-f\" ]] && git rev-parse ${main_branch}) --format=\"%(refname:short)\" \
         | egrep -v \"(^\\*|^\\s*(master|main|develop)$)\" \
-        | xargs -n 1 git branch -d; \
-    }; f"
+        | grep -v -F -f <(git worktree list --porcelain | grep '\\''^branch'\\'' | awk '\\''{print $2}'\\'' | sed '\\''s|refs/heads/||'\\'') \
+        | xargs -n 1 git branch -d \
+    ' --"
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

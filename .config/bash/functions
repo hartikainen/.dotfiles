@@ -26,14 +26,16 @@ function retry {
 
 wait-for-pid() {
     local pid="${1}"
-    local me="$(basename -- $0)($$):"
+    local me
+    me="$(basename -- "$0")($$):"
 
     if [ -z "$pid" ]; then
         echo "${me} a PID is required as an argument" >&2
         exit 2
     fi
 
-    local name="$(ps -p ${pid} -o comm=)"
+    local name
+    name="$(ps -p "${pid}" -o comm=)"
     if [ $? -eq 0 ]; then
         echo "${me} waiting for PID ${pid} to finish (${name})"
         while ps -p "${pid}" > /dev/null; do sleep 1; done;
@@ -77,8 +79,10 @@ github-clone() {
 
     local left_trimmed_url="${repository_url##git@github.com:}"
     local trimmed_url="${left_trimmed_url%.git*}"
-    local repository_name="$(basename "${trimmed_url}")"
-    local user_name="$(basename "${trimmed_url%/${repository_name}}")"
+    local repository_name
+    repository_name="$(basename "${trimmed_url}")"
+    local user_name
+    user_name="$(basename "${trimmed_url%/${repository_name}}")"
 
     if [ -z "${repository_name}" ] || [ -z "${user_name}" ]; then
         printf "Incorrect arguments: '${1}'. Usage: '%s', e.g. '%s'.\n" \

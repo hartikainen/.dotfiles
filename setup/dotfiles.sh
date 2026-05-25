@@ -43,6 +43,7 @@ _load_install_helpers() {
         return 1
     fi || return 1
 
+    # shellcheck source=/dev/null
     . "$tmpFile" || return 1
     rm -rf "$tmpFile"
 

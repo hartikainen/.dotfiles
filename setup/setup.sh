@@ -43,11 +43,15 @@ _load_install_helpers() {
         return 1
     fi || return 1
 
+    # shellcheck source=/dev/null
     . "$tmpFile" || return 1
     rm -rf "$tmpFile"
 
 }
 
+# `skipQuestions` is defined inside `install_helpers.sh` (loaded by
+# `_load_install_helpers` above). The static analyzer can't follow that.
+# shellcheck disable=SC2154
 main() {
 
     _load_install_helpers || exit 1

@@ -46,6 +46,7 @@ download_utils() {
     local tmpFile
     tmpFile="$(mktemp /tmp/dotfiles_utils.XXXXX)"
 
+    # shellcheck source=utils.sh
     download "${DOTFILES_RAW_URL}/utils.sh" "$tmpFile" \
         && . "$tmpFile" \
         && rm -rf "$tmpFile" \

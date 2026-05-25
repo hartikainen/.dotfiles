@@ -22,43 +22,23 @@ execute "defaults write -g InitialKeyRepeat -int 15" \
 execute "defaults write -g KeyRepeat -int 1" \
     "Set the key repeat rate to fast"
 
-# execute "plutil -replace \
-#          'AppleSymbolicHotKeys.60.enabled' \
-#          -bool false \
-#          '${HOME}/Library/Preferences/com.apple.symbolichotkeys.plist'" \
-#     'Disable "Select the previous input source" keybinding'
+execute "defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '<dict><key>enabled</key><false/><key>value</key><dict><key>parameters</key><array><integer>32</integer><integer>49</integer><integer>262144</integer></array><key>type</key><string>standard</string></dict></dict>'" \
+    'Disable "Select the previous input source" keybinding'
 
-# execute "plutil -replace \
-#          'AppleSymbolicHotKeys.61.enabled' \
-#          -bool false \
-#          '${HOME}/Library/Preferences/com.apple.symbolichotkeys.plist'" \
-#     'Disable "Select nest source in Input menu" keybinding'
-
-# execute "defaults write \
-#          '${HOME}/Library/Preferences/com.apple.symbolichotkeys.plist' \
-#          'AppleSymbolicHotKeys' \
-#          -dict-add 60 \
-#          '{enabled = 0; value = { parameters = (); type = standard; };}'" \
-#     'Disable "Select the previous input source" keybinding'
-
-# execute "defaults write \
-#          '${HOME}/Library/Preferences/com.apple.symbolichotkeys.plist' \
-#          'AppleSymbolicHotKeys' \
-#          -dict-add 61 \
-#          '{enabled = 0; value = { parameters = (); type = standard; };}'" \
-#     'Disable "Select nest source in Input menu" keybinding'
+execute "defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 61 '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>32</integer><integer>49</integer><integer>655360</integer></array><key>type</key><string>standard</string></dict></dict>'" \
+    'Enable and set "Select next source in Input menu" to Shift + Alt + Space'
 
 execute 'defaults write -g com.apple.keyboard.fnState -bool true' \
     'Enable the "Use F1, F2, etc. keys as standard function keys" setting'
 
-# __set_input_sources_command="$(printf \
-#     "defaults write com.apple.HIToolbox.plist AppleEnabledInputSources -array '%s' '%s' '%s'" \
-#     '{InputSourceKind="Keyboard Layout"; "KeyboardLayout ID"=0; "KeyboardLayout Name"="U.S.";}' \
-#     '{"Bundle ID" = "com.apple.CharacterPaletteIM"; InputSourceKind = "Non Keyboard Input Method";}' \
-#     '{InputSourceKind="Keyboard Layout"; "KeyboardLayout ID"=17; "KeyboardLayout Name"="Finnish";}' \
-# )"
-# execute "${__set_input_sources_command}" "Set input sources ('U.S.' and 'Finnish')"
-# unset -f __set_input_sources_command
+execute "defaults write com.apple.HIToolbox AppleEnabledInputSources -array \
+    '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
+    '<dict><key>Bundle ID</key><string>com.apple.CharacterPaletteIM</string><key>InputSourceKind</key><string>Non Keyboard Input Method</string></dict>' \
+    '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>17</integer><key>KeyboardLayout Name</key><string>Finnish</string></dict>'" \
+    "Set input sources (U.S. and Finnish)"
+
+execute "defaults write com.apple.TextInputMenu visible -bool true" \
+    "Show input menu in menu bar"
 
 # __swap_ctrl_caps_command="$(printf \
 #     "hidutil property --set '{%s: [%s, %s] }'" \

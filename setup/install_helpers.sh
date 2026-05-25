@@ -7,16 +7,16 @@
 # `print_*`, `execute`, `ask*`, `is_supported_version`, `get_os_name`,
 # `get_os_version`, `cmd_exists`).
 
-declare -r GITHUB_REPOSITORY="hartikainen/.dotfiles"
+GITHUB_REPOSITORY="hartikainen/.dotfiles"
 
-declare -r DOTFILES_ORIGIN="git@github.com:${GITHUB_REPOSITORY}.git"
-declare -r DOTFILES_TARBALL_URL="https://github.com/${GITHUB_REPOSITORY}/tarball/main"
-declare -r DOTFILES_RAW_URL="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/setup"
+DOTFILES_ORIGIN="git@github.com:${GITHUB_REPOSITORY}.git"
+DOTFILES_TARBALL_URL="https://github.com/${GITHUB_REPOSITORY}/tarball/main"
+DOTFILES_RAW_URL="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/setup"
 
 # Default install directory. `download_dotfiles` may rewrite this (with
 # user confirmation) and that is intentionally observable to the caller.
-declare dotfilesDirectory="${HOME}/.dotfiles"
-declare skipQuestions=false
+dotfilesDirectory="${HOME}/.dotfiles"
+skipQuestions=false
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Download helpers

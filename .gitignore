@@ -23,3 +23,6 @@ tmp/
 .config/zsh/.zsh_sessions
 .config/git/config.local
 .config/emacs/
+.config/gcloud/
+.config/packer/
+.config/uv/

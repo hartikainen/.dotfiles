@@ -87,6 +87,20 @@ export CARGO_HOME="${CARGO_HOME:=${XDG_DATA_HOME}/cargo}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# Add directories to PATH idempotently.
+
+add_to_path() {
+    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+        export PATH="$1:$PATH"
+    fi
+}
+
+add_to_path "$HOME/.local/bin"
+
+unset -f add_to_path
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # Configure fzf
 
 # Unset vars to prevent them from being appended to multiple times if shells

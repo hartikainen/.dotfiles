@@ -27,7 +27,8 @@ export XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_DATA_HOME
 export SHELL_SESSION_DIR="${XDG_STATE_HOME}/bash/sessions"
 export SHELL_SESSION_FILE="${SHELL_SESSION_DIR}/${TERM_SESSION_ID}"
 
-[ -f "${XDG_CONFIG_HOME}/fzf/fzf.bash" ] && source "${XDG_CONFIG_HOME}/fzf/fzf.bash"
+command -v fzf &> /dev/null && eval "$(fzf --bash)"
+
 
 
 source_files() {

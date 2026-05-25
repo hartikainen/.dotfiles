@@ -96,6 +96,7 @@ add_to_path() {
 }
 
 add_to_path "$HOME/.local/bin"
+add_to_path "$XDG_CONFIG_HOME/fzf/bin"
 
 unset -f add_to_path
 

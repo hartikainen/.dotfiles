@@ -68,8 +68,7 @@ source_files() {
         "${XDG_CONFIG_HOME}/zsh/local"
     )
     
-    local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/..")"
-    . "${DOTFILES_ROOT}/setup/utils.sh"
+    . "${DOTFILES_DIR}/setup/utils.sh"
 
     for file in "${FILES_TO_SOURCE[@]}"; do
         [ -r "${file}" ] && source "${file}"

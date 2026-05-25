@@ -10,6 +10,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # brew bundle) only looks for them there.
 declare -r -a TOP_LEVEL_FILES=(
     ".profile"
+    ".bash_profile"
     ".bashrc"
     ".bash_logout"
     ".zshenv"

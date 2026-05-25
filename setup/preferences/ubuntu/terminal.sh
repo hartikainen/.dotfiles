@@ -17,7 +17,11 @@ main() {
     execute "gsettings set org.gnome.desktop.interface monospace-font-name 'Monospace 12'" \
             "Change font size"
 
-    execute "gsettings set org.gnome.libgnomekbd.keyboard options \"['caps\tcaps:none']\""
+    execute "gsettings set org.gnome.libgnomekbd.keyboard options \"['caps\tcaps:none']\" &&
+             gsettings set org.gnome.desktop.input-sources xkb-options \"['ctrl:nocaps']\""
+
+    # Enable "ctrl+;" binding (used for tmux prefix)
+    execute "gsettings set org.freedesktop.ibus.panel.emoji hotkey \"[]\""
 
     execute "gconftool-2 --set '/apps/gnome-terminal/profiles/Default/use_theme_background' --type bool false && \
              gconftool-2 --set '/apps/gnome-terminal/profiles/Default/use_theme_colors' --type bool false && \

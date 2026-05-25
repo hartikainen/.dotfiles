@@ -134,6 +134,53 @@ jobs:
         run: |
           bash -lc '[ -n "$XDG_CONFIG_HOME" ] && [ -n "$DOTFILES_DIR" ] && [ -n "$BASH_SILENCE_DEPRECATION_WARNING" ]'
 
+      - name: idempotency (re-run dotfile setup is a no-op)
+        env:
+          DOTFILES_DIR: ${{ github.workspace }}
+        # Catches the entire "works once, breaks on re-run" class of
+        # regressions: symlinks getting silently `rm`+`ln`-recreated,
+        # local-config files appended to on every pass, mystery files
+        # landing in $HOME. We snapshot inode + target for every
+        # managed symlink, plus the top-level $HOME listing, then run
+        # `dotfiles.sh -y` a second time and `diff` both snapshots.
+        # Any change fails the job under `set -e`.
+        run: |
+          set -euo pipefail
+
+          # `ls -di` and `readlink` are portable across BSD (macOS) and
+          # GNU (linux) coreutils — both print "INODE PATH" as the
+          # first two whitespace-separated fields.
+          snapshot_managed_symlinks() {
+              local out="$1"
+              : > "$out"
+              find "$HOME" -type l 2>/dev/null | LC_ALL=C sort \
+                | while IFS= read -r link; do
+                    target=$(readlink "$link" 2>/dev/null) || continue
+                    case "$target" in
+                        "${GITHUB_WORKSPACE}"/*)
+                            inode=$(ls -di "$link" | awk '{print $1}')
+                            printf '%s\t%s -> %s\n' "$inode" "$link" "$target" >> "$out"
+                            ;;
+                    esac
+                done
+          }
+
+          snapshot_managed_symlinks /tmp/snap.before
+          ls -1A "$HOME" | LC_ALL=C sort > /tmp/home.before
+
+          ./setup/dotfiles.sh -y
+
+          snapshot_managed_symlinks /tmp/snap.after
+          ls -1A "$HOME" | LC_ALL=C sort > /tmp/home.after
+
+          echo "::group::managed symlink diff (before vs after second run)"
+          diff -u /tmp/snap.before /tmp/snap.after
+          echo "::endgroup::"
+
+          echo "::group::~/ top-level diff (before vs after second run)"
+          diff -u /tmp/home.before /tmp/home.after
+          echo "::endgroup::"
+
       - name: interactive bash starts cleanly
         env:
           DOTFILES_DIR: ${{ github.workspace }}

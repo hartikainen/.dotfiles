@@ -1,11 +1,11 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "./utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "./utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-main () {
+main() {
 
     print_in_purple "\n   Cleanup\n\n"
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -59,10 +59,10 @@ execute "defaults write com.apple.finder ShowRecentTags -bool false" \
 execute "defaults write -g AppleShowAllExtensions -bool true" \
     "Show all filename extensions"
 
-killall "Finder" &> /dev/null
+killall "Finder" &>/dev/null
 
 # Starting with Mac OS X Mavericks preferences are cached,
 # so in order for things to get properly set using `PlistBuddy`,
 # the `cfprefsd` process also needs to be killed.
 
-killall "cfprefsd" &> /dev/null
+killall "cfprefsd" &>/dev/null

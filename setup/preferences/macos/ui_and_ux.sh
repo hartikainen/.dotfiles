@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -9,7 +9,7 @@ print_in_purple "\n   UI & UX\n\n"
 
 execute "defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true && \
          defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true" \
-   "Avoid creating '.DS_Store' files on network or USB volumes"
+    "Avoid creating '.DS_Store' files on network or USB volumes"
 
 execute "defaults write com.apple.menuextra.battery ShowPercent -string 'YES'" \
     "Show battery percentage from the menu bar"
@@ -87,11 +87,11 @@ execute "sudo /usr/libexec/PlistBuddy -c \
          sudo /usr/libexec/PlistBuddy -c \
              'Set :${__current_user_uid}:CBBlueReductionStatus:BlueLightReductionSchedule:NightStartHour 1'8\
              '${__CoreBrightness_plist}'" \
-         "Set Night Shift schedule"
+    "Set Night Shift schedule"
 
 unset __current_user_uid
 unset __CoreBrightness_plist
 
 for service_name in "SystemUIServer" "cfprefsd" "corebrightnessd"; do
-    killall "$service_name"  &> /dev/null;
+    killall "$service_name" &>/dev/null
 done

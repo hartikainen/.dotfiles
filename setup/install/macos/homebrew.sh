@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh" \
-    && . "./utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh" &&
+    . "./utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -12,7 +12,7 @@ get_homebrew_git_config_file_path() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    if path="$(brew --repository 2> /dev/null)/.git/config"; then
+    if path="$(brew --repository 2>/dev/null)/.git/config"; then
         printf "%s" "$path"
         return 0
     else
@@ -25,7 +25,7 @@ get_homebrew_git_config_file_path() {
 install_homebrew() {
 
     if ! cmd_exists "brew"; then
-        printf "\n" | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &> /dev/null
+        printf "\n" | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &>/dev/null
         #       └─ simulate the ENTER keypress
     fi
 
@@ -41,8 +41,8 @@ opt_out_of_analytics() {
 
     # Try to get the path of the `Homebrew` git config file.
 
-    path="$(get_homebrew_git_config_file_path)" \
-        || return 1
+    path="$(get_homebrew_git_config_file_path)" ||
+        return 1
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -50,7 +50,7 @@ opt_out_of_analytics() {
     # https://github.com/Homebrew/brew/blob/0c95c60511cc4d85d28f66b58d51d85f8186d941/share/doc/homebrew/Analytics.md#opting-out
 
     if [ "$(git config --file="$path" --get homebrew.analyticsdisabled)" != "true" ]; then
-        git config --file="$path" --replace-all homebrew.analyticsdisabled true &> /dev/null
+        git config --file="$path" --replace-all homebrew.analyticsdisabled true &>/dev/null
     fi
 
     print_result $? "Homebrew (opt-out of analytics)"

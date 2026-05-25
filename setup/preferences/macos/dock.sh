@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -29,7 +29,7 @@ execute "defaults write com.apple.dock minimize-to-application -bool true" \
     "Reduce clutter by minimizing windows into their application icons"
 
 execute "defaults write com.apple.dock mru-spaces -bool false" \
-        "Do not automatically rearrange spaces based on most recent use"
+    "Do not automatically rearrange spaces based on most recent use"
 
 execute "defaults write com.apple.dock persistent-apps -array && \
          defaults write com.apple.dock persistent-others -array" \
@@ -53,5 +53,4 @@ execute "defaults write com.apple.dock static-only -bool true" \
 execute "defaults write com.apple.dock orientation -string 'left'" \
     "Only show active apps in the Dock."
 
-
-killall "Dock" &> /dev/null
+killall "Dock" &>/dev/null

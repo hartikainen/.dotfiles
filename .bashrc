@@ -10,7 +10,7 @@
 # allowed to assume an interactive terminal.
 case $- in
     *i*) ;;
-    *) return;;
+    *) return ;;
 esac
 
 # Safety net for `bash -i` invoked from a script (which doesn't go
@@ -30,9 +30,7 @@ export XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_DATA_HOME
 export SHELL_SESSION_DIR="${XDG_STATE_HOME}/bash/sessions"
 export SHELL_SESSION_FILE="${SHELL_SESSION_DIR}/${TERM_SESSION_ID}"
 
-command -v fzf &> /dev/null && eval "$(fzf --bash)"
-
-
+command -v fzf &>/dev/null && eval "$(fzf --bash)"
 
 source_files() {
 
@@ -67,7 +65,7 @@ unset -f source_files
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ "$TERM_PROGRAM" != "Apple_Terminal" ] && command -v oh-my-posh > /dev/null; then
+if [ "$TERM_PROGRAM" != "Apple_Terminal" ] && command -v oh-my-posh >/dev/null; then
     eval "$(oh-my-posh init bash --config ~/.config/oh-my-posh/oh-my-posh.toml)"
 fi
 

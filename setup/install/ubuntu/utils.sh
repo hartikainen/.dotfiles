@@ -1,20 +1,20 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 add_key() {
 
-    wget -qO - "$1" | sudo apt-key add - &> /dev/null
+    wget -qO - "$1" | sudo apt-key add - &>/dev/null
     #     │└─ write output to file
     #     └─ don't show output
 
 }
 
 add_ppa() {
-    sudo add-apt-repository -y ppa:"$1" &> /dev/null
+    sudo add-apt-repository -y ppa:"$1" &>/dev/null
 }
 
 add_to_source_list() {
@@ -49,7 +49,7 @@ install_package() {
 }
 
 package_is_installed() {
-    dpkg -s "$1" &> /dev/null
+    dpkg -s "$1" &>/dev/null
 }
 
 update() {

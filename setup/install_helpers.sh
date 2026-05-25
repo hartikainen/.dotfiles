@@ -27,11 +27,11 @@ download() {
     local url="$1"
     local output="$2"
 
-    if command -v "curl" &> /dev/null; then
-        curl -LsSo "$output" "$url" &> /dev/null
+    if command -v "curl" &>/dev/null; then
+        curl -LsSo "$output" "$url" &>/dev/null
         return $?
-    elif command -v "wget" &> /dev/null; then
-        wget -qO "$output" "$url" &> /dev/null
+    elif command -v "wget" &>/dev/null; then
+        wget -qO "$output" "$url" &>/dev/null
         return $?
     fi
 
@@ -47,10 +47,10 @@ download_utils() {
     tmpFile="$(mktemp /tmp/dotfiles_utils.XXXXX)"
 
     # shellcheck source=utils.sh
-    download "${DOTFILES_RAW_URL}/utils.sh" "$tmpFile" \
-        && . "$tmpFile" \
-        && rm -rf "$tmpFile" \
-        && return 0
+    download "${DOTFILES_RAW_URL}/utils.sh" "$tmpFile" &&
+        . "$tmpFile" &&
+        rm -rf "$tmpFile" &&
+        return 0
 
     return 1
 
@@ -104,7 +104,7 @@ download_dotfiles() {
 
     else
 
-        rm -rf "$dotfilesDirectory" &> /dev/null
+        rm -rf "$dotfilesDirectory" &>/dev/null
 
     fi
 
@@ -125,8 +125,8 @@ download_dotfiles() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    cd "$dotfilesDirectory/setup" \
-        || return 1
+    cd "$dotfilesDirectory/setup" ||
+        return 1
 
 }
 

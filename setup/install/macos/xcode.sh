@@ -1,20 +1,20 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 agree_with_xcode_licence() {
 
     # Automatically agree to the terms of the `Xcode` license.
-    sudo xcodebuild -license accept &> /dev/null
+    sudo xcodebuild -license accept &>/dev/null
     print_result $? "Agree to the terms of the Xcode licence"
 
 }
 
 are_xcode_command_line_tools_installed() {
-    xcode-select --print-path &> /dev/null
+    xcode-select --print-path &>/dev/null
 }
 
 install_xcode() {
@@ -42,7 +42,7 @@ install_xcode_command_line_tools() {
     # If necessary, prompt user to install
     # the `Xcode Command Line Tools`.
 
-    xcode-select --install &> /dev/null
+    xcode-select --install &>/dev/null
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -65,7 +65,7 @@ set_xcode_developer_directory() {
     # Point the `xcode-select` developer directory to
     # the appropriate directory from within `Xcode.app`.
 
-    sudo xcode-select -switch "/Applications/Xcode.app/Contents/Developer" &> /dev/null
+    sudo xcode-select -switch "/Applications/Xcode.app/Contents/Developer" &>/dev/null
     print_result $? "Make 'xcode-select' developer directory point to the appropriate directory from within Xcode.app"
 
 }

@@ -1,13 +1,12 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh" \
-    && . "./utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh" &&
+    . "./utils.sh"
 
 declare -r FZF_DIRECTORY="${XDG_CONFIG_HOME:=${HOME}/.config}/fzf"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 
 install_fzf() {
 
@@ -15,7 +14,7 @@ install_fzf() {
                  --depth 1 \
                  https://github.com/junegunn/fzf.git \
                  ${FZF_DIRECTORY}" \
-            "fzf (clone to ${FZF_DIRECTORY})"
+        "fzf (clone to ${FZF_DIRECTORY})"
 
     # Download the fzf binary only (no configuration files needed).
     fzf_configure_command="${FZF_DIRECTORY}/install --bin"
@@ -31,7 +30,7 @@ update_fzf() {
 
 }
 
-main () {
+main() {
 
     print_in_purple "\n   fzf\n\n"
 

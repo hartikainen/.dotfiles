@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")" \
-    && . "../../utils.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")" &&
+    . "../../utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -18,7 +18,7 @@ execute "defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Track
          defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadCornerSecondaryClick -int 0 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadCornerSecondaryClick -int 0 && \
          defaults -currentHost write -g com.apple.trackpad.trackpadCornerClickBehavior -int 0" \
-        "Map 'click or tap with two fingers' to the secondary click"
+    "Map 'click or tap with two fingers' to the secondary click"
 
 execute "defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerHorizSwipeGesture -int 2 && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerVertSwipeGesture -int 2 && \
@@ -27,4 +27,4 @@ execute "defaults write com.apple.AppleMultitouchTrackpad TrackpadFourFingerHori
 
          defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true && \
          defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true" \
-        "Set 'Swipe between full-screen apps' action to 4 fingers instead of 3 fingers'"
+    "Set 'Swipe between full-screen apps' action to 4 fingers instead of 3 fingers'"

@@ -70,8 +70,14 @@ export NODE_REPL_HISTORY_SIZE=10000
 
 # Make new shells get the history lines from all previous
 # shells instead of the default "last window closed" history.
+#
+# Guard against the prepend running repeatedly: nested shells (or
+# re-sourcing `.bashrc`) would otherwise keep prefixing `history -a;`
+# to `$PROMPT_COMMAND` until it's hundreds of entries long.
 
-export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+if [[ "${PROMPT_COMMAND}" != *"history -a"* ]]; then
+    export PROMPT_COMMAND="history -a; ${PROMPT_COMMAND}"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

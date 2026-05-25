@@ -1,0 +1,19 @@
+# XDG user-directories config. Read by `xdg-user-dirs` on Linux (GTK file
+# pickers, Nautilus/Dolphin, the `xdg-user-dir DOWNLOAD` CLI, etc.). macOS
+# ignores this file — it has its own fixed `~/Documents`, `~/Downloads`, ...
+# layout via the Cocoa file manager APIs.
+#
+# Spec: https://www.freedesktop.org/wiki/Software/xdg-user-dirs/
+# Updates by `xdg-user-dirs-update` are disabled in `user-dirs.conf` so
+# this symlink isn't clobbered on login or locale change.
+#
+# Format: each path is shell-expanded; `$HOME` is the only var available.
+
+XDG_DESKTOP_DIR="$HOME/Desktop"
+XDG_DOWNLOAD_DIR="$HOME/Downloads"
+XDG_DOCUMENTS_DIR="$HOME/Documents"
+XDG_MUSIC_DIR="$HOME/Music"
+XDG_PICTURES_DIR="$HOME/Pictures"
+XDG_VIDEOS_DIR="$HOME/Videos"
+XDG_TEMPLATES_DIR="$HOME/Templates"
+XDG_PUBLICSHARE_DIR="$HOME/Public"

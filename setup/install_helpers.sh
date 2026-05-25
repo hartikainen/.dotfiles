@@ -226,7 +226,7 @@ do_dotfile_setup() {
 
     export XDG_CONFIG_HOME XDG_DATA_HOME
 
-    ./create_local_config_files.sh
+    ./create_local_config_files.sh "$@"
 
     # `set_github_ssh_key.sh` is fundamentally interactive (prompts for
     # an email, opens a browser tab, waits for the user to add the key

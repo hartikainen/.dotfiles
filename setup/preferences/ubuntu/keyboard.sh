@@ -10,5 +10,5 @@ execute "gsettings set \
          repeat-interval 10"
 
 execute "gsettings set \
-         org.gnome.desktop.peripherals.keyboard
+         org.gnome.desktop.peripherals.keyboard \
          delay 200"

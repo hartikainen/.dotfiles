@@ -1,31 +1,24 @@
 #!/bin/bash
+#
+# ~/.bashrc: read by bash when invoked as an interactive non-login shell
+# (e.g. opening a new terminal pane after the first), and indirectly by
+# login shells via `~/.bash_profile`. Keep this file scoped to
+# interactive setup only — env vars, PATH, and anything that should be
+# visible to non-interactive shells belong in `~/.profile`.
 
-# TODO(hartikainen): Figure what the right way to set these is for different
-# shell types (e.g. interactive vs. non-interactive).
-: "${XDG_CONFIG_HOME:=${HOME}/.config}"
-: "${XDG_STATE_HOME:=${HOME}/.local/state}"
-: "${XDG_CACHE_HOME:=${HOME}/.cache}"
-: "${XDG_DATA_HOME:=${HOME}/.local/share}"
-
-# Root of the dotfiles checkout. Used by the files sourced below to locate
-# `setup/utils.sh`. Defaults to whichever directory `${HOME}/.bashrc` is a
-# symlink into (which is how `create_symbolic_links.sh` wires it up),
-# falling back to `${HOME}/.dotfiles`. Override by exporting `DOTFILES_DIR`
-# from your environment.
-if [ -z "${DOTFILES_DIR:-}" ] && [ -L "${HOME}/.bashrc" ]; then
-    DOTFILES_DIR="$(dirname "$(readlink "${HOME}/.bashrc")")"
-fi
-: "${DOTFILES_DIR:=${HOME}/.dotfiles}"
-
-# Silence macos bash deprecation warning. See
-# https://support.apple.com/en-us/HT208050/ for more information.
-export BASH_SILENCE_DEPRECATION_WARNING=1
-
-# Return if not running interactively.
+# Return if not running interactively. Anything below this line is
+# allowed to assume an interactive terminal.
 case $- in
     *i*) ;;
     *) return;;
 esac
+
+# Safety net for `bash -i` invoked from a script (which doesn't go
+# through `~/.bash_profile`): pull in `~/.profile` once so XDG_*,
+# DOTFILES_DIR, and `~/.local/bin/env` are still set.
+if [ -z "${DOTFILES_DIR:-}" ] && [ -f "${HOME}/.profile" ]; then
+    . "${HOME}/.profile"
+fi
 
 # Set the cursor to a block style
 echo -ne "\e[2 q"
@@ -82,6 +75,3 @@ fi
 # and time of the last login, the message of the day, etc.).
 
 # clear
-
-# Pick up things like `~/.local/bin` added to PATH by `uv`, `rustup`, etc.
-[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"

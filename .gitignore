@@ -17,12 +17,9 @@ bats
 enabled/*
 /enabled
 tmp/
-.config/bash/local
-.config/zsh/local
-.config/zsh/.zcompdump*
-.config/zsh/.zsh_sessions
-.config/git/config.local
-.config/emacs/
-.config/gcloud/
-.config/packer/
-.config/uv/
+
+# Per-tool entries under `.config/` are no longer needed: `~/.config/<tool>/`
+# is a real directory you own, and only files we explicitly track in this
+# repo are symlinked into it. Runtime/local files (e.g. `~/.config/zsh/local`,
+# `~/.config/zsh/.zcompdump*`, `~/.config/git/config.local`) live in your
+# home dir and never appear inside this repo.

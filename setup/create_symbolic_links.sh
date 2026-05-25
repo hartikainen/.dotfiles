@@ -9,6 +9,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 # to live at the top of $HOME because the corresponding tool (bash, zsh,
 # brew bundle) only looks for them there.
 declare -r -a TOP_LEVEL_FILES=(
+    ".profile"
     ".bashrc"
     ".bash_logout"
     ".zshenv"

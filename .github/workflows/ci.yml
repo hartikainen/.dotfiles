@@ -33,10 +33,11 @@ jobs:
         uses: mfinelli/setup-shfmt@v4
 
       # `shfmt -d` exits non-zero if any file needs reformatting. We use
-      # the same indentation style (`-i 4 -ci`) the existing scripts
-      # follow. Zsh and applescript files are excluded.
+      # `-i 4 -ci`, which matches the formatting applied by `shfmt -w`
+      # in commit-time auto-format. Zsh and applescript files are
+      # excluded. To resync after manual edits: run the same command
+      # below with `-w` instead of `-d`.
       - name: shfmt
-        continue-on-error: true
         run: |
           mapfile -d '' files < <(git ls-files -z \
             '*.sh' \

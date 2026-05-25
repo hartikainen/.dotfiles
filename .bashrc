@@ -7,6 +7,16 @@
 : "${XDG_CACHE_HOME:=${HOME}/.cache}"
 : "${XDG_DATA_HOME:=${HOME}/.local/share}"
 
+# Root of the dotfiles checkout. Used by the files sourced below to locate
+# `setup/utils.sh`. Defaults to whichever directory `${HOME}/.bashrc` is a
+# symlink into (which is how `create_symbolic_links.sh` wires it up),
+# falling back to `${HOME}/.dotfiles`. Override by exporting `DOTFILES_DIR`
+# from your environment.
+if [ -z "${DOTFILES_DIR:-}" ] && [ -L "${HOME}/.bashrc" ]; then
+    DOTFILES_DIR="$(dirname "$(readlink "${HOME}/.bashrc")")"
+fi
+: "${DOTFILES_DIR:=${HOME}/.dotfiles}"
+
 # Silence macos bash deprecation warning. See
 # https://support.apple.com/en-us/HT208050/ for more information.
 export BASH_SILENCE_DEPRECATION_WARNING=1
@@ -47,8 +57,7 @@ source_files() {
         "${XDG_CONFIG_HOME}/bash/local"
     )
 
-    local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/..")"
-    . "${DOTFILES_ROOT}/setup/utils.sh"
+    . "${DOTFILES_DIR}/setup/utils.sh"
 
     for file in "${FILES_TO_SOURCE[@]}"; do
         [ -r "${file}" ] && source "${file}"

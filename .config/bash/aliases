@@ -1,7 +1,7 @@
 #!/bin/bash
 
-local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/..")"
-source "${DOTFILES_ROOT}/setup/utils.sh"
+# `get_os_name` is provided by `${DOTFILES_DIR}/setup/utils.sh`, which is
+# sourced by `.bashrc`/`.zshrc` before this file.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

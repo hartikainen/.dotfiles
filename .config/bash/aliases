@@ -1,6 +1,6 @@
 #!/bin/bash
 
-local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/../..")"
+local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/..")"
 source "${DOTFILES_ROOT}/setup/utils.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

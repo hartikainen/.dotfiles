@@ -47,7 +47,7 @@ source_files() {
         "${XDG_CONFIG_HOME}/bash/local"
     )
 
-    local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/../..")"
+    local DOTFILES_ROOT="$(realpath "${XDG_CONFIG_HOME}/..")"
     . "${DOTFILES_ROOT}/setup/utils.sh"
 
     for file in "${FILES_TO_SOURCE[@]}"; do

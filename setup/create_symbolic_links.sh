@@ -9,9 +9,9 @@ create_symlinks() {
 
     declare -a FILES_TO_SYMLINK=(
 
-        "home/.config"
-        "home/.bashrc"
-        "home/.zshenv"
+        ".config"
+        ".bashrc"
+        ".zshenv"
 
     )
 
@@ -30,7 +30,7 @@ create_symlinks() {
     for i in "${FILES_TO_SYMLINK[@]}"; do
 
         sourceFile="$(cd .. && pwd)/$i"
-        targetFile="$HOME/${i##home/}"
+        targetFile="$HOME/$i"
 
         if [ ! -e "$targetFile" ] || $skipQuestions; then
 

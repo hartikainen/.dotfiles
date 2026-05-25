@@ -17,9 +17,9 @@ bats
 enabled/*
 /enabled
 tmp/
-home/.config/bash/local
-home/.config/zsh/local
-home/.config/zsh/.zcompdump*
-home/.config/zsh/.zsh_sessions
-home/.config/git/config.local
-home/.config/emacs
+.config/bash/local
+.config/zsh/local
+.config/zsh/.zcompdump*
+.config/zsh/.zsh_sessions
+.config/git/config.local
+.config/emacs/

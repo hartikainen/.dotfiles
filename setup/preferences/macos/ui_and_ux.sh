@@ -19,9 +19,6 @@ execute "killall ControlCenter &>/dev/null && \
          defaults write com.apple.controlcenter 'NSStatusItem Visible Bluetooth' -bool true" \
     "Show Bluetooth icon in the menu bar"
 
-execute "sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true" \
-    "Show language menu in the top right corner of the boot screen"
-
 execute "defaults write com.apple.CrashReporter UseUNC 1" \
     "Make crash reports appear as notifications"
 

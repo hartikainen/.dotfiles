@@ -17,6 +17,21 @@ install_doom_emacs() {
         print_success "Skip doom install (already installed)"
     fi
 
+    if [ -e "$HOME/.emacs.d" ]; then
+        echo "Found '$HOME/.emacs.d'. Moving it to '$HOME/.emacs.d.backup'"
+        mv "$HOME/.emacs.d" "$HOME/.emacs.d.backup"
+    fi
+
+    if [ -e "$HOME/.emacs.el" ]; then
+        echo "Found '$HOME/.emacs.el'. Moving it to '$HOME/.emacs.el.backup'"
+        mv "$HOME/.emacs.el" "$HOME/.emacs.el.backup"
+    fi
+
+    if [ -e "$HOME/.emacs" ]; then
+        echo "Found '$HOME/.emacs'. Moving it to '$HOME/.emacs.backup'"
+        mv "$HOME/.emacs" "$HOME/.emacs.backup"
+    fi
+
 }
 
 upgrade_doom_emacs() {

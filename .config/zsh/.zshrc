@@ -5,7 +5,8 @@
 # Set the cursor to a block style
 echo -ne "\e[2 q"
 
-# Path to your oh-my-zsh installation. TODO(hartikainen): should this be `XDG_CONFIG_HOME`?
+# Oh-my-zsh ships application data (themes, plugins, the installer's own
+# clone), not user config, so `XDG_DATA_HOME` is the right base.
 export ZSH="${XDG_DATA_HOME}/oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
@@ -29,6 +30,7 @@ plugins=(
     # brew
 )
 
+# `XDG_*_HOME` vars are already exported by `.profile` (sourced from `.zshenv`).
 # Only variables needed by external commands or non-interactive sub shells
 # should be exported.
 export XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_DATA_HOME

@@ -27,4 +27,10 @@ fi
 export DOTFILES_DIR
 
 # Pick up `~/.local/bin` (and similar) added to PATH by `uv`, `rustup`, etc.
-[ -f "${HOME}/.local/bin/env" ] && . "${HOME}/.local/bin/env"
+# Wrapped in `if`/`fi` rather than `[ -f ... ] && . ...` so that, when the
+# file is absent, `.profile` doesn't inherit the `[ -f ]` test's exit
+# status. POSIX shells use the exit status of the last command run, and
+# callers like `sh -c '. ~/.profile && ...'` would otherwise short-circuit.
+if [ -f "${HOME}/.local/bin/env" ]; then
+    . "${HOME}/.local/bin/env"
+fi

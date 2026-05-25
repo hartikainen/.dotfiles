@@ -73,3 +73,6 @@ fi
 # and time of the last login, the message of the day, etc.).
 
 # clear
+
+
+. "$HOME/.local/share/../bin/env"

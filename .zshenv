@@ -13,3 +13,5 @@
 # `ZDOTDIR` has to be set here to be able to store other zsh dotfiles outside of
 # `HOME`.
 ZDOTDIR="${XDG_CONFIG_HOME}/zsh"
+
+. "$HOME/.local/share/../bin/env"

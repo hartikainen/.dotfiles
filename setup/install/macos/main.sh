@@ -10,25 +10,11 @@ main() {
 
     ./xcode.sh
     ./homebrew.sh
-    ./bash.sh
-    ./git.sh
 
-    ./ghostty.sh
+    brew_bundle_install
 
-    ./zsh.sh
     ./../oh_my_zsh.sh
-    ./fzf.sh
-
-    ./browsers.sh
-    ./gpg.sh
-    ./image_tools.sh
-    ./video_tools.sh
-    ./misc.sh
-    ./misc_tools.sh
-    ./tmux.sh
     ./../emacs.sh
-
-    ./cleanup.sh
 
 }
 

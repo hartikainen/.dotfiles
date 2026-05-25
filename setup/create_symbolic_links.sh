@@ -12,6 +12,7 @@ create_symlinks() {
         ".config"
         ".bashrc"
         ".zshenv"
+        ".Brewfile"
 
     )
 

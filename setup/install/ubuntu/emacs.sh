@@ -7,12 +7,9 @@ cd "$(dirname "${BASH_SOURCE[0]}")" \
 
 main () {
 
-    add_ppa "kelleyk/emacs"
-
     update
 
-    execute "sudo apt remove --autoremove -y emacs emacs-common"
-    install_package "Emacs 28" "emacs28-nativecomp"
+    execute "sudo snap install -y emacs"
 
 }
 

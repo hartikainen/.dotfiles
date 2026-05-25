@@ -21,18 +21,14 @@ install_doom_emacs() {
 
 upgrade_doom_emacs() {
 
-    execute "bash -i -c '${DOOM_INSTALL_DIR}/bin/doom upgrade && true'"
-    execute "bash -i -c '${DOOM_INSTALL_DIR}/bin/doom sync && true'"
+    execute "${DOOM_INSTALL_DIR}/bin/doom upgrade -! && true"
+    execute "${DOOM_INSTALL_DIR}/bin/doom sync -! && true"
 
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 main() {
-
-    print_in_purple "\n   Emacs\n\n"
-
-    "./$(get_os_name)/emacs.sh"
 
     print_in_purple "\n   Doom Emacs\n\n"
 

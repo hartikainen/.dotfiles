@@ -90,8 +90,8 @@ unset -f source_files
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
-  eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/oh-my-posh.toml)"
+if [ "$TERM_PROGRAM" != "Apple_Terminal" ] && command -v oh-my-posh > /dev/null; then
+    eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/oh-my-posh.toml)"
 fi
 
 WORDCHARS='"*?_-[]~&;!#$%^(){}<>\n'

@@ -115,8 +115,12 @@ function execute() {
 
     # Execute commands in background
 
+    # Drop stdout, capture stderr to `$TMP_FILE` so `print_error_stream`
+    # can surface it on failure. The previous version had `&> /dev/null`
+    # *and* `2> "$TMP_FILE"`; `&>` claims both streams so the `2>` had
+    # no stderr left to redirect — every captured error came back empty.
     eval "$CMDS" \
-        &> /dev/null \
+        > /dev/null \
         2> "$TMP_FILE" &
 
     cmdsPID=$!
@@ -204,8 +208,9 @@ function is_git_repository() {
 
 function is_supported_version() {
 
-    declare -a v1=(${1//./ })
-    declare -a v2=(${2//./ })
+    declare -a v1 v2
+    IFS='.' read -ra v1 <<< "$1"
+    IFS='.' read -ra v2 <<< "$2"
     local i=""
 
     # Fill empty positions in v1 with zeros.

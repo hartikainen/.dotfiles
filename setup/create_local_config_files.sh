@@ -56,7 +56,6 @@ create_gitconfig_local() {
 
         ask_for_confirmation "Do you want to set git user details now?"
         if answer_is_yes; then
-            dotfilesDirectory=""
             while [ -z "${GIT_NAME}" ]; do
                 ask "Please specify git name (e.g. <firstname> <lastname>): "
                 GIT_NAME="$(get_answer)"

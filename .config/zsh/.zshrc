@@ -92,7 +92,7 @@ if [ "$TERM_PROGRAM" != "Apple_Terminal" ] && command -v oh-my-posh >/dev/null; 
     eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/oh-my-posh.toml)"
 fi
 
-WORDCHARS='"*?_-[]~&;!#$%^(){}<>\n'
+WORDCHARS='*?_-[]~&;!#$%^(){}<>\n'
 autoload -Uz select-word-style
 select-word-style normal
 zstyle ':zle:*' word-style normal

@@ -18,6 +18,8 @@ mkdir -p "${XDG_STATE_HOME}/zsh"
 HISTFILE="${XDG_STATE_HOME}/zsh/history"
 mkdir -p "${XDG_CACHE_HOME}/zsh"
 ZSH_CACHE_DIR="${XDG_CACHE_HOME}/zsh"
+# Keep the completion dump in the XDG cache.
+ZSH_COMPDUMP="${XDG_CACHE_HOME}/zsh/.zcompdump-${HOST}-${ZSH_VERSION}"
 
 plugins=(
     docker

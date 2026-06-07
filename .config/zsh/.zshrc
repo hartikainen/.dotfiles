@@ -1,6 +1,37 @@
 #!/bin/env zsh
 
-[[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
+# History safety: configure HISTFILE and append-on-exit behaviour BEFORE
+# the `TERM == "dumb"` early-return below. Otherwise any `zsh -ic '...'`
+# subshell (scripts, Makefiles, agent tooling — all of which set
+# `TERM=dumb`) falls back to `/etc/zshrc`'s defaults of HISTSIZE=2000,
+# SAVEHIST=1000 with no APPEND_HISTORY, and zsh's documented default
+# without APPEND_HISTORY is to *replace* the history file on shell exit
+# with the in-memory list (capped at SAVEHIST). APPEND_HISTORY flips
+# that to append, so an exiting shell can no longer truncate the file.
+# `HISTFILE` is only used by interactive shells, so no `export` needed.
+mkdir -p "${XDG_STATE_HOME}/zsh"
+HISTFILE="${XDG_STATE_HOME}/zsh/history"
+# HISTSIZE caps the *in-memory* history (what `fzf-history-widget` /
+# Ctrl+R has to scan); SAVEHIST caps what's written to disk. Decoupling
+# them keeps Ctrl+R snappy (only the most recent ~HISTSIZE commands are
+# searched interactively) while preserving a much longer archive on
+# disk that you can still reach via `grep $HISTFILE`, `fc -R N`, or
+# `~/.dotfiles/setup/recover_zsh_history.py`.
+HISTSIZE=10000
+SAVEHIST=50000
+setopt APPEND_HISTORY EXTENDED_HISTORY
+
+# Dumb subshells (agent tooling, `zsh -ic ...` from scripts, etc.) still
+# shouldn't pollute interactive history. Unsetting `HISTFILE` disables
+# both loading and saving for this shell while leaving the global config
+# above intact for real interactive sessions.
+if [[ $TERM == "dumb" ]]; then
+    unset HISTFILE
+    SAVEHIST=0
+    unsetopt zle
+    PS1='$ '
+    return
+fi
 
 # Set the cursor to a block style
 echo -ne "\e[2 q"
@@ -12,10 +43,6 @@ export ZSH="${XDG_DATA_HOME}/oh-my-zsh"
 ZSH_THEME="robbyrussell"
 
 HIST_STAMPS="%d-%m-%y %T"
-# `HISTFILE` is used only by interactive shells, that is, sub shells and
-# external commands don't need this var. Thus, we don't need to export it.
-mkdir -p "${XDG_STATE_HOME}/zsh"
-HISTFILE="${XDG_STATE_HOME}/zsh/history"
 mkdir -p "${XDG_CACHE_HOME}/zsh"
 ZSH_CACHE_DIR="${XDG_CACHE_HOME}/zsh"
 # Keep the completion dump in the XDG cache.

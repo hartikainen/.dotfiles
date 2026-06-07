@@ -34,7 +34,7 @@ export HISTIGNORE="&:[bf]g:c:clear:history:exit:q:pwd:* --help"
 # Increase the maximum number of commands recorded
 # in the command history (default value is 500).
 
-export HISTSIZE=10000
+export HISTSIZE=50000
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -22,9 +22,36 @@ setopt GLOB_DOTS
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Append to the history file rather then overwriting it.
+# Append to the history file rather than overwriting it. Without
+# APPEND_HISTORY, zsh's default on shell exit is to *replace* `HISTFILE`
+# with the current in-memory history (capped at `SAVEHIST`), which is
+# how a single rogue subshell can wipe years of history. Also set early
+# in `.zshrc` (before the `TERM=dumb` guard); duplicated here as a
+# defence in case the early block in `.zshrc` is bypassed in some
+# future refactor.
 
 setopt APPEND_HISTORY
+setopt EXTENDED_HISTORY
+
+# Cap *in-memory* history smaller than the on-disk archive. fzf's
+# Ctrl+R widget scans `${(kv)history[@]}`, so HISTSIZE directly drives
+# Ctrl+R latency. SAVEHIST controls only what is written to disk.
+# Re-asserted here (also set in `.zshrc`'s early block) because
+# `oh-my-zsh.sh`'s `lib/history.zsh` overrides HISTSIZE on load; this
+# file is sourced *after* oh-my-zsh and has the final word.
+HISTSIZE=10000
+SAVEHIST=50000
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Batch history writes: flush each session's commands to `HISTFILE` only
+# on shell exit, rather than after every command. Overrides oh-my-zsh's
+# default of `setopt INC_APPEND_HISTORY` (which sits well with
+# SHARE_HISTORY, but here we want per-session isolation — see below).
+# Relies on this file being sourced *after* `oh-my-zsh.sh` (see
+# `source_files` in `.zshrc`).
+
+unsetopt INC_APPEND_HISTORY
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -33,6 +60,33 @@ setopt APPEND_HISTORY
 # `oh-my-zsh.sh` (see `source_files` in `.zshrc`).
 
 unsetopt SHARE_HISTORY
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Quality-of-life history tweaks. None of these affect *when* or *where*
+# the history file is written (see APPEND_HISTORY block above); they
+# only shape what gets recorded and how interactive history search
+# behaves.
+#
+# - HIST_FIND_NO_DUPS:  Ctrl-R / history-search only stops on the most
+#                       recent occurrence of a command, never repeats.
+#                       Complements HIST_IGNORE_DUPS (set by oh-my-zsh),
+#                       which only blocks *consecutive* duplicates from
+#                       being stored.
+# - HIST_NO_STORE:      don't log `history` / `fc` invocations.
+# - HIST_NO_FUNCTIONS:  don't log multi-line function definitions
+#                       (which otherwise land in history as one giant,
+#                       unreadable entry).
+# - HIST_REDUCE_BLANKS: collapse internal whitespace when saving, so
+#                       `ls    -la` lands as `ls -la`.
+# - HIST_BEEP (off):    silence the system beep when navigating past
+#                       the start/end of the history list.
+
+setopt HIST_FIND_NO_DUPS
+setopt HIST_NO_STORE
+unsetopt HIST_NO_FUNCTIONS
+unsetopt HIST_REDUCE_BLANKS
+unsetopt HIST_BEEP
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

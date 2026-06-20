@@ -23,6 +23,13 @@
         | xargs -n 1 git branch -d \
     ' --"
 
+	refs-by-author = "!f() { \
+	    git for-each-ref \
+	    --sort=-committerdate \
+	    refs/heads/ \
+	    --format=\"%(committerdate:short) %(authorname) %(refname:short)\" \
+	    | grep \"$1\"; \
+    }; f"
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [branch]

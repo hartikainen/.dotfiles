@@ -70,6 +70,7 @@
     # excludesfile = ./ignore
     excludesfile = ~/.gitignore
     pager = delta  # TODO(hartikainen): difftastic?
+	commentChar = ⁑⁕⁑
 
 [delta]
     navigate = true  # use n and N to move between diff sections

@@ -17,6 +17,15 @@ declare -r -a TOP_LEVEL_FILES=(
     ".Brewfile"
 )
 
+# Directories whose tracked contents are linked file-by-file into the
+# corresponding path under $HOME. `.cursor` holds Cursor's user-level
+# subagents (`.cursor/agents/`) and skills (`.cursor/skills/`), which the
+# editor discovers by walking those directories.
+declare -r -a LINKED_DIRECTORIES=(
+    ".config"
+    ".cursor"
+)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 link_file() {
@@ -114,8 +123,8 @@ create_symlinks() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    # Per-file links for everything tracked under `.config/`. We prefer
-    # `git ls-files` because it automatically:
+    # Per-file links for everything tracked under `.config/` and
+    # `.cursor/`. We prefer `git ls-files` because it automatically:
     #   - excludes gitignored files (e.g. `.config/zsh/local`,
     #     `.config/git/config.local`, `.zcompdump*`),
     #   - includes submodule contents (e.g. `.config/doom/**`),
@@ -130,19 +139,32 @@ create_symlinks() {
             "${dotfilesRoot}/${rel}" \
             "${HOME}/${rel}" \
             "${skipQuestions}"
-    done < <(list_config_files "${dotfilesRoot}")
+    done < <(list_linked_files "${dotfilesRoot}")
 
 }
 
-list_config_files() {
+list_linked_files() {
 
     local root="$1"
 
+    local -a pathspecs=()
+    local dir
+    for dir in "${LINKED_DIRECTORIES[@]}"; do
+        pathspecs+=("${dir}/**")
+    done
+
     if command -v git &>/dev/null &&
         git -C "${root}" rev-parse --is-inside-work-tree &>/dev/null; then
-        git -C "${root}" ls-files -z --recurse-submodules -- '.config/**'
+        git -C "${root}" ls-files -z --recurse-submodules -- "${pathspecs[@]}"
     else
-        (cd "${root}" && find ".config" -type f -print0)
+        # Only pass directories that exist, so a checkout missing one of
+        # them doesn't turn into a `find` error.
+        local -a presentDirs=()
+        for dir in "${LINKED_DIRECTORIES[@]}"; do
+            [ -d "${root}/${dir}" ] && presentDirs+=("${dir}")
+        done
+        [ "${#presentDirs[@]}" -gt 0 ] || return 0
+        (cd "${root}" && find "${presentDirs[@]}" -type f -print0)
     fi
 
 }

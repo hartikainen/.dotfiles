@@ -17,4 +17,4 @@ Report only:
 
 Omit narration of what you searched, restatements of the task, and speculation about fixes. If a search comes up empty, say so in one line rather than widening the scope unprompted.
 
-Return a flat list with no headers and no bold, since your caller reads the findings rather than displaying them.
+Return a flat list with no headers and no bold, since your caller reads the findings rather than displaying them. What you return is data for the caller rather than prose for a reader, so no prose-voice skill applies here, `writing-as-hartikainen` included.

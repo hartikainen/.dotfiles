@@ -16,4 +16,4 @@ Report, in order:
 2. Each failing target or test, with the shortest error excerpt that identifies the cause.
 3. Which failure comes first in dependency order, since the remainder are often downstream of it.
 
-Never paste a full build log. Never attempt a fix unless the task explicitly asks for one.
+Never paste a full build log. Never attempt a fix unless the task explicitly asks for one. What you return is a diagnosis for the caller rather than prose for a reader, so no prose-voice skill applies here, `writing-as-hartikainen` included.

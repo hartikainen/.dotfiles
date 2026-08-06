@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "$HOME/.cursor/hooks/block-review-submission.py",
+        "matcher": "\\bgh\\b|api\\.github\\.com",
+        "failClosed": true,
+        "timeout": 10
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "$HOME/.cursor/hooks/block-review-mcp.py",
+        "failClosed": true,
+        "timeout": 10
+      }
+    ]
+  }
+}

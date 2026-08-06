@@ -21,6 +21,13 @@ declare -r -a TOP_LEVEL_FILES=(
 # corresponding path under $HOME. `.cursor` holds Cursor's user-level
 # subagents (`.cursor/agents/`) and skills (`.cursor/skills/`), which the
 # editor discovers by walking those directories.
+#
+# Note that this repo mirrors $HOME, so its own `.cursor/` doubles as a
+# project config whenever the dotfiles are open in Cursor, and each tracked
+# file there is loaded twice (once user-level, once for this project). The
+# two contexts resolve relative paths against different directories
+# (`~/.cursor/` vs. the project root), so paths written inside those files
+# have to be absolute. See the `$HOME`-based commands in `.cursor/hooks.json`.
 declare -r -a LINKED_DIRECTORIES=(
     ".config"
     ".cursor"

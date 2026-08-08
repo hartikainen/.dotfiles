@@ -19,6 +19,9 @@ names for that artifact. Draft from the file, not from memory of it.
   upstream bug a workaround exists for, why this bound and not the obvious one.
   Never narrate the next line, never restate the current value of the setting
   it is attached to, and never explain the change you just made.
+- Three lines is the ceiling on a comment attached to a single setting. Link
+  the upstream issue instead of summarizing it, give the constraint instead of
+  the mechanism, and leave how you found the problem in the commit message.
 - Prefer the invariant to the measurement. A number needs an anchor that rots
   visibly beside it, i.e. a version, an image tag, or a linked pull request.
 - Commit subjects are imperative, sentence case, no trailing period, no `feat:`

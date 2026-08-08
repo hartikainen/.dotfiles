@@ -228,6 +228,8 @@ do_dotfile_setup() {
 
     ./create_local_config_files.sh "$@"
 
+    ./cursor/cli_config.sh apply
+
     # `set_github_ssh_key.sh` is fundamentally interactive (prompts for
     # an email, opens a browser tab, waits for the user to add the key
     # on GitHub). Skip it under `-y` so CI / scripted re-runs don't

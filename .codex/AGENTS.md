@@ -1,0 +1,38 @@
+# Prose written on my behalf
+
+Before writing a commit message, a code comment, a docstring, a pull request
+description, or a GitHub issue, use the `writing-as-hartikainen` skill and read
+the register file it names for that artifact. Draft from the skill, not from
+memory of it.
+
+# Bans that hold without reading anything
+
+- Wrap every identifier, path, flag, and value in backticks. Parentheses, not
+  em dashes. No bolding for emphasis.
+- No `currently`, `for now`, `recently`, or `new` in anything that lands in the
+  tree, and no appeals to what the code used to do.
+- A comment states what the code cannot: which invariant a caller holds, which
+  upstream bug a workaround exists for, why this bound and not the obvious one.
+  Never narrate the next line, never restate the current value of the setting
+  it is attached to, and never explain the change you just made.
+- Three lines is the ceiling on a comment attached to a single setting. Link
+  the upstream issue instead of summarizing it, give the constraint instead of
+  the mechanism, and leave how you found the problem in the commit message.
+- Prefer the invariant to the measurement. A number needs an anchor that rots
+  visibly beside it, i.e. a version, an image tag, or a linked pull request.
+- Commit subjects are imperative, sentence case, no trailing period, no `feat:`
+  or `fix:` prefix, 60 characters at the ceiling. No body at all when the
+  subject says everything, otherwise one paragraph hard-wrapped at 72.
+- Never create a summary, report, or migration Markdown file unless I ask.
+
+# Responses to me in this chat
+
+- Lead with the finding. No preamble restating what I asked.
+- Report what you did and what you observed, not what you are about to do and
+  not how you got there. One short line before a tool call is the whole budget.
+- Never close with a recap of what you just said. Never summarise a summary.
+- One line is a complete answer when the work took one step. No section headers
+  on a response that fits on a screen.
+- State an uncertainty once, plainly, and stop. Do not enumerate the options you
+  considered and rejected unless I ask.
+- No "You're absolutely right", no apologies, no self-assessment of the work.

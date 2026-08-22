@@ -19,18 +19,26 @@ declare -r -a TOP_LEVEL_FILES=(
 
 # Directories whose tracked contents are linked file-by-file into the
 # corresponding path under $HOME. `.cursor` holds Cursor's user-level
-# subagents (`.cursor/agents/`) and skills (`.cursor/skills/`), which the
-# editor discovers by walking those directories.
+# subagents and skills, and `.codex` holds the portable part of Codex's
+# user-level configuration. Runtime state under `~/.codex` stays untracked and
+# untouched.
 #
-# Note that this repo mirrors $HOME, so its own `.cursor/` doubles as a
-# project config whenever the dotfiles are open in Cursor, and each tracked
-# file there is loaded twice (once user-level, once for this project). The
-# two contexts resolve relative paths against different directories
-# (`~/.cursor/` vs. the project root), so paths written inside those files
-# have to be absolute. See the `$HOME`-based commands in `.cursor/hooks.json`.
+# Note that this repo mirrors $HOME, so its own `.cursor/`, `.agents/`, and
+# `.codex/` directories double as project config whenever the dotfiles are
+# open in the corresponding agent. Each tracked file may then be loaded once
+# from the user layer and once from the project layer. Paths inside hooks have
+# to resolve in both contexts, so their commands use `$HOME`.
 declare -r -a LINKED_DIRECTORIES=(
     ".config"
     ".cursor"
+    ".codex"
+)
+
+# Codex follows symlinked skill directories, while a real skill directory
+# containing a symlinked `SKILL.md` is not discovered. Link each tracked skill
+# as a directory so its entry point and supporting files stay together.
+declare -r -a LINKED_CHILD_DIRECTORIES=(
+    ".agents/skills"
 )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,8 +138,8 @@ create_symlinks() {
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    # Per-file links for everything tracked under `.config/` and
-    # `.cursor/`. We prefer `git ls-files` because it automatically:
+    # Per-file links for everything tracked under `LINKED_DIRECTORIES`. We
+    # prefer `git ls-files` because it automatically:
     #   - excludes gitignored files (e.g. `.config/zsh/local`,
     #     `.config/git/config.local`, `.zcompdump*`),
     #   - includes submodule contents (e.g. `.config/doom/**`),
@@ -147,6 +155,15 @@ create_symlinks() {
             "${HOME}/${rel}" \
             "${skipQuestions}"
     done < <(list_linked_files "${dotfilesRoot}")
+
+    # Directory links for structures that Codex discovers as units.
+
+    while IFS= read -r rel; do
+        link_file \
+            "${dotfilesRoot}/${rel}" \
+            "${HOME}/${rel}" \
+            "${skipQuestions}"
+    done < <(list_linked_child_directories "${dotfilesRoot}")
 
 }
 
@@ -173,6 +190,32 @@ list_linked_files() {
         [ "${#presentDirs[@]}" -gt 0 ] || return 0
         (cd "${root}" && find "${presentDirs[@]}" -type f -print0)
     fi
+
+}
+
+list_linked_child_directories() {
+
+    local root="$1"
+    local linkedRoot
+
+    for linkedRoot in "${LINKED_CHILD_DIRECTORIES[@]}"; do
+        if command -v git &>/dev/null &&
+            git -C "${root}" rev-parse --is-inside-work-tree &>/dev/null; then
+            git -C "${root}" ls-files -- "${linkedRoot}/**" |
+                while IFS= read -r rel; do
+                    local child="${rel#"${linkedRoot}/"}"
+                    child="${child%%/*}"
+                    [ -n "${child}" ] && printf "%s/%s\n" "${linkedRoot}" "${child}"
+                done |
+                sort -u
+        elif [ -d "${root}/${linkedRoot}" ]; then
+            local sourceDir
+            for sourceDir in "${root}/${linkedRoot}"/*; do
+                [ -d "${sourceDir}" ] || continue
+                printf "%s\n" "${sourceDir#"${root}/"}"
+            done
+        fi
+    done
 
 }
 

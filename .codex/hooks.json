@@ -1,0 +1,29 @@
+{
+  "description": "Keep pull request reviews pending until the user submits them.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env python3 \"$HOME/.codex/hooks/block-review-submission.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking review publication policy"
+          }
+        ]
+      },
+      {
+        "matcher": "^mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env python3 \"$HOME/.codex/hooks/block-review-mcp.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking review tool policy"
+          }
+        ]
+      }
+    ]
+  }
+}

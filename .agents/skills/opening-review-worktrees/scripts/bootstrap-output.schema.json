@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "worktree", "pr", "head", "message"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["ready", "blocked"]
+    },
+    "worktree": {
+      "type": "string"
+    },
+    "pr": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "head": {
+      "type": "string",
+      "pattern": "^(?:|[0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "message": {
+      "type": "string"
+    }
+  }
+}

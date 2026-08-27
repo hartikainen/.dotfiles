@@ -18,8 +18,28 @@ enabled/*
 /enabled
 tmp/
 
-# Per-tool entries under `.config/` are no longer needed: `~/.config/<tool>/`
-# is a real directory you own, and only files we explicitly track in this
-# repo are symlinked into it. Runtime/local files (e.g. `~/.config/zsh/local`,
-# `~/.config/zsh/.zcompdump*`, `~/.config/git/config.local`) live in your
-# home dir and never appear inside this repo.
+# `~/.config/<tool>/` is a real directory you own, and only files tracked here
+# are symlinked into it, so runtime and local files belong under `$HOME` rather
+# than in this checkout. Tools that wrote through the legacy whole-directory
+# `~/.config` symlink left their state behind here when
+# `migrate_config_symlink` replaced it, and this repository is public, so the
+# entries below keep the credential-bearing ones out of history if they
+# reappear. Each names a file rather than its directory, leaving room to track
+# real configuration alongside it.
+.config/bash/local
+.config/emacs/
+.config/fzf/fzf.bash
+.config/fzf/fzf.zsh
+.config/gcloud/
+.config/gh/config.yml
+.config/gh/hosts.yml
+.config/github-copilot/
+.config/mlflow/telemetry.json
+.config/packer/
+.config/zsh/.zsh_sessions/
+.config/zsh/local
+
+# A credential store carries the same risk from any tool, tracked or not.
+**/access_tokens.db
+**/application_default_credentials.json
+**/credentials.db

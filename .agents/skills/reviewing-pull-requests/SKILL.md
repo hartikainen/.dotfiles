@@ -10,8 +10,8 @@ description: >-
 # Reviewing pull requests
 
 Reviews are read locally and are never submitted. The user submits every review
-themselves, so your job ends at a pending review plus a summary in chat. A
-`beforeShellExecution` hook enforces this, and it will deny anything that
+themselves, so your job ends at a pending review plus a summary in chat. Agent
+hooks enforce this across shell and MCP tools, and they will deny anything that
 publishes, so following the workflow below is also the only way your commands
 will run.
 
@@ -139,12 +139,12 @@ so is writing the comments, since the voice below depends on having read the
 code each one is about.
 
 Judge the change against the conventions the repository states for itself in
-`AGENTS.md`, `CONTRIBUTING.md`, and anything under `.cursor/rules/`.
+`AGENTS.md`, `CONTRIBUTING.md`, and any other guidance the agent discovers.
 
 ## Write the comment
 
 Read `writing-as-hartikainen` and follow it for the voice, taking its
-`github.md` register as the base. A review comment is a narrower register than
+`references/github.md` register as the base. A review comment is a narrower register than
 the issues and pull request descriptions that file is calibrated on, so it
 overrides these points:
 
@@ -278,6 +278,10 @@ what is already there, and drop your own version of anything they have covered.
 Their phrasing for a given class of issue is the phrasing to reuse at the other
 sites. Never delete a pending review to make room for yours, since the comments
 in it are theirs.
+
+Never resolve an existing review thread without asking the user first. Codex
+hooks cannot turn an otherwise unprompted tool call into an approval request,
+so this boundary lives in the workflow rather than the hook.
 
 The create call answers `422 User can only have one pending review per pull
 request` when one exists, so look first and take its `node_id` if it does:

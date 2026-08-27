@@ -17,10 +17,10 @@ Match this voice whenever writing prose on the user's behalf. Everything in this
 
 Identify the artifact, then read the matching file before drafting:
 
-- GitHub issues, discussions, and pull request descriptions: [github.md](github.md).
-- Commit messages: [commits.md](commits.md).
-- Comments in the tree: [code-comments.md](code-comments.md).
-- Papers, theses, and abstracts: [academic.md](academic.md).
+- GitHub issues, discussions, and pull request descriptions: [github.md](references/github.md).
+- Commit messages: [commits.md](references/commits.md).
+- Comments in the tree: [code-comments.md](references/code-comments.md).
+- Papers, theses, and abstracts: [academic.md](references/academic.md).
 - Code-review comments: the `reviewing-pull-requests` skill, which narrows the GitHub register.
 - Emails, documentation, and anything else: this file alone, hedging courteous and time dated.
 

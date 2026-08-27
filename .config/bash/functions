@@ -24,6 +24,12 @@ function retry {
     return 0
 }
 
+review-pr() {
+    python3 \
+        "${DOTFILES_DIR}/.agents/skills/opening-review-worktrees/scripts/review-pr.py" \
+        "$@"
+}
+
 wait-for-pid() {
     local pid="${1}"
     local me

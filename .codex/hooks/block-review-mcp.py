@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deny MCP tool calls that submit a review or merge a change.
+"""Deny MCP tool calls that publish or submit a review.
 
 Codex runs this as a `PreToolUse` hook for MCP tools. Linear's MCP server can
 reach review submission and merging without a shell command, so the shell
@@ -9,9 +9,9 @@ Matching happens on a normalized name with case and separators stripped, so
 `submit_diff_review`, `linear__submit_diff_review`, `submit-diff-review`, and
 `submitDiffReview` all resolve to the same key.
 
-Codex does not support returning `ask` from `PreToolUse`. The softer boundary
-around resolving an existing thread therefore lives in the review skill; this
-hook enforces only operations that are never delegated.
+Codex does not support returning `ask` from `PreToolUse`. Thread maintenance
+therefore goes through the resolution-only helper in `maintaining-pr-stacks`,
+whose input is narrow enough to validate before it reaches GitHub.
 """
 
 import json
@@ -21,6 +21,9 @@ import sys
 DENIED_TOOLS = {
     "submitdiffreview": "submitting a diff review takes it out of pending state.",
     "mergediff": "merging a change is a manual decision.",
+    "addreviewthreadreply": "direct review thread replies bypass the validated maintenance helper.",
+    "replytoreviewthread": "direct review thread replies bypass the validated maintenance helper.",
+    "resolvereviewthread": "direct review thread resolution bypasses the validated maintenance helper.",
 }
 
 GUIDANCE = (

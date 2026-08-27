@@ -20,6 +20,10 @@ decide the outcome, so writing it pre-empts their verdict. Only
 forms the workflow documents, i.e. field flags and a file passed to `--input`,
 which keeps the check exact rather than guessing at the nesting of raw JSON.
 
+Thread maintenance goes through the idempotent helper in
+`maintaining-pr-stacks`, which resolves without publishing a comment. Direct
+reply and resolution mutations stay blocked here.
+
 Commands that are not a review submission return an empty decision so the
 normal permission system still applies. This hook only ever removes
 permissions, it never grants them.
@@ -45,6 +49,14 @@ SUBMITTING_COMMANDS = (
     (
         re.compile(r"\bgh\s+pr\s+close\b"),
         "`gh pr close` closes the pull request.",
+    ),
+    (
+        re.compile(r"\baddPullRequestReviewThreadReply\b"),
+        "direct review thread replies bypass the validated maintenance helper.",
+    ),
+    (
+        re.compile(r"\bresolveReviewThread\b"),
+        "direct review thread resolution bypasses the validated maintenance helper.",
     ),
 )
 
@@ -86,9 +98,7 @@ EVENT_ACTION = re.compile(
     re.IGNORECASE,
 )
 EVENT_JSON_KEY = re.compile(r"""["']event["']\s*:""")
-BODY_FIELD = re.compile(
-    r"""(?<![\w-])(?:-[fF]|--(?:raw-)?field)[=\s]*["']?body="""
-)
+BODY_FIELD = re.compile(r"""(?<![\w-])(?:-[fF]|--(?:raw-)?field)[=\s]*["']?body=""")
 REVIEWS_COLLECTION = re.compile(r"/pulls/[^/\s'\"]+/reviews(?![/\w])")
 OPAQUE_PAYLOAD = (
     re.compile(r"--input[=\s]+-(?:\s|$)"),
@@ -116,6 +126,8 @@ FALLBACK_LITERALS = (
     "/events",
     "/dismissals",
     "submitPullRequestReview",
+    "addPullRequestReviewThreadReply",
+    "resolveReviewThread",
 )
 
 

@@ -5,9 +5,9 @@ alwaysApply: true
 # Prose written on my behalf
 
 Before writing a commit message, a code comment, a docstring, a pull request
-description, or a GitHub issue, read
-`$HOME/.cursor/skills/writing-as-hartikainen/SKILL.md` and the register file it
-names for that artifact. Draft from the file, not from memory of it.
+description, or a GitHub issue, use the `writing-as-hartikainen` skill and read
+the register file it names for that artifact. Draft from the skill, not from
+memory of it.
 
 # Bans that hold without reading anything
 

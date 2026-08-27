@@ -41,6 +41,18 @@ declare -r -a LINKED_CHILD_DIRECTORIES=(
     ".agents/skills"
 )
 
+# Roots swept for links left behind by a tracked file that moved. `link_file`
+# only ever visits paths the manifest names, so nothing removes a link whose
+# source is gone. CI never sees these because it starts from an empty `$HOME`
+# and links every path fresh; they accumulate only in a `$HOME` that has been
+# through more than one revision of the tree.
+declare -r -a PRUNED_ROOTS=(
+    ".config"
+    ".cursor"
+    ".codex"
+    ".agents"
+)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 link_file() {
@@ -112,6 +124,73 @@ migrate_config_symlink() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# Remove symlinks under the managed roots that point into this repository but
+# no longer resolve. Only broken links are touched, and only those aimed at
+# `${dotfilesRoot}`, so a dangling link into any other tree is left alone.
+
+prune_orphaned_symlinks() {
+
+    local dotfilesRoot="$1"
+
+    local -a roots=()
+    local dir
+    for dir in "${PRUNED_ROOTS[@]}"; do
+        [ -d "${HOME}/${dir}" ] && roots+=("${HOME}/${dir}")
+    done
+
+    # Collect first and delete afterwards, so the tree stays intact while
+    # `find` is still walking it.
+    local -a orphans=()
+    local link target
+
+    while IFS= read -r link; do
+
+        target="$(readlink "${link}")" || continue
+
+        case "${target}" in
+            "${dotfilesRoot}"/*) ;;
+            *) continue ;;
+        esac
+
+        # `-e` follows the link, so it is false exactly when the source is gone.
+        [ -e "${link}" ] && continue
+
+        orphans+=("${link}")
+
+    done < <(
+        find "${HOME}" -maxdepth 1 -type l
+        [ "${#roots[@]}" -gt 0 ] && find "${roots[@]}" -type l
+    )
+
+    [ "${#orphans[@]}" -gt 0 ] || return 0
+
+    for link in "${orphans[@]}"; do
+        target="$(readlink "${link}")"
+        rm -f "${link}"
+        print_warning "Removed orphaned link ${link} → ${target}"
+        prune_empty_parents "$(dirname "${link}")"
+    done
+
+}
+
+# Walk up from a directory that just lost an orphan, dropping the levels that
+# the removal emptied. `rmdir` refuses a directory holding anything else, so a
+# level with unrelated content stops the walk on its own.
+
+prune_empty_parents() {
+
+    local dir="$1"
+
+    while [ "${dir}" != "${HOME}" ] && [ "${dir}" != "/" ]; do
+        rmdir "${dir}" 2>/dev/null || break
+        print_warning "Removed empty directory ${dir}"
+        dir="$(dirname "${dir}")"
+    done
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 create_symlinks() {
 
     local skipQuestions=false
@@ -164,6 +243,13 @@ create_symlinks() {
             "${HOME}/${rel}" \
             "${skipQuestions}"
     done < <(list_linked_child_directories "${dotfilesRoot}")
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    # After linking, so a path the manifest still names has already been
+    # recreated and is no longer a candidate.
+
+    prune_orphaned_symlinks "${dotfilesRoot}"
 
 }
 

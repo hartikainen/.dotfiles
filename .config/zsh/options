@@ -10,9 +10,9 @@ setopt AUTO_PUSHD
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Autocorrect typos in path names when using the `cd` command.
+# Don't autocorrect typos in commands.
 
-setopt CORRECT
+unsetopt CORRECT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

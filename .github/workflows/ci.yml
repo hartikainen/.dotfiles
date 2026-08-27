@@ -47,6 +47,12 @@ jobs:
             ':!:*.applescript')
           shfmt -d -i 4 -ci "${files[@]}"
 
+      # Agent rules and skills point at each other by path, in prose and in
+      # `hooks.json`. A moved file leaves the pointers behind and the agent's
+      # read fails silently, so nothing downstream reports it.
+      - name: agent references resolve
+        run: ./.github/scripts/check-agent-references.sh
+
   smoke:
     name: smoke (${{ matrix.os }})
     strategy:

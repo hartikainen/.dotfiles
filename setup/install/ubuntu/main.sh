@@ -22,6 +22,7 @@ main() {
     ./image_tools.sh
     ./misc.sh
     ./misc_tools.sh
+    ./yq.sh
     ./tmux.sh
     ./../emacs.sh
 

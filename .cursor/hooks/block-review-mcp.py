@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Denies MCP tool calls that would submit a review or merge a change.
+"""Denies MCP tool calls that would publish or submit a review.
 
 Cursor runs this as a `beforeMCPExecution` hook. Linear's MCP server reaches
 review submission and merging without any shell command, so the
@@ -10,22 +10,23 @@ or may not be namespaced by the server. Matching therefore happens on a
 normalised name with case and separators stripped, so that `submit_diff_review`,
 `linear__submit_diff_review`, `submit-diff-review`, and `submitDiffReview` all
 resolve to the same key.
+
+Thread maintenance goes through the resolution-only helper in
+`maintaining-pr-stacks`, whose input is narrow enough to validate before it
+reaches GitHub.
 """
 
 import json
 import re
 import sys
 
-# Submitting a review or merging is the user's decision, never the agent's.
 DENIED_TOOLS = {
     "submitdiffreview": "submitting a diff review takes it out of pending state.",
     "mergediff": "merging a change is a manual decision.",
-}
-
-# Resolving a thread is a visible change to someone else's review, so it is
-# worth a prompt without being outright refused.
-ASK_TOOLS = {
-    "resolvediffthread": "resolving a review thread is visible to others.",
+    "addreviewthreadreply": "direct review thread replies bypass the validated maintenance helper.",
+    "replytoreviewthread": "direct review thread replies bypass the validated maintenance helper.",
+    "resolvediffthread": "direct review thread resolution bypasses the validated maintenance helper.",
+    "resolvereviewthread": "direct review thread resolution bypasses the validated maintenance helper.",
 }
 
 
@@ -47,10 +48,6 @@ def evaluate(tool_name: str) -> tuple[str, str]:
     for needle, reason in DENIED_TOOLS.items():
         if needle in normalised:
             return "deny", reason
-
-    for needle, reason in ASK_TOOLS.items():
-        if needle in normalised:
-            return "ask", reason
 
     return "", ""
 

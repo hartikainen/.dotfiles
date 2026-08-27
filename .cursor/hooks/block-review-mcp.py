@@ -88,13 +88,12 @@ def main() -> int:
         print("{}")
         return 0
 
-    verb = "Blocked" if permission == "deny" else "Confirm"
     print(
         json.dumps(
             {
                 "permission": permission,
-                "user_message": f"{verb} `{tool_name}`: {reason}",
-                "agent_message": f"`{tool_name}` was {permission}ed by the review guard, because {reason} {GUIDANCE}",
+                "user_message": f"Blocked `{tool_name}`: {reason}",
+                "agent_message": f"`{tool_name}` was denied by the review guard, because {reason} {GUIDANCE}",
             }
         )
     )

@@ -316,3 +316,47 @@ qt() {
     #     │└─ search all files under each directory, recursively
     #     └─ ignore case
 }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Attach to tmux, giving `tmux-continuum` a chance to restore first.
+
+tmux-restore() {
+    local me="tmux-restore:"
+
+    if ! command -v tmux >/dev/null 2>&1; then
+        echo "${me} tmux is not installed" >&2
+        return 1
+    fi
+
+    if [ -n "${TMUX}" ]; then
+        echo "${me} already inside a tmux session" >&2
+        return 1
+    fi
+
+    if ! tmux has-session 2>/dev/null; then
+        # `tmux start-server` is not enough to hold a server open: one with no
+        # sessions exits immediately, before continuum can restore into it. The
+        # bootstrap session is not left behind either, since resurrect kills a
+        # session named `0` that its snapshot did not contain
+        # (`handle_session_0` in `scripts/restore.sh`).
+        tmux new-session -d || return 1
+
+        # Continuum sleeps a second before handing over to resurrect, so watch
+        # for the restore to start before waiting on it to finish. Polling the
+        # session list instead would not distinguish a finished restore from
+        # one that has only recreated its first session.
+        local restore="tmux-resurrect/scripts/restore.sh"
+        local waited=0
+        while [ "${waited}" -lt 5 ] &&
+            ! pgrep -f "${restore}" >/dev/null 2>&1; do
+            sleep 1
+            waited=$((waited + 1))
+        done
+        while pgrep -f "${restore}" >/dev/null 2>&1; do
+            sleep 1
+        done
+    fi
+
+    tmux attach-session "$@"
+}

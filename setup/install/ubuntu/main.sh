@@ -24,6 +24,7 @@ main() {
     ./misc_tools.sh
     ./yq.sh
     ./tmux.sh
+    ./../tmux_plugins.sh
     ./../emacs.sh
 
     ./cleanup.sh

@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: Reviews a diff for correctness, dependency-layering breaches, and convention violations. Delegate here before proposing a commit or a pull request.
-model: claude-sonnet-5-thinking-high
+model: claude-opus-5-thinking-high
 readonly: true
 ---
 

@@ -17,4 +17,5 @@ Hedging courteous. Time dated: these are read once and then archived, so `curren
 ## Pull request descriptions
 
 - Same voice, but terse. Open with what the change does and why in a sentence or two, then let the diff carry the mechanism.
+- Describe the tree as it stands in the present tense and in the first-person plural, then mark the change as a change: "We currently have four workflows that each define their own copy of the deploy-key setup", and later "After this change, the keys reach the script through `env`". Do not narrate the state before the change in the past tense ("Four workflows defined their own copy") against a bare present for the result ("the keys now reach the script through `env`"), which leaves the reader working out which side of the change each sentence sits on.
 - Numbers are welcome in a way they are not in a comment in the tree, since the description ages out alongside the review.

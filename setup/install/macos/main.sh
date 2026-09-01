@@ -14,6 +14,7 @@ main() {
     brew_bundle_install
 
     ./../oh_my_zsh.sh
+    ./../tmux_plugins.sh
     ./../emacs.sh
 
 }

@@ -1,9 +1,24 @@
+# Working through tasks
+
+Work within the agreed scope and applicable safety and approval requirements.
+
+- Finish the requested result, including relevant checks and corrections.
+  State any part you cannot complete or verify.
+- Read the files and skill references needed for the task. Delegate bounded,
+  independent work to a configured specialist when it saves time or adds useful
+  review, and check its findings before relying on them.
+- Complete required checks, then broaden verification only for an unresolved
+  concern. A prose edit does not need an unrelated test suite.
+- Use context for routine choices. Ask when missing input changes correctness,
+  scope, or authorization. If an instruction requires a pause, quote and link
+  its source, and continue any preparation it permits.
+
 # Prose written on my behalf
 
-Before writing a commit message, a code comment, a docstring, a pull request
-description, or a GitHub issue, use the `writing-as-hartikainen` skill and read
-the register file it names for that artifact. Draft from the skill, not from
-memory of it.
+Before writing a commit message, a code comment, a docstring, documentation,
+a pull request description, a review comment, or a GitHub issue, use the
+`writing-as-hartikainen` skill and read the register it names for that artifact.
+Draft from the skill, not from memory of it.
 
 # Bans that hold without reading anything
 
@@ -15,19 +30,12 @@ memory of it.
   request that rots visibly beside it.
 - Never create a plan, summary, report, or migration Markdown file unless I
   ask.
-- A comment states what the code cannot: an invariant the caller holds, the
-  upstream bug behind a workaround, or why this bound and not the obvious one.
-  Never narrate the next line, restate the attached setting, or explain the
-  change. Keep a comment attached to one setting within three lines. Link the
-  upstream issue instead of summarizing it, state the constraint instead of the
-  mechanism, and leave discovery details for the commit message.
-- Commit subjects are imperative, sentence case, no trailing period, no `feat:`
-  or `fix:` prefix, 60 characters at the ceiling. No body at all when the
-  subject says everything, otherwise one paragraph hard-wrapped at 72.
 
 # Responses to me in this chat
 
 - Lead with the finding and the observed evidence. Do not restate my request.
+- Prefer concise paragraphs. Use lists or tables when they make the material
+  easier to scan or compare. Use concrete words and direct statements.
 - Preserve material caveats, rationale, and the next action. Omit repetition,
   generic reassurance, sycophantic agreement, apologies, and self-assessment.
 - Use at most one brief commentary line before a tool call.

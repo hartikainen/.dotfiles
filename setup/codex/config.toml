@@ -6,6 +6,9 @@ approvals_reviewer = "auto_review"
 [agents]
 max_concurrent_threads_per_session = 4
 
+[tui]
+whimsy = false
+
 [mcp_servers.linear]
 enabled = false
 url = "https://mcp.linear.app/mcp"

@@ -1,11 +1,8 @@
 ---
 name: creating-technical-screens
 description: >-
-  Build a technical screen for one candidate from a prompt and their resume, in
-  a worktree of its own, producing an interviewer document alongside the
-  runnable candidate, reference, and test files. Use when asked to create an
-  interview, a technical screen, a coding exercise for a candidate, or a screen
-  tailored to someone's resume.
+  Build a candidate-specific technical screen from a prompt and resume in the
+  user's screen repository, with an interviewer document and runnable code.
 ---
 
 # Creating technical screens
@@ -105,12 +102,10 @@ code. It is the artifact the user actually reviews, the code follows from it
 almost mechanically, and an exercise that is wrong for the candidate is far
 cheaper to fix in prose than in three files and a test suite.
 
-Read `writing-as-hartikainen` for the voice. The register is first person and
-dated, since the reader is the interviewer on the day, and the document argues
-for its own choices rather than presenting them, i.e. why this exercise for this
-candidate, what it cannot tell you, and what would be the better probe if the
-answer comes back ambiguous. The `**Label**:` bullets are the one place bolding
-earns its keep, since they are structural rather than emphasis.
+Read `writing-as-hartikainen` and its repository Markdown register. Explain why
+the exercise suits the candidate, what it cannot establish, and which follow-up
+would distinguish ambiguous answers. Use first-person, invariant prose and
+plain rubric labels.
 
 Ground every tailored claim in the resume, and quote it rather than paraphrase
 where the exercise leans on it. Building an exercise around a strength the

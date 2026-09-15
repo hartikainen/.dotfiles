@@ -1,15 +1,12 @@
 # Commit messages
 
-Hedging dropped. Time dated. The failure mode here is writing a commit message like an issue, so no orienting opener and no explanatory sweep. These are declarative, specific, and short.
+Hedging dropped. Use invariant prose. State the change and the constraint it satisfies, without an orienting opener or an explanatory sweep.
 
-- Subject: imperative, sentence case, no trailing period, identifiers backticked. Around 40 characters is typical and 60 is the ceiling, e.g. ``Pin the CUDA base image to an immutable tag``, ``Skip `test_camera_lag` pending the MJX render race fix``. Never prefix with `feat:`, `fix:`, or a scope.
+- Subject: imperative, sentence case, no trailing period, identifiers backticked, with a `60`-character ceiling. Never prefix with `feat:`, `fix:`, or a scope.
 - Name the file or area in the subject rather than enumerating what changed inside it, since the enumeration outgrows the ceiling as soon as a change touches two things, e.g. ``Tidy `lint.yml` comments and outputs`` over ``Tidy leftover debug output and the `ty` comment``.
 - No body at all is correct when the subject already says everything, e.g. ``Use `console` instead of `bash` ``. Otherwise one short paragraph is the default, after a blank line. One paragraph stays the budget when the change touches two things, so the secondary cleanup earns a trailing sentence, e.g. ``Also cleans up the `Run ty type check` comment.``, rather than a paragraph and a justification of its own.
-- Hard-wrap the body at 72 characters. `git log` indents the message by four spaces, so 72 keeps it inside 80 in a terminal, and it is the `fill-column` that `magit`'s `git-commit-mode` applies, which means a body written at 80 comes back as a ragged mix of 80- and 72-column lines the first time anyone edits it. Long URLs and fenced blocks quoted inside the body stay unwrapped, since breaking them makes them unusable. The commit body is the only prose wrapped by hand, so a contributing guide telling you not to hard-wrap is talking about the project's Markdown and the body is still wrapped.
-- Open with the symptom in plain language, then the mechanism, e.g. "Our JAX cache has been really flaky. The problem appears to be that JAX includes host-/architecture-specific information in every cache key." The reader meets the problem they have felt before the explanation of it, and the first person carries it: `our` cache, `we` cannot lock the host, `I` first thought.
+- Hard-wrap the body at `72` characters, matching `magit`'s `git-commit-mode`. Leave long URLs and fenced blocks intact. This wrapping rule applies to commit bodies independently of repository Markdown conventions.
+- Open the body with the symptom in plain language, then explain the constraint that determines the change.
 - Record the observation that explains the change, then say what the change does rather than explaining the underlying bug. Include the investigative path only when it explains a non-obvious choice, a rejected alternative, or the evidence behind the decision.
-- Stop at one number. "The cache restore step spent 214s rehydrating 1.8 GB that the build then discarded" carries a paragraph on its own, where a second measurement corroborating the same point reads as rhetoric, as do sample sizes and entry counts.
-- Correcting existing code, understate the error and say what its author meant. "This is slightly incorrect, because …", then "What the comment referred to is our GitHub-hosted larger `ubuntu-24.04-8core` runners", teaches the conflation behind the mistake where a flat contradiction only records it.
-- Label a digression so its purpose is visible, e.g. "Note for the future: I first thought that Warp would have the same issue, but …".
-- Name the change plainly once the context is set: "This PR removes that step.", "This changes it so that we publish only the immutable tag.", "This one disables the test temporarily."
+- Understate an error and explain the intended constraint. Hedge any inference about the author's intent.
 - Close with a bare tracker reference when one exists, e.g. "Closes #123.", written in the tracker's own key format.

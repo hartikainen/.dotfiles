@@ -103,6 +103,16 @@ apply_seed() {
         return 1
     fi
 
+    # TOML encoding must preserve the merged values.
+    if ! yq eval-all -e -p toml -o json \
+        '((select(fileIndex == 0) * select(fileIndex == 1)) | sort_keys(..) | to_json) ==
+            (select(fileIndex == 2) | sort_keys(..) | to_json)' \
+        "${liveFile}" "${SEED_FILE}" "${liveFile}.new" >/dev/null; then
+        rm -f "${liveFile}.new"
+        print_error 'TOML output changed config values; upgrade `yq` and retry'
+        return 1
+    fi
+
     mv "${liveFile}.new" "${liveFile}"
     print_result $? "${liveFile}"
 
@@ -152,4 +162,6 @@ main() {
 
 }
 
-main "$@"
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    main "$@"
+fi

@@ -2,6 +2,9 @@ macos-option-as-alt = true
 keybind = ctrl+;=text:\x1C
 
 scrollback-limit = 10_000_000
+
+# Keep emoji cell widths consistent with terminal Emacs and `tmux`.
+grapheme-width-method = legacy
 shell-integration-features = cursor,sudo,ssh-env,ssh-terminfo,title
 
 link-url = true

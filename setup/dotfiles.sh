@@ -3,8 +3,8 @@
 # Dotfile-only entry point. Creates symlinks, writes local config files,
 # initializes the git repo, and (optionally) sets up the GitHub SSH key.
 #
-# Does NOT install packages, change system preferences, or reboot — for
-# the full bootstrap, use `setup/setup.sh` instead.
+# Prompts to install missing configuration dependencies. System preferences
+# and the full package selection belong to `setup/setup.sh`.
 #
 # Run locally after cloning:
 #     bash setup/dotfiles.sh [-y]
@@ -55,7 +55,7 @@ main() {
 
     install_bootstrap "dotfiles.sh" "$@" || exit 1
 
-    do_dotfile_setup "$@" || exit 1
+    do_dotfile_setup false "$@" || exit 1
 
 }
 

@@ -63,7 +63,7 @@ main() {
     # deliberately does NOT do this.
     ask_for_sudo
 
-    do_dotfile_setup "$@" || exit 1
+    do_dotfile_setup true "$@" || exit 1
 
     ./install/main.sh
     ./preferences/main.sh

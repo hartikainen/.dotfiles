@@ -53,6 +53,9 @@ jobs:
       - name: codex config merge
         run: bash ./.github/scripts/check-codex-config.sh
 
+      - name: setup dependency and failure handling
+        run: bash ./.github/scripts/check-dotfile-setup.sh
+
       # Agent rules and skills point at each other by path, in prose and in
       # `hooks.json`. A moved file leaves the pointers behind and the agent's
       # read fails silently, so nothing downstream reports it.
@@ -86,19 +89,21 @@ jobs:
           # them), so we leave it off here.
           submodules: false
 
-      - name: install zsh and dash (linux)
+      - name: install setup dependencies and shells (linux)
         if: runner.os == 'Linux'
         # `dash` lets us verify `.profile` is genuinely POSIX-portable
         # (Ubuntu's `sh` is `dash`, but we install it explicitly to be
         # robust against runner image changes). `zsh` is already on
         # macOS runners as the default shell.
-        run: sudo apt-get update -qq && sudo apt-get install -y zsh dash
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y zsh dash jq
+          bash ./setup/install/ubuntu/yq.sh
 
-      - name: install dash (macos)
+      - name: install setup dependencies and dash (macos)
         if: runner.os == 'macOS'
         # macOS ships `bash` and `zsh` but no `dash`. We install it via
         # Homebrew purely to run the POSIX-sourcing assertion below.
-        run: brew install dash
+        run: brew install dash jq yq
 
       - name: run dotfile setup
         env:

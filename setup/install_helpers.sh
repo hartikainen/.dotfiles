@@ -198,24 +198,119 @@ install_bootstrap() {
 
 }
 
-# All the dotfile-only setup steps. No `sudo`, no package installs, no
-# system preferences, no reboot. Safe to run on any machine. Both
-# `dotfiles.sh` and `setup.sh` call this.
-#
-# Must be called from `${dotfilesDirectory}/setup` (which is where
-# `install_bootstrap` leaves us).
+config_yq_usable() (
+
+    set -o pipefail
+    printf 'root = ["value"]\n[table]\nflag = true\n' |
+        yq eval-all -p toml -o toml 'select(fileIndex == 0) * {"extra": true}' - |
+        yq -e -p toml -o json \
+            '(.root | length) == 1 and .root[0] == "value" and
+                .table.flag == true and .extra == true' -
+
+)
+
+missing_config_dependencies() {
+
+    cmd_exists jq || printf '%s\n' jq
+    config_yq_usable >/dev/null 2>&1 || printf '%s\n' yq
+    return 0
+
+}
+
+install_config_dependencies() {
+
+    local dependency
+    local needsYq=false
+    local -a packages=()
+
+    case "$(get_os_name)" in
+        ubuntu | debian)
+            for dependency in "$@"; do
+                case "${dependency}" in
+                    jq) packages+=(jq) ;;
+                    yq) needsYq=true ;;
+                esac
+            done
+
+            if $needsYq && ! cmd_exists curl && ! cmd_exists wget; then
+                packages+=(curl)
+            fi
+
+            if [ "${#packages[@]}" -gt 0 ]; then
+                sudo apt-get update || return 1
+                sudo apt-get install -y "${packages[@]}" || return 1
+            fi
+
+            if $needsYq; then
+                bash ./install/ubuntu/yq.sh || return 1
+            fi
+            ;;
+        macos)
+            if ! cmd_exists brew; then
+                print_error 'Install Homebrew before installing `jq` and `yq`'
+                return 1
+            fi
+            brew install "$@" || return 1
+            ;;
+        *)
+            print_error 'No configuration dependency installer for this platform'
+            return 1
+            ;;
+    esac
+
+    hash -r
+
+}
+
+ensure_config_dependencies() {
+
+    local installDependencies="$1"
+    local dependency
+    local -a missing=()
+    while IFS= read -r dependency; do
+        missing+=("${dependency}")
+    done < <(missing_config_dependencies)
+
+    [ "${#missing[@]}" -gt 0 ] || return 0
+
+    print_warning "Missing or incompatible configuration dependencies: ${missing[*]}"
+    if ! $installDependencies; then
+        if $skipQuestions; then
+            print_error 'Run `setup/dotfiles.sh` without `-y` to approve dependency installation'
+            return 1
+        fi
+        ask_for_confirmation "Install ${missing[*]} using the platform installer (may require sudo)?"
+        if ! answer_is_yes; then
+            print_error 'Configuration dependencies are required; setup stopped'
+            return 1
+        fi
+    fi
+
+    install_config_dependencies "${missing[@]}" || return 1
+    if [ -n "$(missing_config_dependencies)" ]; then
+        print_error 'Required configuration dependencies are unavailable; check `PATH`'
+        return 1
+    fi
+
+}
+
+# The first argument authorizes dependency installation for the full bootstrap.
+# Call from the `setup` directory prepared by `install_bootstrap`.
 do_dotfile_setup() {
 
-    ./create_directories.sh
+    ensure_config_dependencies "$1" || return 1
+    shift
 
-    ./create_symbolic_links.sh "$@"
+    ./create_directories.sh || return 1
+
+    ./create_symbolic_links.sh "$@" || return 1
 
     # Pick up XDG defaults so the rest of this script (and the install /
     # preferences scripts that may follow) see them. `~/.profile` is the
     # source of truth now; previously this hack sourced `~/.bashrc`.
     if [ -z "${XDG_CONFIG_HOME+x}" ] || [ -z "${XDG_DATA_HOME+x}" ]; then
         if [ -f "${HOME}/.profile" ]; then
-            . "${HOME}/.profile"
+            . "${HOME}/.profile" || return 1
         fi
     fi
 
@@ -226,30 +321,32 @@ do_dotfile_setup() {
 
     export XDG_CONFIG_HOME XDG_DATA_HOME
 
-    ./create_local_config_files.sh "$@"
+    ./create_local_config_files.sh "$@" || return 1
 
-    ./cursor/cli_config.sh apply
+    ./cursor/cli_config.sh apply || return 1
 
-    ./codex/config.sh apply
+    ./codex/config.sh apply || return 1
 
     # `set_github_ssh_key.sh` is fundamentally interactive (prompts for
     # an email, opens a browser tab, waits for the user to add the key
     # on GitHub). Skip it under `-y` so CI / scripted re-runs don't
     # hang. Running interactively keeps the original behavior.
     if ! $skipQuestions; then
-        ./set_github_ssh_key.sh
+        ./set_github_ssh_key.sh || return 1
     fi
 
     if cmd_exists "git"; then
 
         if [ "$(git config --get remote.origin.url)" != "$DOTFILES_ORIGIN" ]; then
-            ./initialize_git_repository.sh "$dotfilesDirectory" "$DOTFILES_ORIGIN"
+            ./initialize_git_repository.sh "$dotfilesDirectory" "$DOTFILES_ORIGIN" || return 1
         fi
 
         if ! $skipQuestions; then
-            ./update_content.sh
+            ./update_content.sh || return 1
         fi
 
     fi
+
+    return 0
 
 }

@@ -24,11 +24,23 @@ Choose the register by purpose (a paper stored in a repository still uses the ac
 
 ## Shared voice
 
-- Use first-person, present-tense prose. Courtesy is the default; registers can drop courtesy hedges. Preserve epistemic hedging when a claim is uncertain, and put the hedge beside that claim.
+- Use first-person, present-tense prose, except where the commit and PR guidance below calls for an explicit change subject or transition. Courtesy is the default; registers can drop courtesy hedges. Preserve epistemic hedging when a claim is uncertain, and put the hedge beside that claim.
 - Prefer concrete nouns, precise verbs, and active sentences. Explain an unfamiliar term before relying on it. Avoid invented labels, stock transitions, marketing language, and intensifiers that add no information.
-- Write invariant prose in every register. Avoid `currently`, `for now`, `recently`, `new`, and appeals to what the code used to do. Prefer an invariant to a measurement. Anchor a necessary number to a version, image tag, or linked pull request.
+- Write invariant prose except in commit bodies and PR descriptions, which follow the change-description guidance below. In other registers, avoid `currently`, `for now`, `recently`, `new`, and appeals to what the code used to do. Prefer an invariant to a measurement. Anchor a necessary number to a version, image tag, or linked pull request.
 - Wrap identifiers, symbols, versions, values, functions, flags, and paths in backticks. Compress sibling identifiers with shell-style braces, e.g. `Mj{Model,Data}` or `jax.{jit,vmap}`.
 - Use parentheses for asides and no bolding for emphasis. Use the Oxford comma and `e.g.` or `i.e.` in asides. Separate independent sentences with periods; use semicolons only when they clarify a complex list.
+
+## Commit bodies and pull request descriptions
+
+Follow [Google Engineering Practices on change descriptions](https://google.github.io/eng-practices/review/developer/cl-descriptions.html): use a concise imperative title and an explanatory body. The body need not be imperative.
+
+- Use active, slightly conversational prose. Establish the existing behavior and concrete problem or user-supplied motivation, then explain what the change does and why. This is a useful progression, not a fixed template or paragraph budget; retain material rationale.
+- Transition language such as "Currently", "before these changes", "with these changes", and "now" is welcome when it clarifies the change. The shared invariant-prose restriction does not apply to these bodies. Keep claims grounded in the affected behavior or dependency version.
+- Avoid first-person plural ("we"). Use first-person singular for experience or motivation the user actually supplied, and never invent it. Otherwise give the change or affected component an explicit subject.
+- Name the problem when a bare "This fixes ..." could refer to several claims. For multiple problems, say that the change addresses both issues or name them. Prefer "so that" when expressing purpose or consequence.
+- Explain why a technical limitation matters (e.g. a build failure or missing behavior), and cite upstream documentation when needed to establish the claim. Describe the implementation accurately; a preferred tone does not justify an unsupported mechanism or outcome.
+- Focus on meaningful behavior changes and dependency upgrades. Omit inventories of unchanged internals unless preservation is relevant to understanding the change. Keep parent references short, e.g. "Depends on #162", without repeating the parent's changes.
+- Validation sections are not boilerplate unless a repository template requires them. Do not assume tests passed or imply that analysis proves compilation or runtime behavior. Include material unverified limitations when they affect the claims, and mention test coverage when it helps explain the change.
 
 ## Syntax & Cadence
 

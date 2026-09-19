@@ -9,18 +9,18 @@ main() {
 
     print_in_purple "\n   Terminal\n\n"
 
-    execute "gsettings set org.gnome.Terminal.Legacy.Keybindings:/org/gnome/terminal/legacy/keybindings/ prev-tab '<Primary><Shift>Tab'"
+    gsettings_set "org.gnome.Terminal.Legacy.Keybindings:/org/gnome/terminal/legacy/keybindings/" "prev-tab" "'<Primary><Shift>Tab'"
 
-    execute "gsettings set org.gnome.Terminal.Legacy.Keybindings:/org/gnome/terminal/legacy/keybindings/ next-tab '<Primary>Tab'"
+    gsettings_set "org.gnome.Terminal.Legacy.Keybindings:/org/gnome/terminal/legacy/keybindings/" "next-tab" "'<Primary>Tab'"
 
-    execute "gsettings set org.gnome.desktop.interface monospace-font-name 'Monospace 12'" \
+    gsettings_set "org.gnome.desktop.interface" "monospace-font-name" "'Monospace 12'" \
         "Change font size"
 
-    execute "gsettings set org.gnome.libgnomekbd.keyboard options \"['caps\tcaps:none']\" &&
-             gsettings set org.gnome.desktop.input-sources xkb-options \"['ctrl:nocaps']\""
+    gsettings_set "org.gnome.libgnomekbd.keyboard" "options" "\"['caps\tcaps:none']\""
+    gsettings_set "org.gnome.desktop.input-sources" "xkb-options" "\"['ctrl:nocaps']\""
 
     # Enable "ctrl+;" binding (used for tmux prefix)
-    execute "gsettings set org.freedesktop.ibus.panel.emoji hotkey \"[]\""
+    gsettings_set "org.freedesktop.ibus.panel.emoji" "hotkey" "\"[]\""
 
     # execute "gconftool-2 --set '/apps/gnome-terminal/profiles/Default/use_theme_background' --type bool false && \
     #          gconftool-2 --set '/apps/gnome-terminal/profiles/Default/use_theme_colors' --type bool false && \

@@ -403,3 +403,26 @@ function show_spinner() {
     done
 
 }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function gsettings_set() {
+
+    local -r SCHEMA="$1"
+    local -r KEY="$2"
+    local -r VALUE="$3"
+    local -r MSG="${4:-}"
+
+    # Extract the base schema name (handles schemas with paths like schema:path)
+    local base_schema="${SCHEMA%%:*}"
+
+    if command -v gsettings &>/dev/null && gsettings list-schemas | grep -F -q -x "${base_schema}"; then
+        if [ -n "${MSG}" ]; then
+            execute "gsettings set ${SCHEMA} ${KEY} ${VALUE}" "${MSG}"
+        else
+            execute "gsettings set ${SCHEMA} ${KEY} ${VALUE}"
+        fi
+    fi
+
+}
+

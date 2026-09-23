@@ -1,9 +1,9 @@
-# Comments in the tree
+# Comments and technical documentation
 
-Hedging dropped. Comments, docstrings, and repository Markdown explain constraints to a reader who may not have the change history. Use the academic register for papers, theses, and abstracts stored in a repository.
+Write for a reader who may not know the change history. Drop courtesy hedges while preserving factual uncertainty.
 
-- Put the evidence behind a non-obvious decision in the commit message or linked issue. In the tree, state the constraint that the code must satisfy.
-- Never restate a setting's current value in the comment attached to it. A comment on `cache-version` naming the current version is wrong at the next bump, and nothing will catch it.
-- Terse to a single clause wherever the thought fits in one. A comment earns its line by stating what the code cannot, i.e. why this bound rather than the obvious one, which invariant a caller has to hold, or which upstream bug the workaround exists for. Never narrate the next line.
-- Cite the upstream issue rather than summarizing it, and give the constraint rather than the mechanism. Three lines is the ceiling on a comment attached to a single setting. Write ``Anonymous pulls of the `oci.pull` repositories under `us-docker.pkg.dev` get a 401, and a helper registered without a scope makes Bazel strip the tokens `rules_oci` mints for other registries (bazel-contrib/rules_oci#885).`` Do not write the paragraph that also explains which file `rules_oci` consults first, how the stripping works, and why the alternatives were worse.
-- A comment can afford the precise technical term where a commit message reaches for the plainer one, e.g. `the target triple` in the tree against `host-specific information` in the message. The reader here is already in this file.
+- In durable technical prose, prefer stable behavior and constraints over time-relative commentary. Anchor changeable values or measurements to the relevant version, source, or conditions instead of treating a snapshot as an invariant.
+- Explain information the code does not express clearly: the reason for a bound, a caller's obligation, or a limitation requiring a workaround. Do not narrate the next line or duplicate a setting's value in its attached comment.
+- Keep a comment to a clause when the thought fits, and keep setting-specific comments readable alongside the setting. Put investigation history and lengthy rationale in a linked issue or change description.
+- For a workaround, state the constraint, link the supporting issue, and identify the condition under which the workaround can be removed.
+- Use the precise technical term when the surrounding code establishes its meaning. Explain it only when the intended reader needs that context.

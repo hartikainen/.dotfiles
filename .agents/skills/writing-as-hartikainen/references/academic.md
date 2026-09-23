@@ -1,9 +1,8 @@
 # Papers, theses, and abstracts
 
-Hedging courteous. Time invariant: the text is read long after the state of the art it was written against has moved.
+Evidence for this register is limited. Prefer the user's supplied text and the shared voice over inventing an academic persona.
 
-- First-person plural ("we", "our method"). Passive earns more room here than elsewhere, still only for defined objects and procedures.
-- Register vocabulary: `shaped`/`well-shaped`, `smooth gradient`, `feasible`/`infeasible`, `heuristic`, `manual`/`manually engineered`, `in principle`/`in practice`, `Empirically`, `Indeed`, `substantially`, `directed exploration`, `frontier`.
-- `Unlike these methods,` joins the core set of sentence-initial transitions, and `Empirically,` opens results paragraphs.
-
-This is the thinnest of the register profiles. Prefer the core over inventing a rule for it.
+- Use first-person plural for the authors' contributions and decisions. Passive voice is appropriate when a defined object or procedure matters more than who performs it.
+- Tie claims to methods, assumptions, and evidence. Distinguish empirical observations, theoretical claims, and practical constraints when the distinction affects the conclusion. Report numerical results with their experimental conditions and uncertainty.
+- Choose terminology for the distinction being explained and use it consistently. Use mathematical notation for quantities and symbols where appropriate.
+- Ground comparisons in a specific difference in assumptions, method, or outcome. Let that relationship determine the transition, and support claims about magnitude or superiority with evidence.

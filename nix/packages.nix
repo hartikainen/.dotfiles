@@ -101,7 +101,8 @@ in
     ++ lib.optionals (desktop && !fixture && pkgs.stdenv.isLinux) (
       with pkgs;
       [
-        ghostty
+        # Prefer Ghostty's terminal definitions over `ncurses`.
+        (lib.hiPrio ghostty)
         gimp
         imagemagick
         vlc

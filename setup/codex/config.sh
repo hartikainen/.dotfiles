@@ -34,6 +34,7 @@ declare -r -a TRACKED_KEYS=(
     "model_reasoning_effort"
     "service_tier"
     "approvals_reviewer"
+    "developer_instructions"
     "agents"
     "features"
     "memories"

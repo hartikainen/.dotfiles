@@ -8,6 +8,7 @@ max_concurrent_threads_per_session = 4
 
 [tui]
 whimsy = false
+alternate_screen = "never"
 
 [mcp_servers.linear]
 enabled = false

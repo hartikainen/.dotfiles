@@ -18,7 +18,9 @@ Read every named PR with `gh pr view`, including `baseRefName`, `headRefName`, `
 
 Identify the repository's Codex review integration and how it records a review request, an in-progress review, and completion for a head commit. Track check runs and Codex review state against each PR's head OID. A review or passing check on an earlier head does not establish completion for the pushed head.
 
-Map each PR head to its local branch and order the named branches from the bottom upward using PR base refs and commit ancestry. Stop when the branches are missing, nonlinear, checked out in another active worktree, or do not map unambiguously to the named PRs.
+Match each PR's head repository and branch to the local remote's fetch and push destinations. Verify the destination even when the remote is named `origin`; a fork's head repository can differ from the PR's base repository. Fetch the named head refs from that remote and use it explicitly for pushes. If the mapping is ambiguous or the stack spans push destinations that cannot share an atomic push, report the blocker.
+
+Map each PR head to its local branch and order the named branches from the bottom upward using PR base refs and fetched head ancestry. Stop when the branches are missing, nonlinear, checked out in another active worktree, or do not map unambiguously to the named PRs.
 
 Before editing, record:
 
@@ -28,6 +30,8 @@ Before editing, record:
 - The commits present locally but absent from the observed remote tip.
 
 Require clean worktrees and no pre-existing unpushed commits. Preserve the initial branch so that you can restore the user's checkout after the cycle.
+
+Fast-forward a clean local branch that is behind its verified remote head, then record the synchronized tips as the cycle's baseline and check the stack ancestry again. Stop on divergence rather than overwriting local history. Keep every named local branch updated when its parent is rewritten, including descendants with no feedback of their own.
 
 ## Judge the feedback
 
@@ -58,7 +62,7 @@ A conflict means the automatic propagation is no longer trustworthy. Abort the r
 
 Re-read every local ref and fetch every remote ref before pushing. Compare local refs with the recorded results of this cycle and remote refs with the observed remote OIDs. If either moved outside this cycle, discard the stale assumptions and audit the stack again. Preserve this cycle's work and never reset over the movement.
 
-Push all affected branches in one atomic command. Use one exact lease per ref, `--force-with-lease=refs/heads/<branch>:<observed-remote-oid>`, and explicit `<local>:refs/heads/<remote>` refspecs. The pushed difference may contain only fixups created in this cycle and rewrites required to reorder and propagate them. Do not push a pre-existing local commit. Record the accepted remote OIDs as the baseline for the next cycle.
+Push all affected branches to the verified remote in one atomic command. Use one exact lease per destination ref, `--force-with-lease=refs/heads/<head-branch>:<observed-remote-oid>`, and explicit `<local-branch>:refs/heads/<head-branch>` refspecs. Use the PR's head branch name for the destination even when its local branch has a different name. The pushed difference may contain only fixups created in this cycle and rewrites required to reorder and propagate them. Do not push a pre-existing local commit. Fetch and verify that every named local tip matches its remote tip and every descendant contains its updated parent. If a ref moved independently, repeat the audit without overwriting it. Record the accepted remote OIDs as the baseline for the next cycle.
 
 ## Keep review comments pending
 

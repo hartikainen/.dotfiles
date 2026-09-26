@@ -1,8 +1,10 @@
 **
 !bin/dotfiles
+!bin/bootstrap
+!bin/test
+!.github/scripts/check-agent-references.sh
 !nix/**
 !tests/nix/**
-!setup/platform/**
 !.agents/skills/creating-technical-screens/SKILL.md
 !.agents/skills/maintaining-pr-stacks/SKILL.md
 !.agents/skills/maintaining-pr-stacks/scripts/resolve-review-thread.py
@@ -14,6 +16,7 @@
 !.agents/skills/writing-as-hartikainen/SKILL.md
 !.agents/skills/writing-as-hartikainen/references/academic.md
 !.agents/skills/writing-as-hartikainen/references/code-comments.md
+!.agents/skills/writing-as-hartikainen/references/change-descriptions.md
 !.agents/skills/writing-as-hartikainen/references/code-review.md
 !.agents/skills/writing-as-hartikainen/references/commits.md
 !.agents/skills/writing-as-hartikainen/references/github.md
@@ -71,13 +74,7 @@
 !.cursor/rules/writing.mdc
 !.profile
 !.zshenv
-!.Brewfile
 !flake.nix
 !flake.lock
-!setup/utils.sh
-!setup/codex/config.sh
-!setup/codex/config.toml
-!setup/cursor/cli_config.sh
-!setup/cursor/cli-config.json
 **/__pycache__
 **/*.pyc

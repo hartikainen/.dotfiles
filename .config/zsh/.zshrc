@@ -16,7 +16,7 @@ HISTFILE="${XDG_STATE_HOME}/zsh/history"
 # them keeps Ctrl+R snappy (only the most recent ~HISTSIZE commands are
 # searched interactively) while preserving a much longer archive on
 # disk that you can still reach via `grep $HISTFILE`, `fc -R N`, or
-# `~/.dotfiles/setup/recover_zsh_history.py`.
+# `bin/recover-zsh-history`.
 HISTSIZE=10000
 SAVEHIST=50000
 setopt APPEND_HISTORY EXTENDED_HISTORY
@@ -74,6 +74,7 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
     fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
 fi
 
+zstyle ":omz:update" mode disabled
 [ -f "${ZSH}/oh-my-zsh.sh" ] && source "${ZSH}/oh-my-zsh.sh"
 command -v fzf &>/dev/null && source <(fzf --zsh)
 

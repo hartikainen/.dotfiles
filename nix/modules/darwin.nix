@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   username,
   homeDirectory,
   profile,
@@ -8,31 +9,35 @@
 }:
 let
   desktop = profile == "desktop";
-  ledger = builtins.fromJSON (builtins.readFile ../packages.json);
-  entries = builtins.attrNames ledger;
-  brews = builtins.filter (
-    name: ledger.${name}.owner == "homebrew" && ledger.${name}.profile == "headless"
-  ) entries;
-  casks = builtins.filter (
-    name: ledger.${name}.owner == "homebrew" && ledger.${name}.profile == "desktop"
-  ) entries;
+  packages = import ../packages.nix {
+    inherit
+      pkgs
+      lib
+      profile
+      fixture
+      ;
+  };
 in
 {
   system.stateVersion = 6;
+  environment.variables.HOMEBREW_NO_ANALYTICS = "1";
   system.primaryUser = username;
   users.users.${username}.home = homeDirectory;
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
   ];
+  nix-homebrew = {
+    enable = true;
+    user = username;
+    autoMigrate = true;
+    enableRosetta = false;
+  };
   homebrew = {
-    enable = !fixture;
-    taps = [
-      "d12frosted/emacs-plus"
-      "hashicorp/tap"
-    ];
-    inherit brews;
-    casks = lib.optionals desktop casks;
+    enable = true;
+    inherit (packages.homebrew) taps;
+    brews = lib.optionals (!fixture) packages.homebrew.brews;
+    casks = if fixture then lib.optionals desktop [ "ghostty" ] else packages.homebrew.casks;
     onActivation = {
       autoUpdate = false;
       upgrade = false;

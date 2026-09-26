@@ -7,16 +7,13 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-    doom = {
-      url = "git+https://github.com/doomemacs/doomemacs?submodules=1&shallow=1";
-      flake = false;
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    doom-nix = {
+      url = "github:marienz/nix-doom-emacs-unstraightened";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     oh-my-zsh = {
       url = "github:ohmyzsh/ohmyzsh";
-      flake = false;
-    };
-    tpm = {
-      url = "github:tmux-plugins/tpm";
       flake = false;
     };
     resurrect = {
@@ -69,7 +66,10 @@
               fixture
               ;
           };
-          modules = [ ./nix/modules/home.nix ];
+          modules = [
+            inputs.doom-nix.homeModule
+            ./nix/modules/home.nix
+          ];
         };
       mkDarwin =
         {
@@ -88,7 +88,10 @@
               fixture
               ;
           };
-          modules = [ ./nix/modules/darwin.nix ];
+          modules = [
+            inputs.nix-homebrew.darwinModules.nix-homebrew
+            ./nix/modules/darwin.nix
+          ];
         };
     in
     {
@@ -122,6 +125,24 @@
           pkgs = pkgsFor system;
         in
         {
+          lint =
+            pkgs.runCommand "dotfiles-lint"
+              {
+                nativeBuildInputs = [
+                  pkgs.shellcheck
+                  pkgs.shfmt
+                  pkgs.nixfmt
+                  pkgs.ruff
+                  pkgs.bash
+                ];
+              }
+              ''
+                cp -R ${self} source
+                chmod -R u+w source
+                cd source
+                bash tests/nix/lint.sh
+                touch "$out"
+              '';
           controller =
             pkgs.runCommand "dotfiles-controller-tests"
               {
@@ -154,6 +175,7 @@
               shellcheck
               shfmt
               nixfmt
+              ruff
             ];
           };
         }

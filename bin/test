@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+import argparse
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import uuid
+
+
+ROOT = Path(__file__).resolve().parent.parent
+GIB = 1024**3
+
+
+def require_space(path, minimum):
+    free = shutil.disk_usage(path).free
+    if free < minimum * GIB:
+        raise RuntimeError(
+            f"Docker storage volume has {free / GIB:.1f} GiB free; "
+            f"this operation requires {minimum} GiB."
+        )
+
+
+def run(args, storage):
+    require_space(storage, 4)
+    process = subprocess.Popen(args, cwd=ROOT)
+    try:
+        while True:
+            try:
+                result = process.wait(timeout=2)
+                if result:
+                    raise subprocess.CalledProcessError(result, args)
+                return
+            except subprocess.TimeoutExpired:
+                require_space(storage, 4)
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run checks in an isolated Docker guest."
+    )
+    parser.add_argument(
+        "--base", choices=["ubuntu:24.04", "debian:13"], default="ubuntu:24.04"
+    )
+    parser.add_argument("--platform", choices=["linux/arm64", "linux/amd64"])
+    parser.add_argument("--full", action="store_true")
+    parser.add_argument("--storage-path", type=Path, default=Path.home())
+    args = parser.parse_args()
+    # Reserve space for the pinned `nixpkgs` closure and Docker's writable layer.
+    require_space(args.storage_path, 30 if args.full else 15)
+    name = "dotfiles-test-" + uuid.uuid4().hex[:12]
+    platform = ["--platform", args.platform] if args.platform else []
+    try:
+        run(
+            [
+                "docker",
+                "build",
+                *platform,
+                "--build-arg",
+                f"BASE={args.base}",
+                "-f",
+                "tests/nix/Dockerfile",
+                "-t",
+                name,
+                ".",
+            ],
+            args.storage_path,
+        )
+        checks = "nix flake check --no-write-lock-file && bash tests/nix/evaluate.sh && bash tests/nix/integration.sh"
+        if args.full:
+            checks += " && bash tests/nix/full.sh"
+        run(
+            [
+                "docker",
+                "run",
+                "--name",
+                name,
+                *platform,
+                "--memory=4g",
+                "--cpus=4",
+                "-e",
+                "NIX_CONFIG=experimental-features = nix-command flakes\nmax-jobs = 2\ncores = 2",
+                name,
+                "bash",
+                "-c",
+                checks,
+            ],
+            args.storage_path,
+        )
+    finally:
+        for command in (["docker", "rm", "-f", name], ["docker", "image", "rm", name]):
+            try:
+                subprocess.run(command, timeout=30, check=False)
+            except (OSError, subprocess.TimeoutExpired) as error:
+                print(f"Cleanup failed for {name}: {error}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (
+        RuntimeError,
+        OSError,
+        subprocess.CalledProcessError,
+        KeyboardInterrupt,
+    ) as error:
+        print(f"Test stopped: {error}", file=sys.stderr)
+        sys.exit(1)

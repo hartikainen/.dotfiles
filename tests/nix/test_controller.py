@@ -1,6 +1,5 @@
 import importlib.machinery
 import importlib.util
-import json
 import os
 from pathlib import Path
 import subprocess
@@ -28,6 +27,11 @@ class ActivationTests(unittest.TestCase):
         self.state = self.base / "state"
         self.state.mkdir()
         self.home_patch = patch.object(Path, "home", return_value=self.home)
+        profile_patch = patch.object(
+            controller, "home_profile", return_value=self.state / "home-manager"
+        )
+        profile_patch.start()
+        self.addCleanup(profile_patch.stop)
         self.home_patch.start()
         self.addCleanup(self.home_patch.stop)
 
@@ -90,6 +94,39 @@ class ActivationTests(unittest.TestCase):
         self.assertEqual(controller.conflicts(candidate, self.home, old), [])
         self.assertEqual(controller.conflicts(old, self.home, old), [])
 
+    def test_profile_recovery_failure_still_restores_settings(self):
+        old = self.generation("old", {".bashrc": "old"})
+        candidate = self.generation("candidate", {".bashrc": "candidate"})
+        profile = self.state / "home-manager"
+        profile.symlink_to("home-manager-1-link")
+        (self.home / ".bashrc").symlink_to(old / "home-files/.bashrc")
+        settings = self.home / ".codex/config.toml"
+        settings.parent.mkdir()
+        settings.write_text("personal")
+
+        def fail(command, **kwargs):
+            if command[0] == candidate / "activate":
+                profile.unlink()
+                profile.symlink_to("home-manager-2-link")
+                settings.write_text("partial")
+            raise subprocess.CalledProcessError(1, command)
+
+        with patch.object(controller, "run", side_effect=fail):
+            with self.assertRaises(subprocess.CalledProcessError):
+                controller.activate(
+                    candidate, types.SimpleNamespace(adopt=False), self.state, old
+                )
+        self.assertEqual(settings.read_text(), "personal")
+
+    def test_settings_backup_rejects_symlinked_parent(self):
+        outside = self.base / "outside"
+        outside.mkdir()
+        (outside / "config.toml").write_text("personal")
+        (self.home / ".codex").symlink_to(outside)
+        with self.assertRaisesRegex(RuntimeError, "symlink"):
+            controller.merge_backups(self.state)
+        self.assertEqual((outside / "config.toml").read_text(), "personal")
+
     def test_foreign_symlink_requires_adoption(self):
         generation = self.generation("candidate", {".bashrc": "managed"})
         (self.home / ".bashrc").symlink_to(self.base / "unrelated")
@@ -134,13 +171,15 @@ class ActivationTests(unittest.TestCase):
         self.assertFalse((destination / ".config/doom/.git").exists())
         self.assertFalse((destination / ".config/git/config.local").exists())
         self.assertFalse((destination / ".codex/config.toml").exists())
-        self.assertTrue((destination / "setup/codex/config.toml").exists())
+        self.assertTrue((destination / "nix/settings/codex.toml").exists())
 
     def test_rollback_does_not_require_a_valid_source_checkout(self):
         state = self.home / ".local/state/dotfiles"
         state.mkdir(parents=True)
         generation = self.generation("retained", {".bashrc": "retained"})
-        (state / "previous").symlink_to(generation)
+        (state / "home-manager-1-link").symlink_to(generation)
+        (state / "home-manager-2-link").symlink_to(generation)
+        (state / "home-manager").symlink_to("home-manager-2-link")
         with (
             patch.dict(os.environ, {"DOTFILES_TEST_GUEST": "1"}, clear=True),
             patch.object(
@@ -153,27 +192,12 @@ class ActivationTests(unittest.TestCase):
             ),
             patch.object(controller.shutil, "which", return_value="/nix/bin/nix"),
             patch.object(controller, "activate_pair") as activate,
-            patch.object(controller, "retain"),
+            patch.object(
+                controller, "home_profile", return_value=state / "home-manager"
+            ),
         ):
             controller.main()
         self.assertEqual(activate.call_args.args[0], generation)
-
-
-class InventoryTests(unittest.TestCase):
-    def test_native_brewfile_matches_ownership(self):
-        ledger = json.loads((ROOT / "nix/packages.json").read_text())
-        brewfile = (
-            (ROOT / ".Brewfile").read_text() if (ROOT / ".Brewfile").exists() else None
-        )
-        if brewfile is None:
-            self.skipTest("Brewfile is not part of the activation snapshot")
-        for name, entry in ledger.items():
-            declaration = (
-                "brew" if entry["profile"] == "headless" else "cask"
-            ) + f' "{name}"'
-            self.assertEqual(
-                declaration in brewfile, entry["owner"] == "homebrew", name
-            )
 
 
 if __name__ == "__main__":

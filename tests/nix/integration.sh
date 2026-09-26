@@ -21,9 +21,11 @@ if ./bin/dotfiles apply --profile headless --fixture; then
 fi
 grep -q 'unmanaged fixture' "$HOME/.bashrc"
 ./bin/dotfiles apply --profile headless --fixture --adopt
-first="$(readlink "$HOME/.local/state/dotfiles/current")"
+profile="$HOME/.local/state/nix/profiles/home-manager"
+[ -e "$profile" ] || profile="/nix/var/nix/profiles/per-user/$(id -un)/home-manager"
+first="$(readlink -f "$profile")"
 ./bin/dotfiles apply --profile headless --fixture
-test "$first" = "$(readlink "$HOME/.local/state/dotfiles/current")"
+test "$first" = "$(readlink -f "$profile")"
 
 export PATH="$HOME/.nix-profile/bin:$PATH"
 export TERM=xterm-256color
@@ -50,13 +52,24 @@ if ./bin/dotfiles apply --profile headless --fixture; then
     exit 1
 fi
 mv flake.nix.test-backup flake.nix
-test "$first" = "$(readlink "$HOME/.local/state/dotfiles/current")"
+test "$first" = "$(readlink -f "$profile")"
+
+cp nix/settings/codex.toml nix/settings/codex.toml.test-backup
+printf 'invalid = [\n' >nix/settings/codex.toml
+if ./bin/dotfiles apply --profile headless --fixture; then
+    mv nix/settings/codex.toml.test-backup nix/settings/codex.toml
+    echo 'Expected a settings failure after the write boundary.' >&2
+    exit 1
+fi
+mv nix/settings/codex.toml.test-backup nix/settings/codex.toml
+test "$first" = "$(readlink -f "$profile")"
+grep -q /fixture "$HOME/.codex/config.toml"
 
 printf '\n# rollback fixture\n' >>.config/bash/options
 ./bin/dotfiles apply --profile headless --fixture
-second="$(readlink "$HOME/.local/state/dotfiles/current")"
+second="$(readlink -f "$profile")"
 test "$first" != "$second"
 ./bin/dotfiles rollback --profile headless --fixture
-test "$first" = "$(readlink "$HOME/.local/state/dotfiles/current")"
+test "$first" = "$(readlink -f "$profile")"
 test "$(git config --global --includes user.name)" = 'Fixture User'
 printf '\nIntegration checks passed. Private Doom and graphical behavior require separate checks.\n'

@@ -12,3 +12,10 @@ export SHELL_SESSION_FILE="${SHELL_SESSION_DIR}/${TERM_SESSION_ID}"
 if [[ -x /opt/homebrew/bin/brew && -z "${HOMEBREW_PREFIX:-}" ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
+
+# Nix owns portable tools even when Homebrew has another version installed.
+if [[ -d "$HOME/.nix-profile/bin" ]]; then
+    typeset -U path
+    path=("$HOME/.nix-profile/bin" $path)
+    export PATH
+fi

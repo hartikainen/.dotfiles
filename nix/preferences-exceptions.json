@@ -1,0 +1,14 @@
+{
+  "macos": {
+    "currentHost": "Applied by the desktop Home Manager activation.",
+    "Night Shift": "Private CoreBrightness schema; configure in System Settings. The installer does not edit root-owned private preference files.",
+    "restartfreeze": "Legacy systemsetup option; not applied to Apple Silicon.",
+    "application restarts": "Preferences take effect on application restart or next login; activation does not kill applications."
+  },
+  "linux": {
+    "Unity remote-content-search": "Unity schema is not part of GNOME; no remote-search setting is applied.",
+    "libgnomekbd": "Layouts and Caps Lock mapping use org.gnome.desktop.input-sources.",
+    "GConf terminal palette": "GConf is unsupported; Ghostty retains its configured theme.",
+    "GNOME screenshot directory": "Written to the gnome-screenshot schema; GNOME Shell capture behavior is desktop-version dependent."
+  }
+}

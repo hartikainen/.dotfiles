@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+case "$(uname -s)" in
+    Linux)
+        . /etc/os-release
+        case "$ID" in ubuntu | debian) ;; *)
+            echo 'Bootstrap supports Ubuntu and Debian.' >&2
+            exit 1
+            ;;
+        esac
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates curl xz-utils git python3 build-essential locales
+        ;;
+    Darwin)
+        if ! xcode-select -p >/dev/null 2>&1; then
+            echo 'Install the Apple command-line tools with xcode-select --install, then rerun bootstrap.' >&2
+            exit 1
+        fi
+        ;;
+    *)
+        echo 'Unsupported operating system.' >&2
+        exit 1
+        ;;
+esac
+
+if ! command -v nix >/dev/null 2>&1 && [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
+    installer="$(mktemp)"
+    trap 'rm -f "$installer"' EXIT
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        https://releases.nixos.org/nix/nix-2.28.5/install -o "$installer"
+    python3 - "$installer" "$root/nix/bootstrap.json" <<'PY'
+import hashlib, json, pathlib, sys
+expected = json.loads(pathlib.Path(sys.argv[2]).read_text())["installerSha256"]
+actual = hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest()
+if actual != expected:
+    raise SystemExit("Nix installer checksum mismatch")
+PY
+    sh "$installer" --daemon --yes
+fi
+
+if [ "$(uname -s)" = Darwin ] && [ ! -x /opt/homebrew/bin/brew ]; then
+    installer="$(mktemp)"
+    trap 'rm -f "$installer"' EXIT
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        https://raw.githubusercontent.com/Homebrew/install/0a396a4ee5b538f409de666af904fa0570b53949/install.sh -o "$installer"
+    python3 - "$installer" "$root/nix/bootstrap.json" <<'PY'
+import hashlib, json, pathlib, sys
+expected = json.loads(pathlib.Path(sys.argv[2]).read_text())["homebrewInstallerSha256"]
+if hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest() != expected:
+    raise SystemExit("Homebrew installer checksum mismatch")
+PY
+    NONINTERACTIVE=1 /bin/bash "$installer"
+fi

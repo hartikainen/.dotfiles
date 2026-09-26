@@ -1,42 +1,4 @@
-#!/bin/bash
-
-cd "$(dirname "${BASH_SOURCE[0]}")" &&
-    . "utils.sh"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-main() {
-
-    ssh -T git@github.com &>/dev/null
-
-    if [ $? -ne 1 ]; then
-        ./set_github_ssh_key.sh ||
-            return 1
-    fi
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    print_in_purple "\n • Update content\n\n"
-
-    ask_for_confirmation "Do you want to update the content from the 'dotfiles' directory?"
-
-    if answer_is_yes; then
-
-        git fetch --all 1>/dev/null &&
-            git stash 1>/dev/null \
-            ;
-        git reset \
-            --hard \
-            --recurse-submodules \
-            "origin/$(git branch --show-current)" \
-            1>/dev/null \
-            ;
-        git submodule update --init --recursive 1>/dev/null
-
-        print_result $? "Update content"
-
-    fi
-
-}
-
-main
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec "$root/bin/dotfiles" update "$@"

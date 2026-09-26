@@ -1,0 +1,506 @@
+{
+  "act": {
+    "owner": "nix",
+    "package": "act",
+    "profile": "headless",
+    "reason": ""
+  },
+  "aspell": {
+    "owner": "nix",
+    "package": "aspell",
+    "profile": "headless",
+    "reason": ""
+  },
+  "autoconf": {
+    "owner": "nix",
+    "package": "autoconf",
+    "profile": "headless",
+    "reason": ""
+  },
+  "awk": {
+    "owner": "nix",
+    "package": "gawk",
+    "profile": "headless",
+    "reason": ""
+  },
+  "bash": {
+    "owner": "nix",
+    "package": "bash",
+    "profile": "headless",
+    "reason": ""
+  },
+  "bash-completion@2": {
+    "owner": "nix",
+    "package": "bash-completion",
+    "profile": "headless",
+    "reason": ""
+  },
+  "bazelisk": {
+    "owner": "nix",
+    "package": "bazelisk",
+    "profile": "headless",
+    "reason": ""
+  },
+  "brew-cask-completion": {
+    "owner": "homebrew",
+    "package": "brew-cask-completion",
+    "profile": "headless",
+    "reason": "Homebrew-specific completion"
+  },
+  "buildifier": {
+    "owner": "nix",
+    "package": "buildifier",
+    "profile": "headless",
+    "reason": ""
+  },
+  "buildozer": {
+    "owner": "nix",
+    "package": "buildozer",
+    "profile": "headless",
+    "reason": ""
+  },
+  "clang-format": {
+    "owner": "nix",
+    "package": "clang-tools",
+    "profile": "headless",
+    "reason": ""
+  },
+  "cmake": {
+    "owner": "nix",
+    "package": "cmake",
+    "profile": "headless",
+    "reason": ""
+  },
+  "coreutils": {
+    "owner": "nix",
+    "package": "coreutils",
+    "profile": "headless",
+    "reason": ""
+  },
+  "devcontainer": {
+    "owner": "homebrew",
+    "package": "devcontainer",
+    "profile": "headless",
+    "reason": "Preserve the native CLI distribution"
+  },
+  "direnv": {
+    "owner": "nix",
+    "package": "direnv",
+    "profile": "headless",
+    "reason": ""
+  },
+  "docker-completion": {
+    "owner": "homebrew",
+    "package": "docker-completion",
+    "profile": "headless",
+    "reason": "Homebrew-specific completion"
+  },
+  "dvc": {
+    "owner": "nix",
+    "package": "dvc",
+    "profile": "headless",
+    "reason": ""
+  },
+  "editorconfig": {
+    "owner": "nix",
+    "package": "editorconfig-core-c",
+    "profile": "headless",
+    "reason": ""
+  },
+  "fd": {
+    "owner": "nix",
+    "package": "fd",
+    "profile": "headless",
+    "reason": ""
+  },
+  "ffmpeg": {
+    "owner": "nix",
+    "package": "ffmpeg",
+    "profile": "headless",
+    "reason": ""
+  },
+  "fzf": {
+    "owner": "nix",
+    "package": "fzf",
+    "profile": "headless",
+    "reason": ""
+  },
+  "gemini-cli": {
+    "owner": "homebrew",
+    "package": "gemini-cli",
+    "profile": "headless",
+    "reason": "Preserve the native CLI distribution"
+  },
+  "gh": {
+    "owner": "nix",
+    "package": "gh",
+    "profile": "headless",
+    "reason": ""
+  },
+  "ghostscript": {
+    "owner": "nix",
+    "package": "ghostscript",
+    "profile": "headless",
+    "reason": ""
+  },
+  "git": {
+    "owner": "nix",
+    "package": "git",
+    "profile": "headless",
+    "reason": ""
+  },
+  "git-absorb": {
+    "owner": "nix",
+    "package": "git-absorb",
+    "profile": "headless",
+    "reason": ""
+  },
+  "git-delta": {
+    "owner": "nix",
+    "package": "delta",
+    "profile": "headless",
+    "reason": ""
+  },
+  "git-lfs": {
+    "owner": "nix",
+    "package": "git-lfs",
+    "profile": "headless",
+    "reason": ""
+  },
+  "gnu-sed": {
+    "owner": "nix",
+    "package": "gnused",
+    "profile": "headless",
+    "reason": ""
+  },
+  "gnu-tar": {
+    "owner": "nix",
+    "package": "gnutar",
+    "profile": "headless",
+    "reason": ""
+  },
+  "gnupg": {
+    "owner": "nix",
+    "package": "gnupg",
+    "profile": "headless",
+    "reason": ""
+  },
+  "grep": {
+    "owner": "nix",
+    "package": "gnugrep",
+    "profile": "headless",
+    "reason": ""
+  },
+  "grpc": {
+    "owner": "nix",
+    "package": "grpc",
+    "profile": "headless",
+    "reason": ""
+  },
+  "htop": {
+    "owner": "nix",
+    "package": "htop",
+    "profile": "headless",
+    "reason": ""
+  },
+  "ibazel": {
+    "owner": "nix",
+    "package": "bazel-watcher",
+    "profile": "headless",
+    "reason": ""
+  },
+  "icu4c": {
+    "owner": "nix",
+    "package": "icu",
+    "profile": "headless",
+    "reason": ""
+  },
+  "imagemagick": {
+    "owner": "nix",
+    "package": "imagemagick",
+    "profile": "headless",
+    "reason": ""
+  },
+  "jq": {
+    "owner": "nix",
+    "package": "jq",
+    "profile": "headless",
+    "reason": ""
+  },
+  "make": {
+    "owner": "nix",
+    "package": "gnumake",
+    "profile": "headless",
+    "reason": ""
+  },
+  "ninja": {
+    "owner": "nix",
+    "package": "ninja",
+    "profile": "headless",
+    "reason": ""
+  },
+  "nvm": {
+    "owner": "homebrew",
+    "package": "nvm",
+    "profile": "headless",
+    "reason": "Preserve the native shell version manager"
+  },
+  "parallel": {
+    "owner": "nix",
+    "package": "parallel",
+    "profile": "headless",
+    "reason": ""
+  },
+  "pip-completion": {
+    "owner": "homebrew",
+    "package": "pip-completion",
+    "profile": "headless",
+    "reason": "Homebrew-specific completion"
+  },
+  "pkgconf": {
+    "owner": "nix",
+    "package": "pkgconf",
+    "profile": "headless",
+    "reason": ""
+  },
+  "protobuf": {
+    "owner": "nix",
+    "package": "protobuf",
+    "profile": "headless",
+    "reason": ""
+  },
+  "python@3.13": {
+    "owner": "nix",
+    "package": "python313",
+    "profile": "headless",
+    "reason": ""
+  },
+  "ripgrep": {
+    "owner": "nix",
+    "package": "ripgrep",
+    "profile": "headless",
+    "reason": ""
+  },
+  "ruff": {
+    "owner": "nix",
+    "package": "ruff",
+    "profile": "headless",
+    "reason": ""
+  },
+  "shfmt": {
+    "owner": "nix",
+    "package": "shfmt",
+    "profile": "headless",
+    "reason": ""
+  },
+  "texinfo": {
+    "owner": "nix",
+    "package": "texinfo",
+    "profile": "headless",
+    "reason": ""
+  },
+  "tmux": {
+    "owner": "nix",
+    "package": "tmux",
+    "profile": "headless",
+    "reason": ""
+  },
+  "tree": {
+    "owner": "nix",
+    "package": "tree",
+    "profile": "headless",
+    "reason": ""
+  },
+  "tree-sitter": {
+    "owner": "nix",
+    "package": "tree-sitter",
+    "profile": "headless",
+    "reason": ""
+  },
+  "uv": {
+    "owner": "nix",
+    "package": "uv",
+    "profile": "headless",
+    "reason": ""
+  },
+  "yamlfmt": {
+    "owner": "nix",
+    "package": "yamlfmt",
+    "profile": "headless",
+    "reason": ""
+  },
+  "yq": {
+    "owner": "nix",
+    "package": "yq-go",
+    "profile": "headless",
+    "reason": ""
+  },
+  "zlib": {
+    "owner": "nix",
+    "package": "zlib",
+    "profile": "headless",
+    "reason": ""
+  },
+  "zsh": {
+    "owner": "nix",
+    "package": "zsh",
+    "profile": "headless",
+    "reason": ""
+  },
+  "zsh-completions": {
+    "owner": "nix",
+    "package": "zsh-completions",
+    "profile": "headless",
+    "reason": ""
+  },
+  "d12frosted/emacs-plus/emacs-plus@31": {
+    "owner": "homebrew",
+    "package": "d12frosted/emacs-plus/emacs-plus@31",
+    "profile": "headless",
+    "reason": "Preserve the macOS Emacs build"
+  },
+  "hashicorp/tap/packer": {
+    "owner": "homebrew",
+    "package": "hashicorp/tap/packer",
+    "profile": "headless",
+    "reason": "Preserve the native HashiCorp distribution"
+  },
+  "jandedobbeleer/oh-my-posh/oh-my-posh": {
+    "owner": "nix",
+    "package": "oh-my-posh",
+    "profile": "headless",
+    "reason": ""
+  },
+  "android-commandlinetools": {
+    "owner": "homebrew",
+    "package": "android-commandlinetools",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "claude-code": {
+    "owner": "homebrew",
+    "package": "claude-code",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "font-fira-code-nerd-font": {
+    "owner": "homebrew",
+    "package": "font-fira-code-nerd-font",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "font-fira-mono-nerd-font": {
+    "owner": "homebrew",
+    "package": "font-fira-mono-nerd-font",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "font-jetbrains-mono-nerd-font": {
+    "owner": "homebrew",
+    "package": "font-jetbrains-mono-nerd-font",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "font-meslo-lg-nerd-font": {
+    "owner": "homebrew",
+    "package": "font-meslo-lg-nerd-font",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "gcloud-cli": {
+    "owner": "homebrew",
+    "package": "gcloud-cli",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "ghostty": {
+    "owner": "homebrew",
+    "package": "ghostty",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "gimp": {
+    "owner": "homebrew",
+    "package": "gimp",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "google-chrome": {
+    "owner": "homebrew",
+    "package": "google-chrome",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "inkscape": {
+    "owner": "homebrew",
+    "package": "inkscape",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "iterm2": {
+    "owner": "homebrew",
+    "package": "iterm2",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "mactex-no-gui": {
+    "owner": "homebrew",
+    "package": "mactex-no-gui",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "obsidian": {
+    "owner": "homebrew",
+    "package": "obsidian",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "meshlab": {
+    "owner": "homebrew",
+    "package": "meshlab",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "openscad": {
+    "owner": "homebrew",
+    "package": "openscad",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "spotify": {
+    "owner": "homebrew",
+    "package": "spotify",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "temurin": {
+    "owner": "homebrew",
+    "package": "temurin",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "telegram": {
+    "owner": "homebrew",
+    "package": "telegram",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "visual-studio-code": {
+    "owner": "homebrew",
+    "package": "visual-studio-code",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "vlc": {
+    "owner": "homebrew",
+    "package": "vlc",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  },
+  "whatsapp": {
+    "owner": "homebrew",
+    "package": "whatsapp",
+    "profile": "desktop",
+    "reason": "Native macOS application or font"
+  }
+}

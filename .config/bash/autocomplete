@@ -4,9 +4,15 @@
 
 # Load OS specific autocomplete.
 
+if [ -n "${BASH_VERSION:-}" ] && [ -r "$HOME/.nix-profile/share/bash-completion/bash_completion" ]; then
+    # shellcheck source=/dev/null
+    . "$HOME/.nix-profile/share/bash-completion/bash_completion"
+    return
+fi
+
 if [ -n "$ZSH_VERSION" ]; then
     # For zsh
-    # shellcheck source=/dev/null
+    # shellcheck source=/dev/null disable=SC2296
     . "$(dirname "${(%):-%x}")/autocomplete.$(get_os_name)"
 else
     # For bash

@@ -47,7 +47,9 @@ def main():
         description="Run checks in an isolated Docker guest."
     )
     parser.add_argument(
-        "--base", choices=["ubuntu:24.04", "debian:13"], default="ubuntu:24.04"
+        "--base",
+        choices=["ubuntu:26.04", "ubuntu:24.04", "debian:13"],
+        default="ubuntu:26.04",
     )
     parser.add_argument("--platform", choices=["linux/arm64", "linux/amd64"])
     parser.add_argument("--full", action="store_true")
@@ -73,9 +75,9 @@ def main():
             ],
             args.storage_path,
         )
-        checks = "nix flake check --no-write-lock-file && bash tests/nix/evaluate.sh && bash tests/nix/integration.sh"
+        checks = "nix flake check --no-write-lock-file && bash tests/nix/evaluate.sh && bash tests/nix/integration.sh && bash tests/nix/hosts.sh"
         if args.full:
-            checks += " && bash tests/nix/full.sh"
+            checks += " --full && bash tests/nix/full.sh"
         run(
             [
                 "docker",

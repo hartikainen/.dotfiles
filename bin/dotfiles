@@ -115,16 +115,61 @@ def expression(source, args, attribute):
     identity = {
         "username": pwd.getpwuid(os.getuid()).pw_name,
         "homeDirectory": str(Path.home()),
-        "profile": args.profile,
         "fixture": args.fixture,
     }
-    if attribute == "home":
-        identity["system"] = system_name()
+    factory = "mkHome" if attribute == "home" else "mkDarwin"
+    if args.host:
+        identity["host"] = args.host
+        factory = "mkHostHome" if attribute == "home" else "mkHostDarwin"
+    else:
+        identity["profile"] = args.profile
+        if attribute == "home":
+            identity["system"] = system_name()
     values = json.dumps(json.dumps(identity)).replace("${", "\\${")
     flake = json.dumps("path:" + str(source)).replace("${", "\\${")
-    factory = "mkHome" if attribute == "home" else "mkDarwin"
     result = "activationPackage" if attribute == "home" else "system"
     return f"((builtins.getFlake {flake}).lib.{factory} (builtins.fromJSON {values})).{result}"
+
+
+def host_inventory(source):
+    return json.loads(
+        nix(
+            "eval",
+            "--json",
+            "--no-write-lock-file",
+            f"path:{source}#lib.hosts",
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout
+    )
+
+
+def resolve_host(args, source):
+    if not args.host:
+        return
+    hosts = host_inventory(source)
+    if args.host not in hosts:
+        raise RuntimeError(
+            f"Unknown host: {args.host}. Run bin/dotfiles hosts to list hosts."
+        )
+    host = hosts[args.host]
+    actual = system_name()
+    if host["system"] != actual:
+        raise RuntimeError(
+            f"Host {args.host} requires {host['system']}; this machine is {actual}"
+        )
+    expected_release = host.get("osRelease", {})
+    if expected_release:
+        release = (
+            platform.freedesktop_os_release() if platform.system() == "Linux" else {}
+        )
+        for key, value in expected_release.items():
+            if release.get(key) != value:
+                raise RuntimeError(
+                    f"Host {args.host} requires {key}={value}; this machine has {key}={release.get(key, 'unset')}"
+                )
+    args.profile = host["profile"]
+    print(f"Host: {args.host} ({actual}, {args.profile})")
 
 
 def build(source, args, attribute="home"):
@@ -369,9 +414,12 @@ def main():
             "apply",
             "update",
             "rollback",
+            "hosts",
         ],
     )
-    parser.add_argument("--profile", required=True, choices=["desktop", "headless"])
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--profile", choices=["desktop", "headless"])
+    selection.add_argument("--host", help="Named machine from nix/hosts/default.nix")
     parser.add_argument(
         "--system",
         action="store_true",
@@ -388,6 +436,15 @@ def main():
         "--input", action="append", default=[], help="Flake input to update"
     )
     args = parser.parse_args()
+    if args.command == "rollback" and args.host:
+        parser.error("Rollback uses retained generations; omit --host")
+    if args.command not in ("hosts", "rollback"):
+        if not (args.host or args.profile):
+            args.host = os.environ.get("DOTFILES_HOST")
+        if not (args.host or args.profile):
+            parser.error(
+                "Choose --host NAME or --profile PROFILE (or set DOTFILES_HOST)"
+            )
     for variable, relative in (
         ("XDG_CONFIG_HOME", ".config"),
         ("XDG_DATA_HOME", ".local/share"),
@@ -408,12 +465,19 @@ def main():
             "The public Doom test requires a checkout without the private submodule"
         )
     darwin_system = args.system and platform.system() == "Darwin"
-    if args.system and platform.system() == "Linux" and args.profile != "desktop":
-        raise RuntimeError(
-            "Linux --system requires the desktop profile; prerequisites use bootstrap"
-        )
     if not shutil.which("nix"):
         raise RuntimeError("Nix is missing; run bin/bootstrap, then open a login shell")
+    if args.command == "hosts":
+        with tempfile.TemporaryDirectory(prefix="dotfiles-hosts-") as temp:
+            source = Path(temp)
+            snapshot(ROOT, source)
+            for name, host in sorted(host_inventory(source).items()):
+                release = host.get("osRelease", {})
+                distribution = " ".join(
+                    release.get(key, "") for key in ("ID", "VERSION_ID")
+                ).strip()
+                print(f"{name}\t{host['system']}\t{host['profile']}\t{distribution}")
+        return
     if (
         args.command in ("build", "diff", "apply")
         and not (ROOT / "flake.lock").is_file()
@@ -458,6 +522,15 @@ def main():
         source.mkdir()
         if args.command != "rollback":
             snapshot(ROOT, source)
+            resolve_host(args, source)
+            if (
+                args.system
+                and platform.system() == "Linux"
+                and args.profile != "desktop"
+            ):
+                raise RuntimeError(
+                    "Linux --system requires the desktop profile; prerequisites use bootstrap"
+                )
         current = home_profile()
         previous = current.resolve() if current.exists() else None
         if args.command == "update":
@@ -505,6 +578,14 @@ def main():
                 if system:
                     print(f"macOS system closure: {system}")
                 return
+        if (
+            args.system
+            and platform.system() == "Linux"
+            and not (generation / "home-path/bin/non-nixos-gpu-setup").is_file()
+        ):
+            raise RuntimeError(
+                "The selected generation has no Linux desktop GPU integration; omit --system"
+            )
         activate_pair(generation, system, args, state, previous)
         if args.system and platform.system() == "Linux":
             setup_linux_gpu(generation)

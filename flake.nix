@@ -41,6 +41,24 @@
         "aarch64-linux"
       ];
       forAll = nixpkgs.lib.genAttrs systems;
+      hosts = import ./nix/hosts;
+      hostInventory = nixpkgs.lib.mapAttrs (
+        name: host:
+        assert nixpkgs.lib.assertMsg (builtins.elem host.system systems)
+          "Unsupported system for host ${name}";
+        assert nixpkgs.lib.assertMsg (builtins.elem host.profile [
+          "desktop"
+          "headless"
+        ]) "Unsupported profile for host ${name}";
+        assert nixpkgs.lib.assertMsg (
+          host.system == "aarch64-darwin" || (host.darwinModules or [ ]) == [ ]
+        ) "Darwin modules require a macOS host: ${name}";
+        {
+          inherit (host) system profile;
+          osRelease = host.osRelease or { };
+        }
+      ) hosts;
+      getHost = name: hostInventory.${name} or (throw "Unknown host: ${name}");
       pkgsFor =
         system:
         import nixpkgs {
@@ -54,6 +72,7 @@
           homeDirectory,
           profile,
           fixture ? false,
+          modules ? [ ],
         }:
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsFor system;
@@ -69,7 +88,8 @@
           modules = [
             inputs.doom-nix.homeModule
             ./nix/modules/home.nix
-          ];
+          ]
+          ++ modules;
         };
       mkDarwin =
         {
@@ -77,6 +97,7 @@
           homeDirectory,
           profile,
           fixture ? false,
+          modules ? [ ],
         }:
         nix-darwin.lib.darwinSystem {
           system = "aarch64-darwin";
@@ -91,34 +112,89 @@
           modules = [
             inputs.nix-homebrew.darwinModules.nix-homebrew
             ./nix/modules/darwin.nix
-          ];
+          ]
+          ++ modules;
+        };
+      mkHostHome =
+        {
+          host,
+          username,
+          homeDirectory,
+          fixture ? false,
+        }:
+        mkHome {
+          inherit username homeDirectory fixture;
+          inherit (getHost host) system profile;
+          modules = hosts.${host}.homeModules or [ ];
+        };
+      mkHostDarwin =
+        {
+          host,
+          username,
+          homeDirectory,
+          fixture ? false,
+        }:
+        assert nixpkgs.lib.assertMsg (
+          (getHost host).system == "aarch64-darwin"
+        ) "Host ${host} is not a macOS machine";
+        mkDarwin {
+          inherit username homeDirectory fixture;
+          inherit (getHost host) profile;
+          modules = hosts.${host}.darwinModules or [ ];
         };
     in
     {
-      lib = { inherit mkHome mkDarwin; };
-      homeConfigurations = builtins.listToAttrs (
-        nixpkgs.lib.concatMap (
-          system:
-          map
-            (profile: {
-              name = "${system}-${profile}";
-              value = mkHome {
-                inherit system profile;
-                username = "dotfiles";
-                homeDirectory = if system == "aarch64-darwin" then "/Users/dotfiles" else "/home/dotfiles";
-              };
-            })
-            [
-              "headless"
-              "desktop"
-            ]
-        ) systems
-      );
-      darwinConfigurations.desktop = mkDarwin {
-        username = "dotfiles";
-        homeDirectory = "/Users/dotfiles";
-        profile = "desktop";
+      lib = {
+        inherit
+          mkHome
+          mkDarwin
+          mkHostHome
+          mkHostDarwin
+          ;
+        hosts = hostInventory;
       };
+      homeConfigurations =
+        builtins.listToAttrs (
+          nixpkgs.lib.concatMap (
+            system:
+            map
+              (profile: {
+                name = "${system}-${profile}";
+                value = mkHome {
+                  inherit system profile;
+                  username = "dotfiles";
+                  homeDirectory = if system == "aarch64-darwin" then "/Users/dotfiles" else "/home/dotfiles";
+                };
+              })
+              [
+                "headless"
+                "desktop"
+              ]
+          ) systems
+        )
+        // nixpkgs.lib.mapAttrs (
+          host: machine:
+          mkHostHome {
+            inherit host;
+            username = "dotfiles";
+            homeDirectory = if machine.system == "aarch64-darwin" then "/Users/dotfiles" else "/home/dotfiles";
+          }
+        ) hostInventory;
+      darwinConfigurations = {
+        desktop = mkDarwin {
+          username = "dotfiles";
+          homeDirectory = "/Users/dotfiles";
+          profile = "desktop";
+        };
+      }
+      // nixpkgs.lib.mapAttrs (
+        host: _:
+        mkHostDarwin {
+          inherit host;
+          username = "dotfiles";
+          homeDirectory = "/Users/dotfiles";
+        }
+      ) (nixpkgs.lib.filterAttrs (_: machine: machine.system == "aarch64-darwin") hostInventory);
       checks = forAll (
         system:
         let

@@ -45,8 +45,10 @@ in
     };
   };
   system.defaults.CustomUserPreferences = lib.mkIf desktop (
-    builtins.fromJSON (
-      builtins.replaceStrings [ "@HOME@" ] [ homeDirectory ] (builtins.readFile ../macos-defaults.json)
+    lib.mapAttrs (_: lib.mapAttrs (_: lib.mkDefault)) (
+      builtins.fromJSON (
+        builtins.replaceStrings [ "@HOME@" ] [ homeDirectory ] (builtins.readFile ../macos-defaults.json)
+      )
     )
   );
 }

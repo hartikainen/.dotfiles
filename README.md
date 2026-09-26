@@ -42,6 +42,57 @@ Git identity stays in `~/.config/git/config.local`; shell overrides stay in `~/.
 
 Applications managed by Nix use immutable configuration sources. Edit the checkout and apply it to change those files. Application data and local overrides remain writable. Shell startup does not depend on the checkout's location.
 
+## Machines
+
+`nix/hosts/default.nix` registers machine definitions. Each file selects the platform and profile and can add Home Manager modules through `homeModules`. Mac definitions can also add `nix-darwin` modules through `darwinModules`.
+
+| Host | Platform | Profile | Distribution |
+| --- | --- | --- | --- |
+| `personal-macbook` | `aarch64-darwin` | `desktop` | macOS |
+| `work-macbook` | `aarch64-darwin` | `desktop` | macOS |
+| `personal-desktop` | `x86_64-linux` | `desktop` | Ubuntu `26.04` |
+| `work-desktop` | `x86_64-linux` | `desktop` | Ubuntu `26.04` |
+
+The definitions share the package and preference defaults. Add only each machine's differences. The desktop definitions require Ubuntu `26.04` through `osRelease`; bootstrap does not install or upgrade the distribution. Configuration names do not change the operating system's hostname. The controller uses the invoking account's username and home directory.
+
+Linux `arm64` remains supported as `aarch64-linux`. For an ARM machine, add a host with that `system` value or use a generic profile; the desktop and headless profiles are evaluated for both Linux architectures.
+
+```sh
+./bin/dotfiles hosts
+./bin/dotfiles build --host work-macbook --system
+./bin/dotfiles diff --host work-macbook --system
+./bin/dotfiles apply --host work-macbook --system
+```
+
+Host selection checks the machine's OS, architecture, and any declared `osRelease` requirements before building or activating. The generic `--profile desktop` and `--profile headless` selections remain available on all supported platforms. `--host` and `--profile` are mutually exclusive.
+
+For a machine-specific default, put `export DOTFILES_HOST=work-macbook` in its shell `local` file. An explicit `--host` or `--profile` takes precedence over that variable. Rollback ignores `DOTFILES_HOST` and rejects `--host`; it uses the retained generations, including when a host definition is broken:
+
+```sh
+./bin/dotfiles rollback
+# Include the macOS system generation.
+./bin/dotfiles rollback --system
+```
+
+For example, a Mac definition can add a development tool and override one shared preference:
+
+```nix
+{
+  system = "aarch64-darwin";
+  profile = "desktop";
+  homeModules = [
+    ({ pkgs, ... }: { home.packages = [ pkgs.go ]; })
+  ];
+  darwinModules = [
+    { system.defaults.CustomUserPreferences."com.apple.dock".autohide = false; }
+  ];
+}
+```
+
+Module lists accept file paths, so related machines can import a shared work or personal module under `nix/modules/`. Package lists merge with the shared selection. Shared macOS and GNOME preference values use `lib.mkDefault`, so a host can override one key while retaining the others. Portable dotfile sources also use `lib.mkDefault`; override a file's `home.file.<path>.source` with a host-specific source under `nix/`. Keep credentials and mutable application state outside these modules.
+
+All hosts share `flake.lock`. Review and test lockfile updates together, then apply the reviewed repository commit to each machine when ready. The named `homeConfigurations` and macOS `darwinConfigurations` exports use the placeholder account `dotfiles` for evaluation; use `bin/dotfiles` to build for the actual account.
+
 ## Update and recover
 
 ```sh
@@ -80,7 +131,7 @@ SSH private keys, agent authentication, and GitHub account enrollment remain mac
 Run executable checks in disposable containers or VMs. Do not share the host home directory, credentials, or Docker socket with a guest.
 
 ```sh
-python3 bin/test --base ubuntu:24.04
+python3 bin/test --base ubuntu:26.04
 python3 bin/test --base debian:13
 
 # Complete package selection and public Doom (no private credentials).
@@ -90,6 +141,8 @@ python3 bin/test --full
 `bin/test` runs checks sequentially, limits guest memory and CPU use, and removes its container and image afterward. For the pinned `nixpkgs` inputs, it requires `15 GiB` free for fixture checks or `30 GiB` for `--full`, and stops if free space falls below `4 GiB`. Docker build caches remain reusable. `--storage-path` must name a path on the volume holding Docker's data (the home volume by default). `--platform linux/amd64` or `--platform linux/arm64` selects the guest architecture; cross-architecture execution requires Docker emulation support. Free space inside Docker's virtual disk must also accommodate the build.
 
 The Docker context uses an allowlist and excludes the private Doom checkout. Integration tests run under an unprivileged guest user. They cover conflicts, adoption, repeated activation, local settings, shell startup, tmux configuration and session saving, failed builds, and generation rollback. The internal `--fixture` mode uses a smaller package selection. `--public-doom` uses the public configuration with the complete package selection. Both modes require `DOTFILES_TEST_GUEST=1`.
+
+`tests/nix/evaluate.sh` evaluates every named host with the fixture package selection and checks preference override behavior. `tests/nix/hosts.sh` activates the named hosts matching the guest's platform and distribution and verifies module overrides and rollback with an invalid registry. `bin/test --full` also builds each matching host with its complete package selection and public Doom configuration. Foreign-platform Doom builds require a matching builder; Linux container checks do not replace macOS VM validation.
 
 The Nix workflow runs Linux jobs on native architecture runners and builds the macOS system configuration in a hosted Apple Silicon VM. Public CI does not fetch the private Doom repository. `tests/nix/full.sh` builds and activates the complete headless package selection with a public Doom configuration and starts a named Emacs daemon. Dedicated hosted VM jobs exercise macOS settings, Nix-managed Homebrew and Ghostty installation, and Linux desktop GPU provisioning. Private-Doom startup, desktop rendering, keyboard handling, and clipboard interaction require their matching isolated integration checks before a workstation rollout.
 

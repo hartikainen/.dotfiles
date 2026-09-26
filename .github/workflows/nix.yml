@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         runner: [ubuntu-24.04, ubuntu-24.04-arm]
-        base: [ubuntu:24.04, debian:13]
+        base: [ubuntu:26.04, debian:13]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
@@ -41,6 +41,7 @@ jobs:
         run: |
           . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
           bash tests/nix/integration.sh
+          bash tests/nix/hosts.sh --full
       - name: Full packages and public Doom
         run: |
           . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh

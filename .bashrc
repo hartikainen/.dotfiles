@@ -13,10 +13,8 @@ case $- in
     *) return ;;
 esac
 
-# Safety net for `bash -i` invoked from a script (which doesn't go
-# through `~/.bash_profile`): pull in `~/.profile` once so XDG_*,
-# DOTFILES_DIR, and `~/.local/bin/env` are still set.
-if [ -z "${DOTFILES_DIR:-}" ] && [ -f "${HOME}/.profile" ]; then
+# Interactive non-login shells also need the shared environment.
+if [ -z "${XDG_CONFIG_HOME:-}" ] && [ -f "${HOME}/.profile" ]; then
     . "${HOME}/.profile"
 fi
 
@@ -48,8 +46,8 @@ source_files() {
         "${XDG_CONFIG_HOME}/bash/local"
     )
 
-    # shellcheck source=setup/utils.sh
-    . "${DOTFILES_DIR}/setup/utils.sh"
+    # shellcheck source=.config/shell/platform.sh
+    . "${XDG_CONFIG_HOME}/shell/platform.sh"
 
     for file in "${FILES_TO_SOURCE[@]}"; do
         # shellcheck source=/dev/null

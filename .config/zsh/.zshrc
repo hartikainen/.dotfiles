@@ -97,7 +97,7 @@ source_files() {
         "${XDG_CONFIG_HOME}/zsh/local"
     )
 
-    . "${DOTFILES_DIR}/setup/utils.sh"
+    . "${XDG_CONFIG_HOME}/shell/platform.sh"
 
     for file in "${FILES_TO_SOURCE[@]}"; do
         [ -r "${file}" ] && source "${file}"

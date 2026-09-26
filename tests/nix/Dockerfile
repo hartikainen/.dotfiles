@@ -11,14 +11,14 @@ USER tester
 WORKDIR /work
 # Use `bsdtar` for bootstrap until Rosetta implements `openat2`.
 # https://github.com/orbstack/orbstack/issues/2588
-RUN curl -fsSL https://releases.nixos.org/nix/nix-2.28.5/install -o /tmp/install-nix \
+RUN curl -fsSL https://releases.nixos.org/nix/nix-2.34.4/install -o /tmp/install-nix \
     && python3 -c 'import hashlib,json; assert hashlib.sha256(open("/tmp/install-nix","rb").read()).hexdigest() == json.load(open("nix/bootstrap.json"))["installerSha256"]' \
     && mkdir /tmp/nix-bootstrap-tools \
     && ln -s /usr/bin/bsdtar /tmp/nix-bootstrap-tools/tar \
-    && PATH="/tmp/nix-bootstrap-tools:${PATH}" sh /tmp/install-nix --no-daemon --yes --no-channel-add \
+    && NIX_CONFIG='filter-syscalls = false' PATH="/tmp/nix-bootstrap-tools:${PATH}" sh /tmp/install-nix --no-daemon --yes --no-channel-add \
     && rm -rf /tmp/nix-bootstrap-tools \
     && mkdir -p /home/tester/.config/nix \
-    && printf 'sandbox = false\n' > /home/tester/.config/nix/nix.conf
+    && printf 'sandbox = false\nfilter-syscalls = false\n' > /home/tester/.config/nix/nix.conf
 ENV PATH="/home/tester/.nix-profile/bin:${PATH}" \
     NIX_CONFIG="experimental-features = nix-command flakes" \
     DOTFILES_TEST_GUEST=1

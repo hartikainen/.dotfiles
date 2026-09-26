@@ -43,16 +43,13 @@ def source_files(root):
         [
             "flake.nix",
             "flake.lock",
-            ".Brewfile",
             "bin/dotfiles",
-            "setup/utils.sh",
-            "setup/codex/config.sh",
-            "setup/codex/config.toml",
-            "setup/cursor/cli_config.sh",
-            "setup/cursor/cli-config.json",
+            "bin/bootstrap",
+            "bin/test",
+            ".github/scripts/check-agent-references.sh",
         ]
     )
-    for directory in ("nix", "tests/nix", "setup/platform"):
+    for directory in ("nix", "tests/nix"):
         files.update(
             str(p.relative_to(root))
             for p in (root / directory).rglob("*")
@@ -90,8 +87,28 @@ def nix(*args, **kwargs):
     )
 
 
-def retain(path, generation):
-    run(["nix-store", "--add-root", path, "--indirect", "--realise", generation])
+def home_profile():
+    state = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+    local = state / "nix/profiles"
+    global_path = (
+        Path("/nix/var/nix/profiles/per-user") / pwd.getpwuid(os.getuid()).pw_name
+    )
+    return (local if local.exists() else global_path) / "home-manager"
+
+
+def preceding_generation(profile):
+    if not profile.is_symlink():
+        raise RuntimeError(f"No generations for {profile}")
+    prefix = profile.name + "-"
+    current_id = int(profile.readlink().name.removeprefix(prefix).removesuffix("-link"))
+    earlier = []
+    for path in profile.parent.glob(prefix + "*-link"):
+        number = int(path.name.removeprefix(prefix).removesuffix("-link"))
+        if number < current_id and path.exists():
+            earlier.append((number, path.resolve()))
+    if not earlier:
+        raise RuntimeError(f"No preceding generation for {profile}")
+    return max(earlier)[1]
 
 
 def expression(source, args, attribute):
@@ -116,7 +133,8 @@ def build(source, args, attribute="home"):
             "build",
             "--impure",
             "--no-write-lock-file",
-            "--no-link",
+            "--out-link",
+            str(source.parent / ("result-" + attribute)),
             "--print-out-paths",
             "--expr",
             expression(source, args, attribute),
@@ -202,8 +220,8 @@ def merge_backups(state):
     ]
     saved = []
     for index, path in enumerate(paths):
-        if path.is_symlink():
-            raise RuntimeError(f"Mutable settings must not be a symlink: {path}")
+        if path.is_symlink() or any(parent.is_symlink() for parent in path.parents):
+            raise RuntimeError(f"Mutable settings path contains a symlink: {path}")
         backup = state / f"settings-{index}"
         if path.exists():
             shutil.copy2(path, backup)
@@ -230,6 +248,8 @@ def activate(generation, args, state, previous):
     transaction.mkdir(mode=0o700, parents=True)
     saved = merge_backups(transaction)
     moved = []
+    profile = home_profile()
+    original_profile = profile.readlink() if profile.is_symlink() else None
     env = dict(os.environ)
     env["USER"] = pwd.getpwuid(os.getuid()).pw_name
     try:
@@ -240,10 +260,35 @@ def activate(generation, args, state, previous):
             moved.append((path, backup))
         run([generation / "activate"], env=env)
     except BaseException:
+        failed_profile = profile.readlink() if profile.is_symlink() else None
+        try:
+            if original_profile and failed_profile != original_profile:
+                number = original_profile.name.removeprefix(
+                    profile.name + "-"
+                ).removesuffix("-link")
+                run(["nix-env", "--profile", profile, "--switch-generation", number])
+                if failed_profile:
+                    failed_number = failed_profile.name.removeprefix(
+                        profile.name + "-"
+                    ).removesuffix("-link")
+                    run(
+                        [
+                            "nix-env",
+                            "--profile",
+                            profile,
+                            "--delete-generations",
+                            failed_number,
+                        ]
+                    )
+            elif not original_profile and failed_profile:
+                profile.unlink()
+                (profile.parent / failed_profile).unlink()
+        except (OSError, subprocess.CalledProcessError) as error:
+            print(f"Profile recovery failed for {profile}: {error}", file=sys.stderr)
         if previous:
             try:
-                run([previous / "activate"], env=env)
-            except subprocess.CalledProcessError:
+                run([previous / "activate", "--driver-version", "1"], env=env)
+            except (OSError, subprocess.CalledProcessError):
                 print(
                     f"Recovery failed; reactivate {previous}/activate", file=sys.stderr
                 )
@@ -263,26 +308,6 @@ def activate(generation, args, state, previous):
         restore_settings(saved)
         raise
     print(f"Activation backups: {transaction}")
-
-
-def bootstrap(args):
-    run([ROOT / "setup/platform/bootstrap.sh"])
-    print(
-        "Open a login shell, then run bin/dotfiles apply --profile "
-        + args.profile
-        + (
-            " --system"
-            if platform.system() == "Darwin" or args.profile == "desktop"
-            else ""
-        )
-    )
-
-
-def sync_doom(args):
-    env = dict(os.environ)
-    env["PATH"] = str(Path.home() / ".nix-profile/bin") + os.pathsep + env["PATH"]
-    env["DOTFILES_ADOPT"] = "1" if args.adopt else "0"
-    run([ROOT / "setup/platform/doom-sync.sh"], env=env)
 
 
 def setup_linux_gpu(generation):
@@ -332,8 +357,6 @@ def activate_pair(generation, system, args, state, previous):
                 file=sys.stderr,
             )
         raise
-    if old_system and old_system != system:
-        retain(state / "system-previous", old_system)
 
 
 def main():
@@ -341,13 +364,11 @@ def main():
     parser.add_argument(
         "command",
         choices=[
-            "bootstrap",
             "build",
             "diff",
             "apply",
             "update",
             "rollback",
-            "doom-sync",
         ],
     )
     parser.add_argument("--profile", required=True, choices=["desktop", "headless"])
@@ -362,6 +383,7 @@ def main():
         help="Back up conflicting files before activation",
     )
     parser.add_argument("--fixture", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--public-doom", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument(
         "--input", action="append", default=[], help="Flake input to update"
     )
@@ -377,21 +399,21 @@ def main():
             raise RuntimeError(
                 f"This configuration requires {variable}={Path.home() / relative}"
             )
-    if args.fixture and os.environ.get("DOTFILES_TEST_GUEST") != "1":
-        raise RuntimeError("--fixture is restricted to test guests")
+    if (args.fixture or args.public_doom) and os.environ.get(
+        "DOTFILES_TEST_GUEST"
+    ) != "1":
+        raise RuntimeError("Test configurations are restricted to disposable guests")
+    if args.public_doom and (ROOT / ".config/doom/init.el").exists():
+        raise RuntimeError(
+            "The public Doom test requires a checkout without the private submodule"
+        )
     darwin_system = args.system and platform.system() == "Darwin"
     if args.system and platform.system() == "Linux" and args.profile != "desktop":
         raise RuntimeError(
             "Linux --system requires the desktop profile; prerequisites use bootstrap"
         )
-    if args.command == "bootstrap":
-        bootstrap(args)
-        return
-    if args.command == "doom-sync":
-        sync_doom(args)
-        return
     if not shutil.which("nix"):
-        raise RuntimeError("Nix is missing; run bootstrap, then open a login shell")
+        raise RuntimeError("Nix is missing; run bin/bootstrap, then open a login shell")
     if (
         args.command in ("build", "diff", "apply")
         and not (ROOT / "flake.lock").is_file()
@@ -400,16 +422,16 @@ def main():
             "flake.lock is missing; prepare and review it with update before building"
         )
     if (
-        not args.fixture
-        and args.command in ("apply", "build", "update")
+        not (args.fixture or args.public_doom)
+        and args.command in ("apply", "build", "diff", "update")
         and not (ROOT / ".config/doom/init.el").exists()
     ):
         raise RuntimeError(
             "Initialize the private Doom submodule before building a complete installation"
         )
     if (
-        not args.fixture
-        and args.command in ("apply", "build", "update")
+        not (args.fixture or args.public_doom)
+        and args.command in ("apply", "build", "diff", "update")
         and (ROOT / ".config/doom/.git").exists()
     ):
         expected = (ROOT / "nix/doom-revision").read_text().strip()
@@ -432,14 +454,19 @@ def main():
         tempfile.TemporaryDirectory(prefix="dotfiles-source-") as temp,
     ):
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        source = Path(temp)
+        source = Path(temp) / "source"
+        source.mkdir()
         if args.command != "rollback":
             snapshot(ROOT, source)
-        current = state / "current"
+        current = home_profile()
         previous = current.resolve() if current.exists() else None
         if args.command == "update":
             lockfile = ROOT / "flake.lock"
-            original_lock = lockfile.read_bytes() if lockfile.exists() else None
+            original_lock = (
+                (source / "flake.lock").read_bytes()
+                if (source / "flake.lock").exists()
+                else None
+            )
             nix("flake", "update", *args.input, "--flake", str(source))
             build(source, args)
             if darwin_system:
@@ -463,16 +490,8 @@ def main():
             )
             return
         if args.command == "rollback":
-            retained = state / "previous"
-            if not retained.exists():
-                raise RuntimeError("No retained generation")
-            generation = retained.resolve()
-            system = None
-            if darwin_system:
-                system_previous = state / "system-previous"
-                if not system_previous.exists():
-                    raise RuntimeError("No retained macOS system generation")
-                system = system_previous.resolve()
+            generation = preceding_generation(current)
+            system = preceding_generation(SYSTEM_PROFILE) if darwin_system else None
         else:
             generation = build(source, args)
             system = build(source, args, "darwin") if darwin_system else None
@@ -487,13 +506,8 @@ def main():
                     print(f"macOS system closure: {system}")
                 return
         activate_pair(generation, system, args, state, previous)
-        if previous and previous != generation:
-            retain(state / "previous", previous)
-        retain(current, generation)
         if args.system and platform.system() == "Linux":
             setup_linux_gpu(generation)
-        if args.command == "apply" and not args.fixture:
-            sync_doom(args)
 
 
 if __name__ == "__main__":

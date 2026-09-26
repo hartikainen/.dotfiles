@@ -66,12 +66,7 @@
     "InitialKeyRepeat_Level_Saved": 20,
     "InitialKeyRepeat": 15,
     "KeyRepeat": 1,
-    "com.apple.keyboard.fnState": false,
-    "NSAutomaticCapitalizationEnabled": false,
-    "NSAutomaticSpellingCorrectionEnabled": false,
-    "NSAutomaticPeriodSubstitutionEnabled": false,
-    "NSAutomaticDashSubstitutionEnabled": false,
-    "NSAutomaticQuoteSubstitutionEnabled": false,
+    "com.apple.keyboard.fnState": true,
     "AppleLanguages": [
       "en",
       "fi"

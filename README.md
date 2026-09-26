@@ -1,37 +1,106 @@
 # dotfiles
 
-My dotfiles.
+Nix manages the shared user environment on `aarch64-darwin`, `x86_64-linux`, and `aarch64-linux`. Home Manager installs configuration and packages. `nix-darwin` manages macOS preferences and native Homebrew applications. Ubuntu and Debian retain their system package manager for host prerequisites.
 
-Two entry points:
+## Install
 
-- `setup/dotfiles.sh` installs symlinks, local configuration, Cursor settings, and Codex settings. It checks for `jq` and a TOML-compatible `yq` before changing configuration and prompts to install missing dependencies. Dependency installation uses `apt-get` on Ubuntu/Debian and requires Homebrew on macOS. It leaves system preferences alone.
-- `setup/setup.sh` installs configuration dependencies automatically, applies the dotfiles, and then installs the full package selection (`brew bundle` on macOS, `apt-get` on Ubuntu/Debian), applies system preferences (macOS `defaults`, Ubuntu `gsettings`), and offers to reboot.
+Use a separate checkout. Do not unpack an archive over an existing installation. Check out the reviewed commit before running any setup command:
 
-Pass `-y` to skip the dotfile confirmation prompts. With `setup/dotfiles.sh`, missing dependencies cause a failure under `-y`; run interactively to approve their installation. Configuration failures stop setup before the repository update step.
-
-## Dotfiles only
-
-ubuntu / debian:
-```
-bash -c "$(wget -qO - https://raw.githubusercontent.com/hartikainen/.dotfiles/main/setup/dotfiles.sh)"
-```
-
-macos:
-```
-bash -c "$(curl -LsS https://raw.githubusercontent.com/hartikainen/.dotfiles/main/setup/dotfiles.sh)"
+```sh
+git clone https://github.com/hartikainen/.dotfiles.git workstation
+cd workstation
+git checkout <reviewed-commit>
+git -c 'url.https://github.com/.insteadOf=git@github.com:' \
+  submodule update --init --recursive
+git -C .config/doom checkout --detach "$(cat nix/doom-revision)"
+bash bin/bootstrap
 ```
 
-## Full bootstrap
+The Doom submodule, [`.doom.d`](https://github.com/hartikainen/.doom.d), is public. The command above uses HTTPS to fetch it without GitHub credentials; the SSH URL in `.gitmodules` requires GitHub SSH authentication. Bootstrap verifies the pinned Nix installer. `nix-homebrew` installs Homebrew during macOS system activation. macOS requires Apple's command-line tools; Ubuntu and Debian require administrative access for prerequisites. Open a login shell after bootstrap.
 
-ubuntu / debian:
-```
-bash -c "$(wget -qO - https://raw.githubusercontent.com/hartikainen/.dotfiles/main/setup/setup.sh)"
+```sh
+./bin/dotfiles build --profile desktop
+./bin/dotfiles diff --profile desktop
+./bin/dotfiles apply --profile desktop
 ```
 
-macos:
+On macOS, pass `--system` to build, inspect, or apply the `nix-darwin` configuration and native applications. On Linux desktops, `apply --system` also provisions Home Manager's GPU integration through a privileged helper. Use `--profile headless` for shell, development tools, tmux, and terminal Emacs without desktop applications or preferences. Linux system prerequisites are installed by bootstrap; the desktop profile writes GNOME preferences through `dconf`.
+
+`apply` refuses unmanaged file conflicts. After inspecting `diff`, add `--adopt` to move conflicting files into the activation's backup directory before linking managed files. System-file conflicts require manual review. A parent directory symlink (including `~/.config`) requires manual migration; the installer does not traverse it. No command resets the source checkout or deletes `~/.dotfiles`.
+
+`bin/bootstrap` installs Nix and its prerequisites. Package selection and preferences belong to the Nix modules. `bin/dotfiles` provides source filtering, conflict inspection, transactional adoption, and coordinated activation; Home Manager and Nix manage the generations.
+
+## Ownership
+
+- `nix/packages.nix` declares portable packages and native macOS exceptions. `nix-darwin` generates its Homebrew specification from this declaration. Emacs and its Doom packages come from Nix on every platform.
+- `nix/dotfiles.json` lists portable configuration files. Add a path to this manifest when adding managed configuration. The controller copies only declared configuration and implementation files into the Nix source snapshot.
+- `nix/modules/` contains platform and profile behavior. Native application configuration remains in `.config/` and the shell startup files.
+- `nix/macos-defaults.json` contains macOS preferences. Unsupported or replaced preference mechanisms are recorded in `nix/preferences-exceptions.json`.
+
+The configuration uses `~/.config` and `~/.local/share`; the controller rejects alternate `XDG_CONFIG_HOME` or `XDG_DATA_HOME` values before activation.
+
+On Linux desktops, Home Manager links `~/Pictures/Screenshots` to `~/Desktop/screenshots`, matching GNOME Shell's English screenshot folder and the repository's XDG Pictures directory. Existing screenshot folders cause a conflict. Move their contents into `~/Desktop/screenshots` after reviewing name collisions, then archive the old folder before applying. `--adopt` instead backs up the entire old folder under the activation transaction; it does not merge existing images. Removing the managed link leaves captured files in `~/Desktop/screenshots`. Hosts using another Pictures directory or a translated screenshot folder must override the link's `home.file."Pictures/Screenshots".target`. GNOME Terminal's old GConf theme is not managed; Ghostty retains its configured theme.
+
+Git identity stays in `~/.config/git/config.local`; shell overrides stay in `~/.config/{bash,zsh}/local`. Codex and Cursor settings are merged atomically, preserving machine-owned keys. Settings merges preserve values, not comments or original formatting. Credentials, history, caches, and application state are not Nix inputs. Files copied into the Nix store must not contain secrets.
+
+Applications managed by Nix use immutable configuration sources. Edit the checkout and apply it to change those files. Application data and local overrides remain writable. Shell startup does not depend on the checkout's location.
+
+## Update and recover
+
+```sh
+./bin/dotfiles update --profile desktop --input nixpkgs
+./bin/dotfiles diff --profile desktop
+./bin/dotfiles apply --profile desktop
+./bin/dotfiles rollback --profile desktop
 ```
-bash -c "$(curl -LsS https://raw.githubusercontent.com/hartikainen/.dotfiles/main/setup/setup.sh)"
+
+`update` prepares `flake.lock`, builds the selected profile, and runs Nix checks before writing the lockfile back to the checkout. It does not activate changes. Omit `--input` to update all inputs. Review the lockfile diff and run the isolated integration tests before applying. Include `--system` when updating or applying macOS system configuration.
+
+Home Manager installs Codex from the official release bundles pinned in `nix/packages/codex.nix`. To update Codex independently of Nixpkgs, change its version and all three platform hashes, verifying the downloaded archives against the release asset digests. Preserve the complete bundle, including its helper binaries and resources. Run `nix flake check` in disposable guests before applying; `nix run .#codex -- --version` checks the selected CLI without activating a home generation. Use this package pin for updates rather than Codex's self-update command. Home Manager rollback restores the preceding CLI package, but does not revert Codex's mutable databases or configuration.
+
+Home Manager records home generations in its native Nix profile, visible with `home-manager generations`. Reapplying the same generation preserves the rollback target. Activation backups are stored under `~/.local/state/dotfiles/transactions/`. Failed home activation attempts restore adopted files and mutable settings and attempt to reactivate the preceding generation. A failed recovery prints the retained activation path.
+
+Rollback restores managed configuration and Nix package selection. It does not restore application data, remove every preference side effect, or downgrade Homebrew applications. `nix-homebrew` pins Homebrew itself and adopts an existing installation during `apply --system`. Homebrew activation disables automatic upgrades and cleanup. Upgrade native applications separately with Homebrew after reviewing its proposed changes.
+
+## Emacs
+
+The Doom configuration remains in a separate public submodule. `nix/doom-revision` records its expected revision. Update that revision after committing intentional changes in the Doom repository. `nix/doom-files.json` names the files copied from it into the activation snapshot.
+
+[`nix-doom-emacs-unstraightened`](https://github.com/marienz/nix-doom-emacs-unstraightened) builds Doom and its dependencies in the Nix store. `flake.lock` pins the framework, modules, package recipes, and package overlay. `nix/doom-pins.json` pins custom recipes without editing the Doom submodule. Edit the configuration or pins, then build and apply; there is no separate `doom sync` installation step. A package build failure happens before activation. Rollback restores the editor package and its configuration together.
+
+The Nix build adapts the personal configuration's `bazel-mode` package name to upstream's `bazel` library and its format-on-save exclusion to Doom's `+format-on-save-disabled-modes` setting. These compatibility changes apply to the store copy; the source checkout stays untouched.
+
+Nix supplies the Emacs executable on macOS as well as Linux. The macOS build does not include Homebrew's `emacs-plus` patches. The invocation aliases and tmux restoration rules retain the per-project client/server workflow; the configuration does not start a shared daemon.
+
+Doom uses the `nix` profile and stores writable state beneath the XDG cache, data, and state directories. State outside these locations is not migrated automatically. Copy state such as bookmarks or save history deliberately after validating the editor; package rollback does not roll back that data.
+
+## Host and credential boundaries
+
+Nix on Ubuntu or Debian manages the user environment, not the distribution's kernel, system accounts, or Docker daemon. Bootstrap installs only the prerequisites needed to use Nix. The Linux desktop profile provisions Home Manager's GPU integration with `--system`. Distribution upgrades and existing host services remain under the distribution's control. The Docker CLI comes from Nix and can connect to an existing local or remote daemon.
+
+SSH private keys, agent authentication, and GitHub account enrollment remain machine-owned. Fetching the public Doom submodule over HTTPS requires no GitHub credentials. Configure GitHub authentication separately for SSH access or pushing changes. Activation does not generate, upload, replace, or import keys. Neither Nix sources nor test guests include `~/.ssh` or the host agent socket.
+
+## Isolated validation
+
+Run executable checks in disposable containers or VMs. Do not share the host home directory, credentials, or Docker socket with a guest.
+
+```sh
+python3 bin/test --base ubuntu:24.04
+python3 bin/test --base debian:13
+
+# Complete package selection and the minimal Doom test configuration.
+python3 bin/test --full
 ```
+
+`bin/test` runs checks sequentially, limits guest memory and CPU use, and removes its container and image afterward. For the pinned `nixpkgs` inputs, it requires `15 GiB` free for fixture checks or `30 GiB` for `--full`, and stops if free space falls below `4 GiB`. Docker build caches remain reusable. `--storage-path` must name a path on the volume holding Docker's data (the home volume by default). `--platform linux/amd64` or `--platform linux/arm64` selects the guest architecture; cross-architecture execution requires Docker emulation support. Free space inside Docker's virtual disk must also accommodate the build.
+
+The Docker context uses an allowlist and excludes the personal Doom checkout. Integration tests run under an unprivileged guest user. They cover conflicts, adoption, repeated activation, local settings, shell startup, tmux configuration and session saving, failed builds, and generation rollback. The internal `--fixture` mode uses a smaller package selection. `--public-doom` uses the public configuration with the complete package selection. Both modes require `DOTFILES_TEST_GUEST=1`.
+
+The Nix workflow runs Linux jobs on native architecture runners and builds the macOS system configuration in a hosted Apple Silicon VM. CI does not fetch the personal Doom configuration. `tests/nix/full.sh` builds and activates the complete headless package selection with a public Doom configuration and starts a named Emacs daemon. Dedicated hosted VM jobs exercise macOS settings, Nix-managed Homebrew and Ghostty installation, and Linux desktop GPU provisioning. Personal Doom startup, desktop rendering, keyboard handling, and clipboard interaction require their matching isolated integration checks before a workstation rollout.
+
+In a disposable VM with the personal Doom sources available, `DOTFILES_TEST_GUEST=1 bash tests/nix/private-doom.sh` verifies the full home activation, Bazel mode, Copilot's executable, and independent named Emacs daemons. This check requires the personal configuration; test Docker images exclude it.
+
+The supported installation paths are `bin/bootstrap` and `bin/dotfiles`. The repository contains no parallel application installers or preference scripts.
 
 ## Agent instructions
 

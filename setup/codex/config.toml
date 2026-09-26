@@ -3,6 +3,13 @@ model_reasoning_effort = "high"
 service_tier = "default"
 approvals_reviewer = "auto_review"
 
+[features]
+memories = true
+
+[memories]
+use_memories = true
+generate_memories = true
+
 [agents]
 max_concurrent_threads_per_session = 4
 

@@ -113,4 +113,32 @@ if main apply >"${testDir}/apply.log" 2>&1; then
 fi
 cmp "${testDir}/applied.toml" "$(codex_config_file)"
 
+cat >"$(codex_config_file)" <<'TOML'
+model = "gpt-6-astra"
+
+[features]
+memories = true
+other_machine_feature = false
+
+[memories]
+use_memories = true
+generate_memories = true
+
+[projects."/tmp/codex-config-test"]
+trust_level = "trusted"
+TOML
+
+main export >"${testDir}/export.log"
+yq -e -p toml -o json '
+    .features.memories == true and
+    (.features | length) == 1 and
+    .memories.use_memories == true and
+    .memories.generate_memories == true and
+    (has("projects") | not)
+' config.toml >/dev/null
+
+printf 'model = "gpt-6-astra"\n' >"$(codex_config_file)"
+main export >"${testDir}/export.log"
+cmp config.toml "$(codex_config_file)"
+
 printf 'Codex config checks passed.\n'

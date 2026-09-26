@@ -28,13 +28,15 @@ declare -r SEED_FILE="config.toml"
 # `projects` (per-path trust levels), `hooks.state` (hook trust hashes),
 # `tui` (theme, keymap, and the model availability counters), `notice`
 # (acknowledgements and migration timestamps), `mcp_servers`, and the
-# `features` flags.
+# `features` flags other than `features.memories`.
 declare -r -a TRACKED_KEYS=(
     "model"
     "model_reasoning_effort"
     "service_tier"
     "approvals_reviewer"
     "agents"
+    "features"
+    "memories"
 )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,7 +63,7 @@ tracked_keys_expression() {
         expression="${expression}\"${key}\""
     done
 
-    printf "pick([%s])" "${expression}"
+    printf 'pick([%s]) | with(select(has("features")); .features |= pick(["memories"]))' "${expression}"
 
 }
 

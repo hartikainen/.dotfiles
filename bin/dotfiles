@@ -1,0 +1,518 @@
+#!/usr/bin/env python3
+import argparse
+import difflib
+import fcntl
+import json
+import os
+from pathlib import Path
+import platform
+import pwd
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+
+
+ROOT = Path(__file__).resolve().parent.parent
+SYSTEM_PROFILE = Path("/nix/var/nix/profiles/system")
+
+
+def run(args, **kwargs):
+    return subprocess.run([str(a) for a in args], check=True, **kwargs)
+
+
+def read_json(path):
+    return json.loads(path.read_text())
+
+
+def system_name():
+    arch = {"arm64": "aarch64", "aarch64": "aarch64", "x86_64": "x86_64"}.get(
+        platform.machine()
+    )
+    os_name = {"Darwin": "darwin", "Linux": "linux"}.get(platform.system())
+    system = f"{arch}-{os_name}"
+    if system not in ("aarch64-darwin", "aarch64-linux", "x86_64-linux"):
+        raise RuntimeError(f"Unsupported platform: {system}")
+    return system
+
+
+def source_files(root):
+    files = set(read_json(root / "nix/dotfiles.json"))
+    files.update(
+        [
+            "flake.nix",
+            "flake.lock",
+            "bin/dotfiles",
+            "bin/bootstrap",
+            "bin/test",
+            ".github/scripts/check-agent-references.sh",
+        ]
+    )
+    for directory in ("nix", "tests/nix"):
+        files.update(
+            str(p.relative_to(root))
+            for p in (root / directory).rglob("*")
+            if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
+        )
+    doom = root / ".config/doom"
+    if (doom / "config.el").exists():
+        files.update(
+            ".config/doom/" + p for p in read_json(root / "nix/doom-files.json")
+        )
+    return sorted(files)
+
+
+def snapshot(root, destination):
+    files = source_files(root)
+    for name in files:
+        source = root / name
+        if not source.exists() and name == "flake.lock":
+            continue
+        if not source.resolve().is_relative_to(root.resolve()):
+            raise RuntimeError(f"Source must be a regular repository file: {name}")
+        if (
+            source.is_symlink()
+            and str(source.resolve().relative_to(root.resolve())) not in files
+        ):
+            raise RuntimeError(f"Symlink target is outside the source manifest: {name}")
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+
+
+def nix(*args, **kwargs):
+    return run(
+        ["nix", "--extra-experimental-features", "nix-command flakes", *args], **kwargs
+    )
+
+
+def home_profile():
+    state = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+    local = state / "nix/profiles"
+    global_path = (
+        Path("/nix/var/nix/profiles/per-user") / pwd.getpwuid(os.getuid()).pw_name
+    )
+    return (local if local.exists() else global_path) / "home-manager"
+
+
+def preceding_generation(profile):
+    if not profile.is_symlink():
+        raise RuntimeError(f"No generations for {profile}")
+    prefix = profile.name + "-"
+    current_id = int(profile.readlink().name.removeprefix(prefix).removesuffix("-link"))
+    earlier = []
+    for path in profile.parent.glob(prefix + "*-link"):
+        number = int(path.name.removeprefix(prefix).removesuffix("-link"))
+        if number < current_id and path.exists():
+            earlier.append((number, path.resolve()))
+    if not earlier:
+        raise RuntimeError(f"No preceding generation for {profile}")
+    return max(earlier)[1]
+
+
+def expression(source, args, attribute):
+    identity = {
+        "username": pwd.getpwuid(os.getuid()).pw_name,
+        "homeDirectory": str(Path.home()),
+        "profile": args.profile,
+        "fixture": args.fixture,
+    }
+    if attribute == "home":
+        identity["system"] = system_name()
+    values = json.dumps(json.dumps(identity)).replace("${", "\\${")
+    flake = json.dumps("path:" + str(source)).replace("${", "\\${")
+    factory = "mkHome" if attribute == "home" else "mkDarwin"
+    result = "activationPackage" if attribute == "home" else "system"
+    return f"((builtins.getFlake {flake}).lib.{factory} (builtins.fromJSON {values})).{result}"
+
+
+def build(source, args, attribute="home"):
+    return Path(
+        nix(
+            "build",
+            "--impure",
+            "--no-write-lock-file",
+            "--out-link",
+            str(source.parent / ("result-" + attribute)),
+            "--print-out-paths",
+            "--expr",
+            expression(source, args, attribute),
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout.strip()
+    )
+
+
+def managed_files(generation):
+    tree = generation / "home-files"
+    result = {}
+    for directory, dirs, files in os.walk(tree):
+        for name in list(dirs):
+            path = Path(directory) / name
+            if path.is_symlink():
+                files.append(name)
+                dirs.remove(name)
+        for name in files:
+            path = Path(directory) / name
+            result[str(path.relative_to(tree))] = path
+    return result
+
+
+def conflicts(generation, home, previous=None):
+    old = managed_files(previous) if previous else {}
+    result = []
+    for name, source in managed_files(generation).items():
+        target = home / name
+        for parent in target.parents:
+            if parent == home:
+                break
+            if parent.is_symlink() or (parent.exists() and not parent.is_dir()):
+                raise RuntimeError(f"Managed parent is not a real directory: {parent}")
+        if not target.exists() and not target.is_symlink():
+            continue
+        owned = (
+            target.is_symlink()
+            and name in old
+            and target.resolve() == old[name].resolve()
+        )
+        if not owned and not (
+            target.is_symlink() and target.resolve() == source.resolve()
+        ):
+            result.append(target)
+    return result
+
+
+def show_diff(generation, home, previous=None):
+    desired = managed_files(generation)
+    old = managed_files(previous) if previous else {}
+    for name in sorted(set(old) - set(desired)):
+        print(f"remove managed path: {name}")
+    for name, source in sorted(desired.items()):
+        target = home / name
+        if target.is_symlink() and target.resolve() == source.resolve():
+            continue
+        print(f"manage: {name} -> {source.resolve()}")
+        if source.is_file() and not target.is_symlink() and target.is_file():
+            try:
+                print(
+                    "".join(
+                        difflib.unified_diff(
+                            target.read_text().splitlines(True),
+                            source.read_text().splitlines(True),
+                            fromfile=name,
+                            tofile=name + " (managed)",
+                        )
+                    ),
+                    end="",
+                )
+            except UnicodeError:
+                print("Binary contents differ")
+    print("Package closure:")
+    nix("store", "diff-closures", previous or generation, generation)
+
+
+def merge_backups(state):
+    paths = [
+        Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))) / "config.toml",
+        Path(os.environ.get("CURSOR_CONFIG_DIR", str(Path.home() / ".config/cursor")))
+        / "cli-config.json",
+    ]
+    saved = []
+    for index, path in enumerate(paths):
+        if path.is_symlink() or any(parent.is_symlink() for parent in path.parents):
+            raise RuntimeError(f"Mutable settings path contains a symlink: {path}")
+        backup = state / f"settings-{index}"
+        if path.exists():
+            shutil.copy2(path, backup)
+        saved.append((path, backup))
+    return saved
+
+
+def restore_settings(saved):
+    for path, backup in saved:
+        if backup.exists():
+            shutil.copy2(backup, path)
+        elif path.exists():
+            path.unlink()
+
+
+def activate(generation, args, state, previous):
+    collisions = conflicts(generation, Path.home(), previous)
+    if collisions and not args.adopt:
+        raise RuntimeError(
+            "Unmanaged paths conflict; inspect diff, then use --adopt to back them up:\n"
+            + "\n".join(str(p) for p in collisions)
+        )
+    transaction = state / ("transactions/" + str(time.time_ns()))
+    transaction.mkdir(mode=0o700, parents=True)
+    saved = merge_backups(transaction)
+    moved = []
+    profile = home_profile()
+    original_profile = profile.readlink() if profile.is_symlink() else None
+    env = dict(os.environ)
+    env["USER"] = pwd.getpwuid(os.getuid()).pw_name
+    try:
+        for path in collisions:
+            backup = transaction / "files" / path.relative_to(Path.home())
+            backup.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(path), backup)
+            moved.append((path, backup))
+        run([generation / "activate"], env=env)
+    except BaseException:
+        failed_profile = profile.readlink() if profile.is_symlink() else None
+        try:
+            if original_profile and failed_profile != original_profile:
+                number = original_profile.name.removeprefix(
+                    profile.name + "-"
+                ).removesuffix("-link")
+                run(["nix-env", "--profile", profile, "--switch-generation", number])
+                if failed_profile:
+                    failed_number = failed_profile.name.removeprefix(
+                        profile.name + "-"
+                    ).removesuffix("-link")
+                    run(
+                        [
+                            "nix-env",
+                            "--profile",
+                            profile,
+                            "--delete-generations",
+                            failed_number,
+                        ]
+                    )
+            elif not original_profile and failed_profile:
+                profile.unlink()
+                (profile.parent / failed_profile).unlink()
+        except (OSError, subprocess.CalledProcessError) as error:
+            print(f"Profile recovery failed for {profile}: {error}", file=sys.stderr)
+        if previous:
+            try:
+                run([previous / "activate", "--driver-version", "1"], env=env)
+            except (OSError, subprocess.CalledProcessError):
+                print(
+                    f"Recovery failed; reactivate {previous}/activate", file=sys.stderr
+                )
+        else:
+            for name, source in managed_files(generation).items():
+                target = Path.home() / name
+                if target.is_symlink() and target.resolve() == source.resolve():
+                    target.unlink()
+        for path, backup in reversed(moved):
+            if path.is_symlink():
+                path.unlink()
+            if path.exists():
+                raise RuntimeError(
+                    f"Recovery collision at {path}; backup retained at {backup}"
+                )
+            shutil.move(str(backup), path)
+        restore_settings(saved)
+        raise
+    print(f"Activation backups: {transaction}")
+
+
+def setup_linux_gpu(generation):
+    for path in (
+        Path("/etc/tmpfiles.d/non-nixos-gpu.conf"),
+        Path("/etc/systemd/system/non-nixos-gpu.service"),
+    ):
+        if (path.exists() or path.is_symlink()) and not (
+            path.is_symlink() and str(path.resolve()).startswith("/nix/store/")
+        ):
+            raise RuntimeError(
+                f"GPU provisioning conflicts with an unmanaged system file: {path}"
+            )
+    run(["sudo", generation / "home-path/bin/non-nixos-gpu-setup"])
+
+
+def switch_system(generation):
+    run(["sudo", generation / "activate"])
+    executable = shutil.which("nix-env")
+    if not executable:
+        raise RuntimeError("nix-env is unavailable for the system profile")
+    run(["sudo", executable, "--profile", SYSTEM_PROFILE, "--set", generation])
+
+
+def activate_pair(generation, system, args, state, previous):
+    old_system = (
+        SYSTEM_PROFILE.resolve() if system and SYSTEM_PROFILE.exists() else None
+    )
+    if conflicts(generation, Path.home(), previous) and not args.adopt:
+        raise RuntimeError("Unmanaged files conflict; use diff and explicit --adopt")
+    try:
+        if system:
+            switch_system(system)
+        activate(generation, args, state, previous)
+    except BaseException:
+        if system and old_system:
+            try:
+                switch_system(old_system)
+            except (subprocess.CalledProcessError, RuntimeError):
+                print(
+                    f"System recovery failed; reactivate {old_system}/activate with sudo",
+                    file=sys.stderr,
+                )
+        elif system:
+            print(
+                "No preceding macOS system generation exists; inspect the failed activation before retrying.",
+                file=sys.stderr,
+            )
+        raise
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "command",
+        choices=[
+            "build",
+            "diff",
+            "apply",
+            "update",
+            "rollback",
+        ],
+    )
+    parser.add_argument("--profile", required=True, choices=["desktop", "headless"])
+    parser.add_argument(
+        "--system",
+        action="store_true",
+        help="Also apply macOS settings or Linux desktop GPU integration",
+    )
+    parser.add_argument(
+        "--adopt",
+        action="store_true",
+        help="Back up conflicting files before activation",
+    )
+    parser.add_argument("--fixture", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--public-doom", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--input", action="append", default=[], help="Flake input to update"
+    )
+    args = parser.parse_args()
+    for variable, relative in (
+        ("XDG_CONFIG_HOME", ".config"),
+        ("XDG_DATA_HOME", ".local/share"),
+    ):
+        if (
+            variable in os.environ
+            and Path(os.environ[variable]) != Path.home() / relative
+        ):
+            raise RuntimeError(
+                f"This configuration requires {variable}={Path.home() / relative}"
+            )
+    if (args.fixture or args.public_doom) and os.environ.get(
+        "DOTFILES_TEST_GUEST"
+    ) != "1":
+        raise RuntimeError("Test configurations are restricted to disposable guests")
+    if args.public_doom and (ROOT / ".config/doom/init.el").exists():
+        raise RuntimeError(
+            "The public Doom test requires a checkout without the private submodule"
+        )
+    darwin_system = args.system and platform.system() == "Darwin"
+    if args.system and platform.system() == "Linux" and args.profile != "desktop":
+        raise RuntimeError(
+            "Linux --system requires the desktop profile; prerequisites use bootstrap"
+        )
+    if not shutil.which("nix"):
+        raise RuntimeError("Nix is missing; run bin/bootstrap, then open a login shell")
+    if (
+        args.command in ("build", "diff", "apply")
+        and not (ROOT / "flake.lock").is_file()
+    ):
+        raise RuntimeError(
+            "flake.lock is missing; prepare and review it with update before building"
+        )
+    if (
+        not (args.fixture or args.public_doom)
+        and args.command in ("apply", "build", "diff", "update")
+        and not (ROOT / ".config/doom/init.el").exists()
+    ):
+        raise RuntimeError(
+            "Initialize the private Doom submodule before building a complete installation"
+        )
+    if (
+        not (args.fixture or args.public_doom)
+        and args.command in ("apply", "build", "diff", "update")
+        and (ROOT / ".config/doom/.git").exists()
+    ):
+        expected = (ROOT / "nix/doom-revision").read_text().strip()
+        actual = run(
+            ["git", "-C", ROOT / ".config/doom", "rev-parse", "HEAD"],
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout.strip()
+        if actual != expected:
+            raise RuntimeError(
+                "Doom differs from nix/doom-revision; review the private checkout before updating its recorded revision"
+            )
+    state = (
+        Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+        / "dotfiles"
+    )
+    state.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with (
+        (state / "lock").open("w") as lock,
+        tempfile.TemporaryDirectory(prefix="dotfiles-source-") as temp,
+    ):
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        source = Path(temp).resolve() / "source"
+        source.mkdir()
+        if args.command != "rollback":
+            snapshot(ROOT, source)
+        current = home_profile()
+        previous = current.resolve() if current.exists() else None
+        if args.command == "update":
+            lockfile = ROOT / "flake.lock"
+            original_lock = (
+                (source / "flake.lock").read_bytes()
+                if (source / "flake.lock").exists()
+                else None
+            )
+            nix("flake", "update", *args.input, "--flake", str(source))
+            build(source, args)
+            if darwin_system:
+                build(source, args, "darwin")
+            nix("flake", "check", "--no-write-lock-file", str(source))
+            observed_lock = lockfile.read_bytes() if lockfile.exists() else None
+            if observed_lock != original_lock:
+                raise RuntimeError(
+                    "flake.lock changed during update; the checkout was left untouched"
+                )
+            fd, candidate = tempfile.mkstemp(dir=ROOT, prefix=".flake.lock-")
+            try:
+                with os.fdopen(fd, "wb") as stream:
+                    stream.write((source / "flake.lock").read_bytes())
+                os.replace(candidate, lockfile)
+            finally:
+                if os.path.exists(candidate):
+                    os.unlink(candidate)
+            print(
+                "Updated flake.lock after a successful build; review and test before apply."
+            )
+            return
+        if args.command == "rollback":
+            generation = preceding_generation(current)
+            system = preceding_generation(SYSTEM_PROFILE) if darwin_system else None
+        else:
+            generation = build(source, args)
+            system = build(source, args, "darwin") if darwin_system else None
+            if args.command == "build":
+                print(generation)
+                if system:
+                    print(system)
+                return
+            show_diff(generation, Path.home(), previous)
+            if args.command == "diff":
+                if system:
+                    print(f"macOS system closure: {system}")
+                return
+        activate_pair(generation, system, args, state, previous)
+        if args.system and platform.system() == "Linux":
+            setup_linux_gpu(generation)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (RuntimeError, subprocess.CalledProcessError, OSError) as error:
+        print(f"dotfiles: {error}", file=sys.stderr)
+        sys.exit(1)

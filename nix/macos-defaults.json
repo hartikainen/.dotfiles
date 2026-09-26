@@ -1,0 +1,190 @@
+{
+  "com.apple.appstore": {
+    "ShowDebugMenu": true
+  },
+  "com.apple.commerce": {
+    "AutoUpdate": true
+  },
+  "com.apple.SoftwareUpdate": {
+    "AutomaticCheckEnabled": true,
+    "AutomaticDownload": 1,
+    "CriticalUpdateInstall": 1
+  },
+  "com.google.Chrome": {
+    "PMPrintingExpandedStateForPrint2": true,
+    "DisablePrintPreview": true
+  },
+  "com.google.Chrome.canary": {
+    "PMPrintingExpandedStateForPrint2": true,
+    "DisablePrintPreview": true
+  },
+  "com.apple.dock": {
+    "autohide": true,
+    "autohide-delay": 0.0,
+    "enable-spring-load-actions-on-all-items": true,
+    "expose-animation-duration": 0.1,
+    "launchanim": false,
+    "mineffect": "scale",
+    "minimize-to-application": true,
+    "mru-spaces": false,
+    "persistent-apps": [],
+    "persistent-others": [],
+    "show-process-indicators": true,
+    "showhidden": true,
+    "tilesize": 30,
+    "show-recents": false,
+    "static-only": true,
+    "orientation": "left"
+  },
+  "com.apple.finder": {
+    "ShowStatusBar": true,
+    "ShowPathbar": true,
+    "OpenWindowForNewRemovableDisk": true,
+    "_FXShowPosixPathInTitle": true,
+    "DisableAllAnimations": true,
+    "FXDefaultSearchScope": "SCcf",
+    "FXEnableExtensionChangeWarning": false,
+    "AppleShowAllFiles": true,
+    "FXPreferredViewStyle": "clmv",
+    "NewWindowTarget": "PfDe",
+    "NewWindowTargetPath": "file://@HOME@/Desktop/",
+    "ShowExternalHardDrivesOnDesktop": true,
+    "ShowHardDrivesOnDesktop": true,
+    "ShowMountedServersOnDesktop": true,
+    "ShowRemovableMediaOnDesktop": true,
+    "ShowRecentTags": false
+  },
+  "NSGlobalDomain": {
+    "NSNavPanelExpandedStateForSaveMode": true,
+    "NSNavPanelExpandedStateForSaveMode2": true,
+    "PMPrintingExpandedStateForPrint": true,
+    "PMPrintingExpandedStateForPrint2": true,
+    "NSDocumentSaveNewDocumentsToCloud": false,
+    "AppleShowAllExtensions": true,
+    "AppleKeyboardUIMode": 3,
+    "ApplePressAndHoldEnabled": false,
+    "InitialKeyRepeat_Level_Saved": 20,
+    "InitialKeyRepeat": 15,
+    "KeyRepeat": 1,
+    "com.apple.keyboard.fnState": false,
+    "NSAutomaticCapitalizationEnabled": false,
+    "NSAutomaticSpellingCorrectionEnabled": false,
+    "NSAutomaticPeriodSubstitutionEnabled": false,
+    "NSAutomaticDashSubstitutionEnabled": false,
+    "NSAutomaticQuoteSubstitutionEnabled": false,
+    "AppleLanguages": [
+      "en",
+      "fi"
+    ],
+    "AppleMeasurementUnits": "Centimeters",
+    "AppleFontSmoothing": 2,
+    "AppleShowScrollBars": "Always",
+    "NSAutomaticWindowAnimationsEnabled": false,
+    "NSDisableAutomaticTermination": true,
+    "NSTableViewDefaultSizeMode": 2,
+    "NSUseAnimatedFocusRing": false,
+    "NSWindowResizeTime": 0.001,
+    "QLPanelAnimationDuration": 0.0
+  },
+  "com.apple.frameworks.diskimages": {
+    "auto-open-ro-root": true,
+    "auto-open-rw-root": true
+  },
+  "com.apple.TextInputMenu": {
+    "visible": true
+  },
+  "com.apple.terminal": {
+    "FocusFollowsMouse": "true",
+    "SecureKeyboardEntry": true,
+    "StringEncodings": [
+      "4"
+    ]
+  },
+  "com.apple.driver.AppleBluetoothMultitouch.trackpad": {
+    "Clicking": 0,
+    "TrackpadRightClick": true,
+    "TrackpadCornerSecondaryClick": 0,
+    "TrackpadThreeFingerDrag": true
+  },
+  "com.apple.AppleMultitouchTrackpad": {
+    "Clicking": 0,
+    "TrackpadRightClick": 1,
+    "TrackpadCornerSecondaryClick": 0,
+    "TrackpadFourFingerHorizSwipeGesture": 2,
+    "TrackpadFourFingerVertSwipeGesture": 2,
+    "TrackpadThreeFingerHorizSwipeGesture": 0,
+    "TrackpadThreeFingerVertSwipeGesture": 0,
+    "TrackpadThreeFingerDrag": true
+  },
+  "com.apple.desktopservices": {
+    "DSDontWriteNetworkStores": true,
+    "DSDontWriteUSBStores": true
+  },
+  "com.apple.menuextra.battery": {
+    "ShowPercent": "YES"
+  },
+  "com.apple.controlcenter": {
+    "NSStatusItem Visible Bluetooth": true
+  },
+  "com.apple.CrashReporter": {
+    "UseUNC": "1"
+  },
+  "com.apple.LaunchServices": {
+    "LSQuarantine": false
+  },
+  "com.apple.print.PrintingPrefs": {
+    "Quit When Finished": true
+  },
+  "com.apple.screencapture": {
+    "disable-shadow": true,
+    "location": "@HOME@/Desktop/screenshots",
+    "type": "png"
+  },
+  "com.apple.systempreferences": {
+    "NSQuitAlwaysKeepsWindows": false
+  },
+  "com.apple.symbolichotkeys": {
+    "AppleSymbolicHotKeys": {
+      "60": {
+        "enabled": false,
+        "value": {
+          "parameters": [
+            32,
+            49,
+            262144
+          ],
+          "type": "standard"
+        }
+      },
+      "61": {
+        "enabled": true,
+        "value": {
+          "parameters": [
+            32,
+            49,
+            655360
+          ],
+          "type": "standard"
+        }
+      }
+    }
+  },
+  "com.apple.HIToolbox": {
+    "AppleEnabledInputSources": [
+      {
+        "InputSourceKind": "Keyboard Layout",
+        "KeyboardLayout ID": 0,
+        "KeyboardLayout Name": "U.S."
+      },
+      {
+        "Bundle ID": "com.apple.CharacterPaletteIM",
+        "InputSourceKind": "Non Keyboard Input Method"
+      },
+      {
+        "InputSourceKind": "Keyboard Layout",
+        "KeyboardLayout ID": 17,
+        "KeyboardLayout Name": "Finnish"
+      }
+    ]
+  }
+}

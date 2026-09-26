@@ -32,3 +32,11 @@ macos:
 ```
 bash -c "$(curl -LsS https://raw.githubusercontent.com/hartikainen/.dotfiles/main/setup/setup.sh)"
 ```
+
+## Agent instructions
+
+[`.codex/AGENTS.md`](.codex/AGENTS.md) holds personal working agreements and writing preferences. The installed `~/.codex/AGENTS.md` links to this file. Keep project APIs, build commands, and repository authorization boundaries in the project's `AGENTS.md`, with detailed conventions and examples in its contributor documentation. A project instruction file must remain usable by contributors who do not have these dotfiles.
+
+Put essential project rules directly in `AGENTS.md` and link to supporting sections with explicit task conditions. A link is a request to read a document, not automatic inclusion of its contents. Keep specialized workflows in skills, with descriptions that identify when they apply.
+
+Edit the tracked instruction files and start a fresh Codex session to check their effect. Verify both the loaded instructions and the resulting behavior on a representative task. See [Codex instruction discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md) for file precedence and session loading.

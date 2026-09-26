@@ -172,6 +172,7 @@ class ActivationTests(unittest.TestCase):
         self.assertFalse((destination / ".config/git/config.local").exists())
         self.assertFalse((destination / ".codex/config.toml").exists())
         self.assertTrue((destination / "nix/settings/codex.toml").exists())
+        self.assertTrue((destination / "nix/hosts/work-macbook.nix").exists())
 
     def test_rollback_does_not_require_a_valid_source_checkout(self):
         state = self.home / ".local/state/dotfiles"
@@ -198,6 +199,96 @@ class ActivationTests(unittest.TestCase):
         ):
             controller.main()
         self.assertEqual(activate.call_args.args[0], generation)
+
+
+class HostTests(unittest.TestCase):
+    def setUp(self):
+        self.host = {
+            "system": "x86_64-linux",
+            "profile": "desktop",
+            "osRelease": {"ID": "ubuntu", "VERSION_ID": "26.04"},
+        }
+        self.args = types.SimpleNamespace(
+            host="work-desktop", profile=None, fixture=True
+        )
+
+    def test_unknown_host_is_rejected(self):
+        with patch.object(controller, "host_inventory", return_value={}):
+            with self.assertRaisesRegex(RuntimeError, "Unknown host"):
+                controller.resolve_host(self.args, ROOT)
+
+    def test_wrong_architecture_is_rejected(self):
+        with (
+            patch.object(
+                controller, "host_inventory", return_value={self.args.host: self.host}
+            ),
+            patch.object(controller, "system_name", return_value="aarch64-linux"),
+            self.assertRaisesRegex(RuntimeError, "requires x86_64-linux"),
+        ):
+            controller.resolve_host(self.args, ROOT)
+
+    def test_wrong_distribution_release_is_rejected(self):
+        with (
+            patch.object(
+                controller, "host_inventory", return_value={self.args.host: self.host}
+            ),
+            patch.object(controller, "system_name", return_value="x86_64-linux"),
+            patch.object(controller.platform, "system", return_value="Linux"),
+            patch.object(
+                controller.platform,
+                "freedesktop_os_release",
+                return_value={"ID": "ubuntu", "VERSION_ID": "24.04"},
+            ),
+            self.assertRaisesRegex(RuntimeError, "requires VERSION_ID=26.04"),
+        ):
+            controller.resolve_host(self.args, ROOT)
+
+    def test_matching_host_selects_its_profile(self):
+        with (
+            patch.object(
+                controller, "host_inventory", return_value={self.args.host: self.host}
+            ),
+            patch.object(controller, "system_name", return_value="x86_64-linux"),
+            patch.object(controller.platform, "system", return_value="Linux"),
+            patch.object(
+                controller.platform,
+                "freedesktop_os_release",
+                return_value=self.host["osRelease"],
+            ),
+        ):
+            controller.resolve_host(self.args, ROOT)
+        self.assertEqual(self.args.profile, "desktop")
+
+    def test_host_expression_uses_the_named_factory(self):
+        home = controller.expression(ROOT, self.args, "home")
+        system = controller.expression(ROOT, self.args, "darwin")
+        self.assertIn(".lib.mkHostHome", home)
+        self.assertIn(".lib.mkHostDarwin", system)
+        self.assertIn("work-desktop", home)
+        self.assertNotIn("profile", home)
+
+    def test_linux_system_rollback_rejects_headless_generation_before_activation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp)
+            with (
+                patch.object(Path, "home", return_value=home),
+                patch.dict(os.environ, {"DOTFILES_TEST_GUEST": "1"}, clear=True),
+                patch.object(
+                    sys, "argv", ["dotfiles", "rollback", "--system", "--fixture"]
+                ),
+                patch.object(controller.platform, "system", return_value="Linux"),
+                patch.object(controller.shutil, "which", return_value="/nix/bin/nix"),
+                patch.object(controller, "home_profile", return_value=home / "profile"),
+                patch.object(
+                    controller, "preceding_generation", return_value=home / "headless"
+                ),
+                patch.object(controller, "activate_pair") as activate,
+                self.assertRaisesRegex(
+                    RuntimeError, "no Linux desktop GPU integration"
+                ),
+            ):
+                controller.main()
+            activate.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ let
       )
     else
       [ ];
-  sourceFile = path: { source = root + "/${path}"; };
+  sourceFile = path: { source = lib.mkDefault (root + "/${path}"); };
   plugin = name: source: {
     name = ".local/share/tmux/plugins/${name}";
     value.source = source;

@@ -8,10 +8,11 @@
 }:
 let
   desktop = profile == "desktop";
+  defaults = lib.mapAttrs (_: lib.mapAttrs (_: lib.mkDefault));
 in
 {
   fonts.fontconfig.enable = lib.mkDefault (desktop && pkgs.stdenv.isLinux);
-  targets.darwin.currentHostDefaults = lib.mkIf (desktop && pkgs.stdenv.isDarwin) {
+  targets.darwin.currentHostDefaults = lib.mkIf (desktop && pkgs.stdenv.isDarwin) (defaults {
     "com.apple.ImageCapture".disableHotPlug = true;
     "com.apple.controlcenter" = {
       Bluetooth = 18;
@@ -22,13 +23,13 @@ in
       "com.apple.trackpad.enableSecondaryClick" = true;
       "com.apple.trackpad.trackpadCornerClickBehavior" = 0;
     };
-  };
+  });
   home.file."Pictures/Screenshots" = lib.mkIf (desktop && pkgs.stdenv.isLinux) {
     source = lib.mkDefault (config.lib.file.mkOutOfStoreSymlink "${homeDirectory}/Desktop/screenshots");
   };
   dconf = lib.mkIf (desktop && pkgs.stdenv.isLinux) {
     enable = true;
-    settings = {
+    settings = defaults {
       "org/gnome/desktop/peripherals/keyboard" = {
         repeat-interval = lib.hm.gvariant.mkUint32 10;
         delay = lib.hm.gvariant.mkUint32 200;

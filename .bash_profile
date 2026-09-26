@@ -10,7 +10,7 @@
 # `~/.profile`.
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-# Env vars (XDG_*, DOTFILES_DIR, `~/.local/bin/env`).
+# Shared environment (`XDG_*` and `~/.local/bin/env`).
 [ -f "${HOME}/.profile" ] && . "${HOME}/.profile"
 
 # Interactive setup (aliases, prompt, completion, history, ...).

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# `get_os_name` is provided by `${DOTFILES_DIR}/setup/utils.sh`, which is
+# `get_os_name` is provided by `${XDG_CONFIG_HOME}/shell/platform.sh`, which is
 # sourced by `.bashrc`/`.zshrc` before this file.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

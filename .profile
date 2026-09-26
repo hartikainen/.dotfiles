@@ -15,16 +15,19 @@
 : "${XDG_DATA_HOME:=${HOME}/.local/share}"
 export XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_DATA_HOME
 
-# Root of the dotfiles checkout. Used by the rc files to locate
-# `setup/utils.sh`. Defaults to whichever directory `${HOME}/.bash_profile`
-# is a symlink into (which is how `create_symbolic_links.sh` wires it up),
-# falling back to `${HOME}/.dotfiles`. Override by exporting `DOTFILES_DIR`
-# from your environment.
-if [ -z "${DOTFILES_DIR:-}" ] && [ -L "${HOME}/.bash_profile" ]; then
-    DOTFILES_DIR="$(dirname "$(readlink "${HOME}/.bash_profile")")"
+# Nix profiles supply packages independently of the source checkout.
+if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+elif [ -f "${HOME}/.nix-profile/etc/profile.d/nix.sh" ]; then
+    . "${HOME}/.nix-profile/etc/profile.d/nix.sh"
 fi
-: "${DOTFILES_DIR:=${HOME}/.dotfiles}"
-export DOTFILES_DIR
+if [ -f "${HOME}/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
+    . "${HOME}/.nix-profile/etc/profile.d/hm-session-vars.sh"
+fi
+case ":${PATH}:" in
+    *":${HOME}/.nix-profile/bin:"*) ;;
+    *) export PATH="${HOME}/.nix-profile/bin:${PATH}" ;;
+esac
 
 # Pick up `~/.local/bin` (and similar) added to PATH by `uv`, `rustup`, etc.
 # Wrapped in `if`/`fi` rather than `[ -f ... ] && . ...` so that, when the

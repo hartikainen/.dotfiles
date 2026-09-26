@@ -67,6 +67,17 @@ if ! nix --version | python3 -c 'import re,sys; v=re.search(r"(\d+)\.(\d+)",sys.
     upgrade=1
 fi
 if [ "$upgrade" = 1 ]; then
+    if [ "$(uname -s)" = Darwin ] && [ -e /nix/var/nix/profiles/system ]; then
+        echo 'nix-darwin owns this Nix daemon; update and apply the macOS host configuration.' >&2
+        exit 1
+    fi
+    case "$(nix --version)" in
+        'nix (Nix) '*) ;;
+        *)
+            echo 'Upgrade this Nix distribution with its owning installer.' >&2
+            exit 1
+            ;;
+    esac
     if [ ! -e /nix/var/nix/profiles/default/bin/nix ]; then
         echo 'Upgrade this Nix installation with its owning installer to Nix >= 2.32.' >&2
         exit 1

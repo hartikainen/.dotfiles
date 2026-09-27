@@ -11,6 +11,13 @@ let
 in
 {
   fonts.fontconfig.enable = lib.mkDefault (desktop && pkgs.stdenv.isLinux);
+  targets.darwin.defaults = lib.mkIf (desktop && pkgs.stdenv.isDarwin) (
+    defaults (
+      builtins.fromJSON (
+        builtins.replaceStrings [ "@HOME@" ] [ homeDirectory ] (builtins.readFile ../macos-defaults.json)
+      )
+    )
+  );
   targets.darwin.currentHostDefaults = lib.mkIf (desktop && pkgs.stdenv.isDarwin) (defaults {
     "com.apple.ImageCapture".disableHotPlug = true;
     "com.apple.controlcenter" = {

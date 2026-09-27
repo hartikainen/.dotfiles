@@ -1,0 +1,15 @@
+{
+  "release": "26.04",
+  "build": "20260918",
+  "baseUrl": "https://cloud-images.ubuntu.com/releases/resolute/release-20260918",
+  "images": {
+    "x86_64-linux": {
+      "name": "ubuntu-26.04-server-cloudimg-amd64.img",
+      "sha256": "4908fb59ccd4e87ae4e8e973b7ef56f535448eacb24a87fd787270c0048987bc"
+    },
+    "aarch64-linux": {
+      "name": "ubuntu-26.04-server-cloudimg-arm64.img",
+      "sha256": "8dc812bc6356d0abf825d8029f25f1b71f02cb103e1d0cc5c17fbb2572322972"
+    }
+  }
+}

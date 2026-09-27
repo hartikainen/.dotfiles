@@ -134,6 +134,20 @@ class ActivationTests(unittest.TestCase):
             controller.conflicts(generation, self.home), [self.home / ".bashrc"]
         )
 
+    def test_launch_agent_copy_has_one_owner(self):
+        old = self.generation("old-agent", {})
+        candidate = self.generation("next-agent", {})
+        for generation, value in ((old, "old"), (candidate, "candidate")):
+            agents = generation / "LaunchAgents"
+            agents.mkdir(parents=True)
+            (agents / "service.plist").write_text(value)
+        target = self.home / "Library/LaunchAgents/service.plist"
+        target.parent.mkdir(parents=True)
+        target.write_text("old")
+        self.assertEqual(controller.conflicts(candidate, self.home, old), [])
+        target.write_text("personal")
+        self.assertEqual(controller.conflicts(candidate, self.home, old), [target])
+
     def test_system_failure_attempts_to_restore_previous_system(self):
         generation = self.generation("candidate", {".bashrc": "managed"})
         old_system = self.base / "old-system"
@@ -143,7 +157,7 @@ class ActivationTests(unittest.TestCase):
         profile.symlink_to(old_system)
         calls = []
 
-        def switch(value):
+        def switch(value, args):
             calls.append(value)
             if value == system:
                 raise subprocess.CalledProcessError(1, "activate")
@@ -151,6 +165,7 @@ class ActivationTests(unittest.TestCase):
         with (
             patch.object(controller, "SYSTEM_PROFILE", profile),
             patch.object(controller, "switch_system", side_effect=switch),
+            patch.object(controller.platform, "system", return_value="Darwin"),
         ):
             with self.assertRaises(subprocess.CalledProcessError):
                 controller.activate_pair(
@@ -267,28 +282,20 @@ class HostTests(unittest.TestCase):
         self.assertIn("work-desktop", home)
         self.assertNotIn("profile", home)
 
-    def test_linux_system_rollback_rejects_headless_generation_before_activation(self):
+    def test_paired_rollback_requires_matching_active_generations(self):
         with tempfile.TemporaryDirectory() as temp:
-            home = Path(temp)
-            with (
-                patch.object(Path, "home", return_value=home),
-                patch.dict(os.environ, {"DOTFILES_TEST_GUEST": "1"}, clear=True),
-                patch.object(
-                    sys, "argv", ["dotfiles", "rollback", "--system", "--fixture"]
-                ),
-                patch.object(controller.platform, "system", return_value="Linux"),
-                patch.object(controller.shutil, "which", return_value="/nix/bin/nix"),
-                patch.object(controller, "home_profile", return_value=home / "profile"),
-                patch.object(
-                    controller, "preceding_generation", return_value=home / "headless"
-                ),
-                patch.object(controller, "activate_pair") as activate,
-                self.assertRaisesRegex(
-                    RuntimeError, "no Linux desktop GPU integration"
-                ),
-            ):
-                controller.main()
-            activate.assert_not_called()
+            state = Path(temp)
+            a, b, c, d = [state / name for name in ("a", "b", "c", "d")]
+            for path in (a, b, c, d):
+                path.mkdir()
+            controller.save_deployment(state, a, b)
+            controller.save_deployment(state, c, d, a, b)
+            self.assertEqual(controller.previous_deployment(state, c, d), (a, b))
+            with self.assertRaisesRegex(RuntimeError, "No preceding paired"):
+                controller.previous_deployment(state, a, d)
+            a.rmdir()
+            with self.assertRaisesRegex(RuntimeError, "garbage-collected"):
+                controller.previous_deployment(state, c, d)
 
 
 if __name__ == "__main__":

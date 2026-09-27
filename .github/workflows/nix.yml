@@ -23,7 +23,7 @@ jobs:
       - name: Check, activate, and recover in a disposable guest
         run: python3 bin/test --base '${{ matrix.base }}' --full --storage-path /var/lib/docker
   macos:
-    runs-on: macos-14
+    runs-on: macos-26
     env:
       DOTFILES_TEST_GUEST: '1'
     steps:
@@ -52,18 +52,22 @@ jobs:
           ./bin/dotfiles apply --profile desktop --system --fixture --adopt
           test "$(defaults read com.apple.dock autohide)" = 1
           /Applications/Ghostty.app/Contents/MacOS/ghostty +validate-config
-  linux-desktop:
-    runs-on: ubuntu-24.04
-    env:
-      DOTFILES_TEST_GUEST: '1'
+  linux-system:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x86_64-linux
+            bootstrap: ''
+          - runner: ubuntu-24.04-arm
+            arch: aarch64-linux
+            bootstrap: --upgrade-from-previous
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
         with:
           submodules: false
-      - name: Bootstrap disposable Linux VM
-        run: bash bin/bootstrap
-      - name: Activate desktop integration
-        run: |
-          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-          dbus-run-session -- ./bin/dotfiles apply --profile desktop --system --fixture --adopt
-          test -L /etc/tmpfiles.d/non-nixos-gpu.conf
+      - name: Install, reboot, update, and recover Ubuntu in QEMU
+        run: python3 bin/test-vm --arch '${{ matrix.arch }}' ${{ matrix.bootstrap }} --storage-path /var/lib/docker

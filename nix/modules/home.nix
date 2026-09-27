@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   inputs,
@@ -39,6 +38,7 @@ in
 {
   imports = [
     ./desktop.nix
+    ./colima.nix
     ./doom.nix
   ];
   assertions = [
@@ -61,8 +61,7 @@ in
           profile
           fixture
           ;
-      }).home
-      ++ lib.optionals (desktop && pkgs.stdenv.isLinux) [ config.targets.genericLinux.gpu.setupPackage ];
+      }).home;
     sessionVariables = lib.optionalAttrs pkgs.stdenv.isLinux {
       LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
     };
@@ -113,5 +112,5 @@ in
   };
   programs.home-manager.enable = true;
   targets.genericLinux.enable = pkgs.stdenv.isLinux;
-  targets.genericLinux.gpu.enable = pkgs.stdenv.isLinux && desktop;
+  targets.genericLinux.gpu.enable = false;
 }

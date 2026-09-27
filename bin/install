@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "${1:-}" != --host ] || [ "$#" -lt 2 ]; then
+    echo 'Usage: bin/install --host NAME [--adopt]' >&2
+    exit 1
+fi
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+bash "$root/bin/bootstrap"
+if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+    # shellcheck disable=SC1091
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+fi
+exec "$root/bin/dotfiles" apply "$@"

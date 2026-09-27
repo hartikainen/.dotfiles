@@ -1,6 +1,6 @@
 # dotfiles
 
-Nix manages the shared user environment on `aarch64-darwin`, `x86_64-linux`, and `aarch64-linux`. Home Manager installs configuration and packages. `nix-darwin` manages macOS preferences and native Homebrew applications. Ubuntu and Debian retain their system package manager for host prerequisites.
+Nix manages the shared user environment on `aarch64-darwin`, `x86_64-linux`, and `aarch64-linux`. Home Manager installs configuration and packages. `nix-darwin` manages macOS system configuration and native Homebrew applications. `system-manager` manages Ubuntu `26.04` services and system files. Ubuntu owns the kernel, login stack, and desktop session. Debian supports the user environment only.
 
 ## Install
 
@@ -12,10 +12,10 @@ cd workstation
 git checkout <reviewed-commit>
 git submodule update --init --recursive
 git -C .config/doom checkout --detach "$(cat nix/doom-revision)"
-bash bin/bootstrap
+bash bin/install --host personal-macbook
 ```
 
-The Doom submodule requires access to the private repository. Bootstrap verifies the pinned Nix installer. `nix-homebrew` installs Homebrew during macOS system activation. macOS requires Apple's command-line tools; Ubuntu and Debian require administrative access for prerequisites. Open a login shell after bootstrap.
+Start with an installed OS, an administrator account, and network access. OS installation, disk encryption, initial account creation, and credential enrollment or restoration are prerequisites. The Doom submodule requires access to the private repository. Bootstrap installs OS prerequisites, including Apple's command-line tools when offered by `softwareupdate`, and verifies the pinned Nix installer. If Git is unavailable, download and extract the reviewed repository archive first, run `bash bin/bootstrap`, then fetch the private Doom checkout. `nix-homebrew` installs Homebrew during macOS system activation. Log out and back in after installation to load shell variables and Linux group membership.
 
 ```sh
 ./bin/dotfiles build --profile desktop
@@ -23,9 +23,11 @@ The Doom submodule requires access to the private repository. Bootstrap verifies
 ./bin/dotfiles apply --profile desktop
 ```
 
-On macOS, pass `--system` to build, inspect, or apply the `nix-darwin` configuration and native applications. On Linux desktops, `apply --system` also provisions Home Manager's GPU integration through a privileged helper. Use `--profile headless` for shell, development tools, tmux, and terminal Emacs without desktop applications or preferences. Linux system prerequisites are installed by bootstrap; the desktop profile writes GNOME preferences through `dconf`.
+A named host provisions both system and user configuration. Use `--home-only` to inspect or apply only Home Manager. Generic `--profile` commands manage only the user environment unless passed `--system`; Linux system provisioning requires Ubuntu `26.04`. The `headless` profile retains shell tools, tmux, and terminal Emacs without desktop applications or preferences. `bash bin/install --host NAME` bootstraps dependencies and applies the named configuration; it accepts `--adopt` after conflicts have been reviewed.
 
-`apply` refuses unmanaged file conflicts. After inspecting `diff`, add `--adopt` to move conflicting files into the activation's backup directory before linking managed files. System-file conflicts require manual review. A parent directory symlink (including `~/.config`) requires manual migration; the installer does not traverse it. No command resets the source checkout or deletes `~/.dotfiles`.
+`apply` refuses unmanaged file conflicts. After inspecting `diff`, add `--adopt` to move conflicting files into the activation's backup directory before linking managed files. Linux system-file conflicts follow the same explicit adoption rule, with root-only backups under `/var/lib/dotfiles-system/transactions`. Existing Ubuntu Docker or containerd packages must be removed deliberately before adopting the Nix daemon; preserve `/var/lib/docker`. A parent directory symlink (including `~/.config`) requires manual migration; the installer does not traverse it. No command resets the source checkout or deletes `~/.dotfiles`.
+
+On macOS, `nix-darwin` backs up recognized OS and Nix installer files before replacing them. It refuses other `/etc` conflicts even with `--adopt`; inspect and archive the reported files with the `.before-nix-darwin` suffix before retrying. The declaration recognizes the Nix `2.34.4` shell hooks on macOS `26` by their complete file hashes.
 
 `bin/bootstrap` installs Nix and its prerequisites. Package selection and preferences belong to the Nix modules. `bin/dotfiles` provides source filtering, conflict inspection, transactional adoption, and coordinated activation; Home Manager and Nix manage the generations.
 
@@ -44,7 +46,7 @@ Applications managed by Nix use immutable configuration sources. Edit the checko
 
 ## Machines
 
-`nix/hosts/default.nix` registers machine definitions. Each file selects the platform and profile and can add Home Manager modules through `homeModules`. Mac definitions can also add `nix-darwin` modules through `darwinModules`.
+`nix/hosts/default.nix` registers machine definitions. Each file selects the platform and profile and can add Home Manager modules through `homeModules`. Mac definitions can also add `nix-darwin` modules through `darwinModules`; Linux definitions use `linuxModules` for `system-manager`.
 
 | Host | Platform | Profile | Distribution |
 | --- | --- | --- | --- |
@@ -59,9 +61,9 @@ Linux `arm64` remains supported as `aarch64-linux`. For an ARM machine, add a ho
 
 ```sh
 ./bin/dotfiles hosts
-./bin/dotfiles build --host work-macbook --system
-./bin/dotfiles diff --host work-macbook --system
-./bin/dotfiles apply --host work-macbook --system
+./bin/dotfiles build --host work-macbook
+./bin/dotfiles diff --host work-macbook
+./bin/dotfiles apply --host work-macbook
 ```
 
 Host selection checks the machine's OS, architecture, and any declared `osRelease` requirements before building or activating. The generic `--profile desktop` and `--profile headless` selections remain available on all supported platforms. `--host` and `--profile` are mutually exclusive.
@@ -70,7 +72,7 @@ For a machine-specific default, put `export DOTFILES_HOST=work-macbook` in its s
 
 ```sh
 ./bin/dotfiles rollback
-# Include the macOS system generation.
+# Restore the preceding successful home and system pair.
 ./bin/dotfiles rollback --system
 ```
 
@@ -81,30 +83,34 @@ For example, a Mac definition can add a development tool and override one shared
   system = "aarch64-darwin";
   profile = "desktop";
   homeModules = [
-    ({ pkgs, ... }: { home.packages = [ pkgs.go ]; })
-  ];
-  darwinModules = [
-    { system.defaults.CustomUserPreferences."com.apple.dock".autohide = false; }
+    ({ pkgs, ... }: {
+      home.packages = [ pkgs.go ];
+      targets.darwin.defaults."com.apple.dock".autohide = false;
+    })
   ];
 }
 ```
 
 Module lists accept file paths, so related machines can import a shared work or personal module under `nix/modules/`. Package lists merge with the shared selection. Shared macOS and GNOME preference values use `lib.mkDefault`, so a host can override one key while retaining the others. Portable dotfile sources also use `lib.mkDefault`; override a file's `home.file.<path>.source` with a host-specific source under `nix/`. Keep credentials and mutable application state outside these modules.
 
-All hosts share `flake.lock`. Review and test lockfile updates together, then apply the reviewed repository commit to each machine when ready. The named `homeConfigurations` and macOS `darwinConfigurations` exports use the placeholder account `dotfiles` for evaluation; use `bin/dotfiles` to build for the actual account.
+All hosts share `flake.lock`. Review and test lockfile updates together, then apply the reviewed repository commit to each machine when ready. The named `homeConfigurations`, macOS `darwinConfigurations`, and Linux `systemConfigs` exports use the placeholder account `dotfiles` for evaluation; use `bin/dotfiles` to build for the actual account.
 
 ## Update and recover
 
 ```sh
-./bin/dotfiles update --profile desktop --input nixpkgs
-./bin/dotfiles diff --profile desktop
-./bin/dotfiles apply --profile desktop
-./bin/dotfiles rollback --profile desktop
+./bin/dotfiles update --host personal-desktop --input nixpkgs
+./bin/dotfiles diff --host personal-desktop
+./bin/dotfiles apply --host personal-desktop
+./bin/dotfiles rollback --system
 ```
 
-`update` prepares `flake.lock`, builds the selected profile, and runs Nix checks before writing the lockfile back to the checkout. It does not activate changes. Omit `--input` to update all inputs. Review the lockfile diff and run the isolated integration tests before applying. Include `--system` when updating or applying macOS system configuration.
+`update` prepares `flake.lock`, builds the selected profile, and runs Nix checks before writing the lockfile back to the checkout. It does not activate changes. Omit `--input` to update all inputs. Review the lockfile diff and run the isolated integration tests before applying. Named host updates build both the system and user closures. `system-manager` follows the pinned `nixpkgs`; review compatibility before updating either input.
 
 Home Manager records home generations in its native Nix profile, visible with `home-manager generations`. Reapplying the same generation preserves the rollback target. Activation backups are stored under `~/.local/state/dotfiles/transactions/`. Failed home activation attempts restore adopted files and mutable settings and attempt to reactivate the preceding generation. A failed recovery prints the retained activation path.
+
+`rollback --system` uses the preceding successful pair in `~/.local/state/dotfiles/system-deployments.json`, so an unrelated user-only activation cannot silently select a mismatched system. It requires retained store paths and refuses a pair that no longer matches the active profiles.
+
+System and home activation are separate transactions. A power failure between them can leave a mixed pair. Inspect the deployment journal and native profiles, repair any pending system transaction, then reactivate the chosen retained system generation and its paired home generation before applying again. On Linux, use that system generation's `bin/dotfiles-system apply` with `sudo` and its own store path as the argument; run the paired home generation's `activate` as the user. The controller refuses to guess a rollback target for a mixed pair. A first macOS activation has no preceding system generation to restore; inspect a failed attempt's changes and backups before retrying.
 
 Rollback restores managed configuration and Nix package selection. It does not restore application data, remove every preference side effect, or downgrade Homebrew applications. `nix-homebrew` pins Homebrew itself and adopts an existing installation during `apply --system`. Homebrew activation disables automatic upgrades and cleanup. Upgrade native applications separately with Homebrew after reviewing its proposed changes.
 
@@ -122,7 +128,37 @@ Doom uses the `nix` profile and stores writable state beneath the XDG cache, dat
 
 ## Host and credential boundaries
 
-Nix on Ubuntu or Debian manages the user environment, not the distribution's kernel, system accounts, or Docker daemon. Bootstrap installs only the prerequisites needed to use Nix. The Linux desktop profile provisions Home Manager's GPU integration with `--system`. Distribution upgrades and existing host services remain under the distribution's control. The Docker CLI comes from Nix and can connect to an existing local or remote daemon.
+| Component | Owner |
+| --- | --- |
+| User packages, dotfiles, GNOME and macOS preferences, Emacs | Home Manager |
+| macOS system configuration and Homebrew applications | `nix-darwin` |
+| macOS Docker VM, configuration, and login service | Home Manager's Colima module |
+| Ubuntu Docker daemon, `/etc/docker/daemon.json`, graphics userspace links, system units | `system-manager` |
+| Ubuntu kernel, drivers, PAM, privileged wrappers, D-Bus, GNOME session, display manager | Ubuntu packages declared through `workstation.nativePackages` |
+| Nix daemon and its service | Bootstrap on Linux; `nix-darwin` after macOS system activation |
+| Human accounts, credentials, application data | Machine owner |
+
+`nix/modules/linux/` separates Docker, graphics, and OS integration. Host `linuxModules` can extend `workstation.nativePackages`, add services through `systemd.services`, add files through `environment.etc`, and declare health checks in `workstation.requiredServices`. Services required for a usable workstation must appear in that list. Use `environment.systemPackages` only for system administration tools that Home Manager does not install.
+
+`system-manager` uses `reload-or-restart` for changed services. Docker omits `ExecReload` so a generation change restarts the daemon and applies settings that cannot be reloaded. Give host services the same treatment when their package or configuration changes require a restart.
+
+The Ubuntu desktop declaration installs `ubuntu-desktop-minimal` and `dconf-service` when absent. This preserves Ubuntu's kernel and login integration rather than replacing them with NixOS components. An installation using the standalone Home Manager `non-nixos-gpu-setup` helper must archive its unit and `tmpfiles` configuration and disable `non-nixos-gpu.service` before adoption; preflight refuses competing ownership. Mesa userspace comes from the pinned Home Manager graphics derivation and is exposed at `/run/opengl-driver` by the system module. Proprietary NVIDIA machines need a host override of `workstation.graphics.package` matching their Ubuntu kernel driver; that hardware path is not covered by the virtual GPU tests.
+
+The audit retains the legacy shell tools, development packages, Ghostty, tmux, Nix-built Emacs, GNOME keyboard settings, application preferences, fonts, and clipboard tools. `nix/preferences-exceptions.json` records obsolete or private preference interfaces. Linux Docker includes a daemon, persistent data, restart-on-boot service, and membership in the `docker` group (which grants root-equivalent access). macOS uses a separate Colima profile under `~/.local/share/dotfiles/colima`, launched at graphical login with Apple's virtualization backend. `DOCKER_HOST` selects its socket without changing existing Docker contexts. Colima mounts the user's home for development bind mounts; it does not forward the SSH agent.
+
+Colima does not import Docker Desktop images, containers, or volumes. Export application data from an existing Docker backend before moving its workloads to Colima; each backend retains its own data.
+
+[`system-manager`'s `release-26.05` branch](https://github.com/numtide/system-manager/tree/release-26.05) matches the pinned `nixpkgs` release and documents Nix `2.32` or later as its tested baseline. Bootstrap pins Nix `2.34.4` and upgrades an older official multi-user installation through the pinned `nixpkgs` package. `bash bin/bootstrap --upgrade-nix` requests that upgrade explicitly on bootstrap-owned installations. After macOS system activation, update Nix through `nix-darwin` with the host configuration. Other Nix installers retain responsibility for their own upgrades. System rollback does not downgrade the bootstrap-owned Linux Nix daemon; macOS follows its selected `nix-darwin` generation. Ubuntu package updates remain the responsibility of Ubuntu Software Updater or `apt`; `dotfiles update` does not perform a distribution upgrade.
+
+The system transaction checks conflicts, installs missing native prerequisites before the service activation deadline, activates the candidate, verifies managed files and required services, and registers it only after health checks pass. A failed system activation attempts to restore the previous system before Home Manager runs. A failed home activation attempts to restore both components. Root-only transaction state retains adoption backups. After an interrupted system activation, repair the recorded operation before applying again:
+
+```sh
+sudo /nix/var/nix/gcroots/dotfiles-system-pending/bin/dotfiles-system repair /nix/var/nix/gcroots/dotfiles-system-pending
+```
+
+Repair restores the preceding managed generation. Inspect the retained transaction backups for manual edits made before adoption, especially after interruption. Review any recovery error before retrying. Linux system generations live in `/nix/var/nix/profiles/system-manager-profiles/system-manager`; macOS generations live in `/nix/var/nix/profiles/system`. Avoid garbage-collecting generations needed for recovery.
+
+Rollback does not uninstall Ubuntu packages or Apple command-line tools, reverse maintainer scripts, remove added group memberships, downgrade the OS or bootstrap-owned Linux Nix daemon, restore Docker volumes or Colima disks, downgrade Homebrew applications, or erase every preference written by an earlier configuration. A Docker data-format upgrade can require a data backup to downgrade its daemon safely. Removing a Colima profile from Nix does not delete its VM. Back up application data separately and review service-specific upgrade notes. Interrupted Ubuntu package transactions can require `sudo dpkg --configure -a` before reapplying.
 
 SSH private keys, agent authentication, and GitHub account enrollment remain machine-owned. Configure authentication before fetching the private Doom submodule. Activation does not generate, upload, replace, or import keys. Neither Nix sources nor test guests include `~/.ssh` or the host agent socket.
 
@@ -136,6 +172,13 @@ python3 bin/test --base debian:13
 
 # Complete package selection and public Doom (no private credentials).
 python3 bin/test --full
+
+# Boot Ubuntu, install, reboot, update, and recover.
+python3 bin/test-vm --arch x86_64-linux
+python3 bin/test-vm --arch aarch64-linux
+
+# Verify automatic upgrade from the installer in `tests/nix/bootstrap-previous.json`.
+python3 bin/test-vm --arch aarch64-linux --upgrade-from-previous
 ```
 
 `bin/test` runs checks sequentially, limits guest memory and CPU use, and removes its container and image afterward. For the pinned `nixpkgs` inputs, it requires `15 GiB` free for fixture checks or `30 GiB` for `--full`, and stops if free space falls below `4 GiB`. Docker build caches remain reusable. `--storage-path` must name a path on the volume holding Docker's data (the home volume by default). `--platform linux/amd64` or `--platform linux/arm64` selects the guest architecture; cross-architecture execution requires Docker emulation support. Free space inside Docker's virtual disk must also accommodate the build.
@@ -144,8 +187,12 @@ The Docker context uses an allowlist and excludes the private Doom checkout. Int
 
 `tests/nix/evaluate.sh` evaluates every named host with the fixture package selection and checks preference override behavior. `tests/nix/hosts.sh` activates the named hosts matching the guest's platform and distribution and verifies module overrides and rollback with an invalid registry. `bin/test --full` also builds each matching host with its complete package selection and public Doom configuration. Foreign-platform Doom builds require a matching builder; Linux container checks do not replace macOS VM validation.
 
-The Nix workflow runs Linux jobs on native architecture runners and builds the macOS system configuration in a hosted Apple Silicon VM. Public CI does not fetch the private Doom repository. `tests/nix/full.sh` builds and activates the complete headless package selection with a public Doom configuration and starts a named Emacs daemon. Dedicated hosted VM jobs exercise macOS settings, Nix-managed Homebrew and Ghostty installation, and Linux desktop GPU provisioning. Private-Doom startup, desktop rendering, keyboard handling, and clipboard interaction require their matching isolated integration checks before a workstation rollout.
+The Nix workflow runs Linux jobs on native architecture runners and builds the macOS system configuration in a hosted Apple Silicon VM. Public CI does not fetch the private Doom repository. `tests/nix/full.sh` builds and activates the complete headless package selection with a public Doom configuration and starts a named Emacs daemon. Ubuntu VM tests use checksum-pinned cloud images from `tests/nix/vm-images.json`, generated guest-only SSH keys, and QEMU inside an unprivileged Docker runner. They exercise host installation, conflicts, repeated application, Docker networking and persistent volumes, reboot, configuration updates, failed system and user activations, and paired rollback with a broken source registry. `tests/nix/vm.py` uses software emulation by default and uses `/dev/kvm` when the Linux host exposes it for a matching guest architecture. It requires no macOS hypervisor installation. Software emulation makes package builds and OS installation slower than hardware virtualization. The runner requires `40 GiB` free for the pinned Ubuntu `26.04` fixtures and removes its VM, container, and image afterward.
+
+The macOS CI job checks settings, Homebrew, and Ghostty in a hosted VM. For clean-OS lifecycle checks, copy the public checkout without `.config/doom` into a disposable Apple Silicon macOS VM. Do not attach host directories, credentials, or an SSH agent. Inside that guest, run `DOTFILES_TEST_GUEST=1 bash tests/nix/macos-system.sh install`, reboot, run the `boot` and `update` stages, reboot again, and run `rollback-boot`. The fixture checks bootstrap, conflicts, repeat application, user and system preferences, failed activations, and paired rollback with a broken registry. It requires an administrator account with `sudo` access and uses Homebrew's Ghostty package.
+
+[Tart documents Apple's nested virtualization support for Linux guests only](https://tart.run/faq/); the Colima `vz` backend cannot be validated inside its macOS guests. The macOS fixture excludes Colima. Keep that runtime check outstanding rather than substituting a passing Linux result or macOS evaluation. Private-Doom startup, desktop rendering, keyboard handling, and clipboard interaction also require their matching isolated integration checks before a workstation rollout.
 
 In a disposable VM with the private Doom sources available, `DOTFILES_TEST_GUEST=1 bash tests/nix/private-doom.sh` verifies the full home activation, Bazel mode, Copilot's executable, and independent named Emacs daemons. This check requires the private configuration; public Docker images exclude it.
 
-The supported installation paths are `bin/bootstrap` and `bin/dotfiles`. The repository contains no parallel application installers or preference scripts.
+The installation entry point is `bin/install`; `bin/bootstrap` and `bin/dotfiles` expose its bootstrap and configuration steps separately. The repository contains no parallel application installers or preference scripts.

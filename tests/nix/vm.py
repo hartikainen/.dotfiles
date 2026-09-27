@@ -20,8 +20,9 @@ def run(args, **kwargs):
 
 
 class VM:
-    def __init__(self, arch, directory):
+    def __init__(self, arch, directory, private_doom=False):
         self.arch = arch
+        self.private_doom = private_doom
         self.directory = Path(directory)
         self.key = self.directory / "identity"
         self.process = None
@@ -158,8 +159,13 @@ class VM:
         self.copy_source()
 
     def copy_source(self):
-        archive = self.directory / "source.tar"
-        run(["tar", "-cf", archive, "-C", ROOT, "."])
+        archive = (
+            Path("/tmp/private-source.tar")
+            if self.private_doom
+            else self.directory / "source.tar"
+        )
+        if not self.private_doom:
+            run(["tar", "-cf", archive, "-C", ROOT, "."])
         self.remote("mkdir -p /home/tester/dotfiles")
         with archive.open("rb") as stream:
             self.remote("tar -xf - -C /home/tester/dotfiles", stdin=stream)
@@ -181,7 +187,7 @@ class VM:
     def explore(self):
         print(
             "\nUbuntu is ready. Nix and the workstation configuration are not installed.\n"
-            "The public repository source is copied to ~/dotfiles; it is not activated.\n"
+            "Repository source is copied to ~/dotfiles; it is not activated.\n"
             "Inside the guest, start with:\n\n"
             "  cd ~/dotfiles\n",
             flush=True,
@@ -191,10 +197,17 @@ class VM:
                 "  sed -i 's/x86_64-linux/aarch64-linux/' nix/hosts/personal-desktop.nix\n",
                 flush=True,
             )
+        if self.private_doom:
+            print(
+                "  bash bin/install --host personal-desktop\n\nThe guest contains your pinned private Doom configuration, without Git credentials.\n",
+                flush=True,
+            )
+        else:
+            print(
+                "  DOTFILES_TEST_GUEST=1 bash bin/install --host personal-desktop --public-doom\n\nThis uses a minimal public Doom configuration and the full user package selection.\nUse --fixture instead of --public-doom for a reduced package selection.\n",
+                flush=True,
+            )
         print(
-            "  DOTFILES_TEST_GUEST=1 bash bin/install --host personal-desktop --public-doom\n\n"
-            "This provisions the system and full user package selection with public Doom.\n"
-            "Use --fixture instead of --public-doom for a reduced package selection.\n"
             "If user files conflict, inspect them before repeating with --adopt.\n"
             "Exit the shell to reconnect or delete the VM. Reboots preserve this session's disk.\n"
             "Quitting the runner deletes the VM and all changes. No graphical console is attached.\n",
@@ -230,13 +243,16 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--upgrade-from-previous", action="store_true")
     mode.add_argument("--interactive", action="store_true")
+    parser.add_argument("--private-doom", action="store_true")
     args = parser.parse_args()
+    if args.private_doom and not args.interactive:
+        parser.error("--private-doom requires --interactive")
     if args.interactive and not sys.stdin.isatty():
         parser.error("--interactive requires a terminal")
     directory = Path("/tmp/dotfiles-vm")
     if directory.exists():
         raise RuntimeError("Use a fresh runner for each VM test")
-    vm = VM(args.arch, directory)
+    vm = VM(args.arch, directory, private_doom=args.private_doom)
     try:
         vm.start()
         if args.interactive:

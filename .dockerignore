@@ -1,12 +1,5 @@
+# Generated from `nix/dotfiles.json` and `nix/sources.py`.
 **
-!bin/dotfiles
-!bin/bootstrap
-!bin/install
-!bin/test
-!bin/test-vm
-!.github/scripts/check-agent-references.sh
-!nix/**
-!tests/nix/**
 !.agents/skills/creating-technical-screens/SKILL.md
 !.agents/skills/maintaining-pr-stacks/SKILL.md
 !.agents/skills/maintaining-pr-stacks/scripts/resolve-review-thread.py
@@ -17,8 +10,8 @@
 !.agents/skills/reviewing-pull-requests/references/pending-reviews.md
 !.agents/skills/writing-as-hartikainen/SKILL.md
 !.agents/skills/writing-as-hartikainen/references/academic.md
-!.agents/skills/writing-as-hartikainen/references/code-comments.md
 !.agents/skills/writing-as-hartikainen/references/change-descriptions.md
+!.agents/skills/writing-as-hartikainen/references/code-comments.md
 !.agents/skills/writing-as-hartikainen/references/code-review.md
 !.agents/skills/writing-as-hartikainen/references/commits.md
 !.agents/skills/writing-as-hartikainen/references/github.md
@@ -74,9 +67,22 @@
 !.cursor/hooks/block-review-mcp.py
 !.cursor/hooks/block-review-submission.py
 !.cursor/rules/writing.mdc
+!.dockerignore
+!.github/scripts/check-agent-references.sh
 !.profile
 !.zshenv
-!flake.nix
+!bin/bootstrap
+!bin/dotfiles
+!bin/export
+!bin/install
+!bin/test
+!bin/test-vm
 !flake.lock
+!flake.nix
+!nix/**
+!tests/nix/**
+.config/doom
+.config/doom/**
+nix/doom-source.json
 **/__pycache__
 **/*.pyc

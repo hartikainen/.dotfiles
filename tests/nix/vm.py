@@ -7,6 +7,7 @@ import platform
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import time
 import urllib.request
 
@@ -177,6 +178,41 @@ class VM:
         if before == after:
             raise RuntimeError("VM did not reboot")
 
+    def explore(self):
+        print(
+            "\nUbuntu is ready. Nix and the workstation configuration are not installed.\n"
+            "The public repository source is copied to ~/dotfiles; it is not activated.\n"
+            "Inside the guest, start with:\n\n"
+            "  cd ~/dotfiles\n",
+            flush=True,
+        )
+        if self.arch == "aarch64-linux":
+            print(
+                "  sed -i 's/x86_64-linux/aarch64-linux/' nix/hosts/personal-desktop.nix\n",
+                flush=True,
+            )
+        print(
+            "  DOTFILES_TEST_GUEST=1 bash bin/install --host personal-desktop --public-doom\n\n"
+            "This provisions the system and full user package selection with public Doom.\n"
+            "Use --fixture instead of --public-doom for a reduced package selection.\n"
+            "If user files conflict, inspect them before repeating with --adopt.\n"
+            "Exit the shell to reconnect or delete the VM. Reboots preserve this session's disk.\n"
+            "Quitting the runner deletes the VM and all changes. No graphical console is attached.\n",
+            flush=True,
+        )
+        while True:
+            self.wait()
+            subprocess.run([*self.ssh[:-1], "-t", self.ssh[-1]], check=False)
+            while True:
+                try:
+                    choice = input("[r] Reconnect (also after reboot), [q] delete VM: ")
+                except EOFError:
+                    return
+                if choice.strip().lower() == "q":
+                    return
+                if choice.strip().lower() == "r":
+                    break
+
     def close(self):
         if self.process:
             self.process.terminate()
@@ -191,14 +227,21 @@ def main():
     parser.add_argument(
         "--arch", choices=["aarch64-linux", "x86_64-linux"], required=True
     )
-    parser.add_argument("--upgrade-from-previous", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--upgrade-from-previous", action="store_true")
+    mode.add_argument("--interactive", action="store_true")
     args = parser.parse_args()
+    if args.interactive and not sys.stdin.isatty():
+        parser.error("--interactive requires a terminal")
     directory = Path("/tmp/dotfiles-vm")
     if directory.exists():
         raise RuntimeError("Use a fresh runner for each VM test")
     vm = VM(args.arch, directory)
     try:
         vm.start()
+        if args.interactive:
+            vm.explore()
+            return
         if args.upgrade_from_previous:
             vm.remote(
                 "cd dotfiles && DOTFILES_TEST_GUEST=1 bash tests/nix/bootstrap-previous.sh"

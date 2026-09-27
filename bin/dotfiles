@@ -518,7 +518,7 @@ def main():
         tempfile.TemporaryDirectory(prefix="dotfiles-source-") as temp,
     ):
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        source = Path(temp) / "source"
+        source = Path(temp).resolve() / "source"
         source.mkdir()
         if args.command != "rollback":
             snapshot(ROOT, source)

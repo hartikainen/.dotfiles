@@ -5,11 +5,6 @@
   "com.apple.commerce": {
     "AutoUpdate": true
   },
-  "com.apple.SoftwareUpdate": {
-    "AutomaticCheckEnabled": true,
-    "AutomaticDownload": 1,
-    "CriticalUpdateInstall": 1
-  },
   "com.google.Chrome": {
     "PMPrintingExpandedStateForPrint2": true,
     "DisablePrintPreview": true
@@ -114,9 +109,6 @@
   "com.apple.desktopservices": {
     "DSDontWriteNetworkStores": true,
     "DSDontWriteUSBStores": true
-  },
-  "com.apple.menuextra.battery": {
-    "ShowPercent": "YES"
   },
   "com.apple.controlcenter": {
     "NSStatusItem Visible Bluetooth": true

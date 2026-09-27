@@ -21,7 +21,7 @@ PY
 )"
 rm "$inventory"
 for host in $compatible; do
-    system_flags=()
+    system_flags=(--home-only)
     if [ "$(uname -s)" = Darwin ]; then
         system_flags=(--system)
     fi
@@ -29,7 +29,7 @@ for host in $compatible; do
         ./bin/dotfiles build --host "$host" --public-doom "${system_flags[@]}"
     fi
     if [ "$(uname -s)" = Linux ]; then
-        dbus-run-session -- ./bin/dotfiles apply --host "$host" --fixture --adopt
+        dbus-run-session -- ./bin/dotfiles apply --host "$host" --fixture --adopt --home-only
     else
         ./bin/dotfiles apply --host "$host" --fixture --adopt "${system_flags[@]}"
     fi
@@ -53,15 +53,15 @@ in (import ./default.nix.original) // {
   fixture-b = machine "b";
 }
 EOF
-DOTFILES_HOST=fixture-a ./bin/dotfiles apply --fixture --adopt
+DOTFILES_HOST=fixture-a ./bin/dotfiles apply --home-only --fixture --adopt
 test "$(cat "$HOME/.dotfiles-host-test")" = a
 test "$(cat "$HOME/.config/user-dirs.conf")" = a
-DOTFILES_HOST=nonexistent ./bin/dotfiles apply --host fixture-b --fixture
+DOTFILES_HOST=nonexistent ./bin/dotfiles apply --host fixture-b --home-only --fixture
 test "$(cat "$HOME/.dotfiles-host-test")" = b
 profile="$HOME/.local/state/nix/profiles/home-manager"
 [ -e "$profile" ] || profile="/nix/var/nix/profiles/per-user/$(id -un)/home-manager"
 before="$(readlink -f "$profile")"
-if ./bin/dotfiles apply --host nonexistent --fixture; then
+if ./bin/dotfiles apply --host nonexistent --home-only --fixture; then
     echo 'Unknown host activated.' >&2
     exit 1
 fi

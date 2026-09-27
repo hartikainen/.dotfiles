@@ -5,6 +5,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    system-manager.url = "github:numtide/system-manager/release-26.05";
+    system-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
@@ -53,6 +55,9 @@
         assert nixpkgs.lib.assertMsg (
           host.system == "aarch64-darwin" || (host.darwinModules or [ ]) == [ ]
         ) "Darwin modules require a macOS host: ${name}";
+        assert nixpkgs.lib.assertMsg (
+          host.system != "aarch64-darwin" || (host.linuxModules or [ ]) == [ ]
+        ) "Linux modules require a Linux host: ${name}";
         {
           inherit (host) system profile;
           osRelease = host.osRelease or { };
@@ -127,6 +132,46 @@
           inherit (getHost host) system profile;
           modules = hosts.${host}.homeModules or [ ];
         };
+      mkLinux =
+        {
+          system,
+          username,
+          homeDirectory,
+          profile,
+          fixture ? false,
+          modules ? [ ],
+        }:
+        inputs.system-manager.lib.makeSystemConfig {
+          specialArgs = {
+            inherit
+              inputs
+              username
+              homeDirectory
+              profile
+              fixture
+              ;
+          };
+          modules = [
+            { nixpkgs.hostPlatform = system; }
+            ./nix/modules/linux
+          ]
+          ++ modules;
+        };
+      mkHostLinux =
+        {
+          host,
+          username,
+          homeDirectory,
+          fixture ? false,
+        }:
+        assert nixpkgs.lib.assertMsg (
+          (getHost host).system != "aarch64-darwin"
+        ) "Host ${host} is not a Linux machine";
+        mkLinux {
+          inherit username homeDirectory fixture;
+          inherit (getHost host) system profile;
+          modules = hosts.${host}.linuxModules or [ ];
+        };
       mkHostDarwin =
         {
           host,
@@ -150,9 +195,19 @@
           mkDarwin
           mkHostHome
           mkHostDarwin
+          mkLinux
+          mkHostLinux
           ;
         hosts = hostInventory;
       };
+      systemConfigs = nixpkgs.lib.mapAttrs (
+        host: _:
+        mkHostLinux {
+          inherit host;
+          username = "dotfiles";
+          homeDirectory = "/home/dotfiles";
+        }
+      ) (nixpkgs.lib.filterAttrs (_: machine: machine.system != "aarch64-darwin") hostInventory);
       homeConfigurations =
         builtins.listToAttrs (
           nixpkgs.lib.concatMap (

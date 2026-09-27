@@ -8,6 +8,36 @@ import sys
 import uuid
 
 
+def finish(name, retain):
+    if retain:
+        state = subprocess.run(
+            ["docker", "inspect", "--format", "{{json .State}}", name],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if state.returncode == 0:
+            print(
+                f"\nRetained interactive VM container and image: {name}\n"
+                f"Container state: {state.stdout.strip()}\n"
+                f"Resume: docker start -ai {name}\n"
+                f"Inspect: docker cp {name}:/tmp/dotfiles-vm/failure.json ./vm-failure.json\n"
+                f"Delete when finished: docker rm -f {name} && docker image rm {name}\n"
+                "Retained disks can contain private sources and changes made inside the guest.",
+                flush=True,
+            )
+            return
+        if "No such" not in state.stderr:
+            print(
+                f"Could not inspect {name}; skipping cleanup to preserve the guest.\n"
+                f"Inspect with: docker inspect {name}",
+                file=sys.stderr,
+            )
+            return
+    subprocess.run(["docker", "rm", "-f", name], check=False)
+    subprocess.run(["docker", "image", "rm", name], check=False)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Boot and provision a disposable Ubuntu VM inside Docker."
@@ -16,8 +46,16 @@ def main():
         "--arch", choices=["aarch64-linux", "x86_64-linux"], required=True
     )
     parser.add_argument("--storage-path", type=Path, default=Path.home())
-    parser.add_argument("--upgrade-from-previous", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--upgrade-from-previous", action="store_true")
+    mode.add_argument(
+        "--interactive",
+        action="store_true",
+        help="Open a clean Ubuntu guest before bootstrap; retain it on failure",
+    )
     args = parser.parse_args()
+    if args.interactive and not sys.stdin.isatty():
+        parser.error("--interactive requires a terminal")
     launcher = runpy.run_path(str(Path(__file__).with_name("test")))
     launcher["require_space"](args.storage_path, 40)
     devices = []
@@ -27,6 +65,7 @@ def main():
     if Path("/dev/kvm").exists() and args.arch == machine + "-linux":
         devices = ["--device", "/dev/kvm"]
     name = "dotfiles-vm-" + uuid.uuid4().hex[:12]
+    completed = False
     try:
         launcher["run"](
             ["docker", "build", "-f", "tests/nix/vm.Dockerfile", "-t", name, "."],
@@ -36,6 +75,7 @@ def main():
             [
                 "docker",
                 "run",
+                *(["-it"] if args.interactive else []),
                 "--name",
                 name,
                 *devices,
@@ -45,12 +85,13 @@ def main():
                 "--arch",
                 args.arch,
                 *(["--upgrade-from-previous"] if args.upgrade_from_previous else []),
+                *(["--interactive"] if args.interactive else []),
             ],
             args.storage_path,
         )
+        completed = True
     finally:
-        subprocess.run(["docker", "rm", "-f", name], check=False)
-        subprocess.run(["docker", "image", "rm", name], check=False)
+        finish(name, retain=args.interactive and not completed)
 
 
 if __name__ == "__main__":

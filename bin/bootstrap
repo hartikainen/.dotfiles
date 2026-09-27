@@ -53,6 +53,7 @@ case "$(uname -s)" in
 esac
 
 bootstrap_temp="$(mktemp -d)"
+bootstrap_temp="$(cd "$bootstrap_temp" && pwd -P)"
 trap 'rm -rf "$bootstrap_temp"' EXIT
 if ! command -v nix >/dev/null 2>&1 && [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
     installer="$bootstrap_temp/install"

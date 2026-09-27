@@ -15,7 +15,11 @@ import time
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SYSTEM_PROFILE = Path("/nix/var/nix/profiles/system")
+SYSTEM_PROFILE = Path("/nix/var/nix/profiles") / (
+    "system-manager-profiles/system-manager"
+    if platform.system() == "Linux"
+    else "system"
+)
 
 
 def run(args, **kwargs):
@@ -45,7 +49,9 @@ def source_files(root):
             "flake.lock",
             "bin/dotfiles",
             "bin/bootstrap",
+            "bin/install",
             "bin/test",
+            "bin/test-vm",
             ".github/scripts/check-agent-references.sh",
         ]
     )
@@ -117,18 +123,22 @@ def expression(source, args, attribute):
         "homeDirectory": str(Path.home()),
         "fixture": args.fixture,
     }
-    factory = "mkHome" if attribute == "home" else "mkDarwin"
+    factory = {"home": "mkHome", "darwin": "mkDarwin", "linux": "mkLinux"}[attribute]
     if args.host:
         identity["host"] = args.host
-        factory = "mkHostHome" if attribute == "home" else "mkHostDarwin"
+        factory = {
+            "home": "mkHostHome",
+            "darwin": "mkHostDarwin",
+            "linux": "mkHostLinux",
+        }[attribute]
     else:
         identity["profile"] = args.profile
-        if attribute == "home":
+        if attribute in ("home", "linux"):
             identity["system"] = system_name()
     values = json.dumps(json.dumps(identity)).replace("${", "\\${")
     flake = json.dumps("path:" + str(source)).replace("${", "\\${")
-    result = "activationPackage" if attribute == "home" else "system"
-    return f"((builtins.getFlake {flake}).lib.{factory} (builtins.fromJSON {values})).{result}"
+    result = {"home": ".activationPackage", "darwin": ".system", "linux": ""}[attribute]
+    return f"((builtins.getFlake {flake}).lib.{factory} (builtins.fromJSON {values})){result}"
 
 
 def host_inventory(source):
@@ -201,7 +211,22 @@ def managed_files(generation):
         for name in files:
             path = Path(directory) / name
             result[str(path.relative_to(tree))] = path
+    agents = generation / "LaunchAgents"
+    if agents.is_dir():
+        for path in agents.iterdir():
+            result["Library/LaunchAgents/" + path.name] = path
     return result
+
+
+def matches_managed(target, source, name):
+    if target.is_symlink():
+        return target.resolve() == source.resolve()
+    return (
+        name.startswith("Library/LaunchAgents/")
+        and target.is_file()
+        and source.is_file()
+        and target.read_bytes() == source.read_bytes()
+    )
 
 
 def conflicts(generation, home, previous=None):
@@ -216,11 +241,7 @@ def conflicts(generation, home, previous=None):
                 raise RuntimeError(f"Managed parent is not a real directory: {parent}")
         if not target.exists() and not target.is_symlink():
             continue
-        owned = (
-            target.is_symlink()
-            and name in old
-            and target.resolve() == old[name].resolve()
-        )
+        owned = name in old and matches_managed(target, old[name], name)
         if not owned and not (
             target.is_symlink() and target.resolve() == source.resolve()
         ):
@@ -340,10 +361,14 @@ def activate(generation, args, state, previous):
         else:
             for name, source in managed_files(generation).items():
                 target = Path.home() / name
-                if target.is_symlink() and target.resolve() == source.resolve():
+                if matches_managed(target, source, name):
                     target.unlink()
         for path, backup in reversed(moved):
-            if path.is_symlink():
+            name = str(path.relative_to(Path.home()))
+            old_files = managed_files(previous) if previous else {}
+            if path.is_symlink() or (
+                name in old_files and matches_managed(path, old_files[name], name)
+            ):
                 path.unlink()
             if path.exists():
                 raise RuntimeError(
@@ -355,21 +380,14 @@ def activate(generation, args, state, previous):
     print(f"Activation backups: {transaction}")
 
 
-def setup_linux_gpu(generation):
-    for path in (
-        Path("/etc/tmpfiles.d/non-nixos-gpu.conf"),
-        Path("/etc/systemd/system/non-nixos-gpu.service"),
-    ):
-        if (path.exists() or path.is_symlink()) and not (
-            path.is_symlink() and str(path.resolve()).startswith("/nix/store/")
-        ):
-            raise RuntimeError(
-                f"GPU provisioning conflicts with an unmanaged system file: {path}"
-            )
-    run(["sudo", generation / "home-path/bin/non-nixos-gpu-setup"])
+def linux_system(generation, action, *arguments):
+    run(["sudo", generation / "bin/dotfiles-system", action, generation, *arguments])
 
 
-def switch_system(generation):
+def switch_system(generation, args):
+    if platform.system() == "Linux":
+        linux_system(generation, "apply", *(["--adopt"] if args.adopt else []))
+        return
     run(["sudo", generation / "activate"])
     executable = shutil.which("nix-env")
     if not executable:
@@ -383,25 +401,68 @@ def activate_pair(generation, system, args, state, previous):
     )
     if conflicts(generation, Path.home(), previous) and not args.adopt:
         raise RuntimeError("Unmanaged files conflict; use diff and explicit --adopt")
+    if system and platform.system() == "Linux":
+        linux_system(system, "check", *(["--adopt"] if args.adopt else []))
+    switched = False
     try:
         if system:
-            switch_system(system)
+            switch_system(system, args)
+            switched = True
         activate(generation, args, state, previous)
     except BaseException:
-        if system and old_system:
+        if system and platform.system() == "Linux" and switched:
             try:
-                switch_system(old_system)
+                linux_system(system, "recover", old_system or "none")
+            except (subprocess.CalledProcessError, RuntimeError):
+                print(
+                    "System recovery failed; inspect /var/lib/dotfiles-system/transactions",
+                    file=sys.stderr,
+                )
+        elif system and platform.system() != "Linux" and old_system:
+            try:
+                switch_system(old_system, args)
             except (subprocess.CalledProcessError, RuntimeError):
                 print(
                     f"System recovery failed; reactivate {old_system}/activate with sudo",
                     file=sys.stderr,
                 )
-        elif system:
+        elif system and platform.system() != "Linux":
             print(
                 "No preceding macOS system generation exists; inspect the failed activation before retrying.",
                 file=sys.stderr,
             )
         raise
+
+
+def deployment_history(state):
+    path = state / "system-deployments.json"
+    return read_json(path) if path.exists() else []
+
+
+def save_deployment(state, home, system, previous_home=None, previous_system=None):
+    history = deployment_history(state)
+    for h, s in ((previous_home, previous_system), (home, system)):
+        if h and s:
+            pair = {"home": str(h), "system": str(s)}
+            if not history or history[-1] != pair:
+                history.append(pair)
+    temporary = state / "system-deployments.tmp"
+    temporary.write_text(json.dumps(history, indent=2) + "\n")
+    temporary.replace(state / "system-deployments.json")
+
+
+def previous_deployment(state, home, system):
+    history = deployment_history(state)
+    pair = {"home": str(home), "system": str(system)}
+    if len(history) < 2 or history[-1] != pair:
+        raise RuntimeError(
+            "No preceding paired deployment for the active home and system; inspect their native generations"
+        )
+    target = history[-2]
+    home, system = Path(target["home"]), Path(target["system"])
+    if not home.exists() or not system.exists():
+        raise RuntimeError("The paired rollback generation has been garbage-collected")
+    return home, system
 
 
 def main():
@@ -420,10 +481,18 @@ def main():
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument("--profile", choices=["desktop", "headless"])
     selection.add_argument("--host", help="Named machine from nix/hosts/default.nix")
-    parser.add_argument(
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument(
         "--system",
         action="store_true",
-        help="Also apply macOS settings or Linux desktop GPU integration",
+        default=None,
+        help="Provision system and user configuration (the default for --host)",
+    )
+    scope.add_argument(
+        "--home-only",
+        dest="system",
+        action="store_false",
+        help="Manage only the user configuration",
     )
     parser.add_argument(
         "--adopt",
@@ -445,6 +514,8 @@ def main():
             parser.error(
                 "Choose --host NAME or --profile PROFILE (or set DOTFILES_HOST)"
             )
+    if args.system is None:
+        args.system = bool(args.host)
     for variable, relative in (
         ("XDG_CONFIG_HOME", ".config"),
         ("XDG_DATA_HOME", ".local/share"),
@@ -464,9 +535,15 @@ def main():
         raise RuntimeError(
             "The public Doom test requires a checkout without the private submodule"
         )
-    darwin_system = args.system and platform.system() == "Darwin"
+    system_attribute = "darwin" if platform.system() == "Darwin" else "linux"
     if not shutil.which("nix"):
         raise RuntimeError("Nix is missing; run bin/bootstrap, then open a login shell")
+    if args.system and platform.system() == "Linux":
+        version = nix("--version", stdout=subprocess.PIPE, text=True).stdout.split()[-1]
+        if tuple(int(part) for part in version.split(".")[:2]) < (2, 32):
+            raise RuntimeError(
+                "Linux system provisioning requires Nix >= 2.32; run bin/bootstrap --upgrade-nix"
+            )
     if args.command == "hosts":
         with tempfile.TemporaryDirectory(prefix="dotfiles-hosts-") as temp:
             source = Path(temp).resolve()
@@ -523,16 +600,13 @@ def main():
         if args.command != "rollback":
             snapshot(ROOT, source)
             resolve_host(args, source)
-            if (
-                args.system
-                and platform.system() == "Linux"
-                and args.profile != "desktop"
-            ):
-                raise RuntimeError(
-                    "Linux --system requires the desktop profile; prerequisites use bootstrap"
-                )
         current = home_profile()
         previous = current.resolve() if current.exists() else None
+        previous_system = (
+            SYSTEM_PROFILE.resolve()
+            if args.system and SYSTEM_PROFILE.exists()
+            else None
+        )
         if args.command == "update":
             lockfile = ROOT / "flake.lock"
             original_lock = (
@@ -542,8 +616,8 @@ def main():
             )
             nix("flake", "update", *args.input, "--flake", str(source))
             build(source, args)
-            if darwin_system:
-                build(source, args, "darwin")
+            if args.system:
+                build(source, args, system_attribute)
             nix("flake", "check", "--no-write-lock-file", str(source))
             observed_lock = lockfile.read_bytes() if lockfile.exists() else None
             if observed_lock != original_lock:
@@ -563,11 +637,15 @@ def main():
             )
             return
         if args.command == "rollback":
-            generation = preceding_generation(current)
-            system = preceding_generation(SYSTEM_PROFILE) if darwin_system else None
+            if args.system:
+                generation, system = previous_deployment(
+                    state, previous, previous_system
+                )
+            else:
+                generation, system = preceding_generation(current), None
         else:
             generation = build(source, args)
-            system = build(source, args, "darwin") if darwin_system else None
+            system = build(source, args, system_attribute) if args.system else None
             if args.command == "build":
                 print(generation)
                 if system:
@@ -576,19 +654,15 @@ def main():
             show_diff(generation, Path.home(), previous)
             if args.command == "diff":
                 if system:
-                    print(f"macOS system closure: {system}")
+                    print(f"System closure: {system}")
+                    if platform.system() == "Linux":
+                        linux_system(
+                            system, "check", *(["--adopt"] if args.adopt else [])
+                        )
                 return
-        if (
-            args.system
-            and platform.system() == "Linux"
-            and not (generation / "home-path/bin/non-nixos-gpu-setup").is_file()
-        ):
-            raise RuntimeError(
-                "The selected generation has no Linux desktop GPU integration; omit --system"
-            )
         activate_pair(generation, system, args, state, previous)
-        if args.system and platform.system() == "Linux":
-            setup_linux_gpu(generation)
+        if system:
+            save_deployment(state, generation, system, previous, previous_system)
 
 
 if __name__ == "__main__":

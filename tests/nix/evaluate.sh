@@ -26,10 +26,19 @@ nix eval --json --impure --expr '
     in {
       inherit host;
       home = (flake.lib.mkHostHome identity).activationPackage.drvPath;
+      linux = if machine.system != "aarch64-darwin" then (flake.lib.mkHostLinux identity).drvPath else null;
       darwin = if machine.system == "aarch64-darwin" then (flake.lib.mkHostDarwin identity).system.drvPath else null;
     }
   ) (builtins.attrNames flake.lib.hosts)
 '
 nix eval --json --impure --expr '
   import ./tests/nix/host-options.nix (builtins.getFlake ("path:" + toString ./.))
+'
+
+nix eval --json --impure --expr '
+  let flake = builtins.getFlake ("path:" + toString ./.);
+  in map (system: (flake.lib.mkLinux {
+    inherit system; username = "dotfiles"; homeDirectory = "/home/dotfiles";
+    profile = "desktop"; fixture = true;
+  }).drvPath) [ "x86_64-linux" "aarch64-linux" ]
 '

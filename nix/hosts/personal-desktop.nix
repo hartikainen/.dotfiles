@@ -6,4 +6,5 @@
     VERSION_ID = "26.04";
   };
   homeModules = [ ];
+  linuxModules = [ ];
 }

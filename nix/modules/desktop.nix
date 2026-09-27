@@ -11,7 +11,15 @@ let
   defaults = lib.mapAttrs (_: lib.mapAttrs (_: lib.mkDefault));
 in
 {
+  imports = [ ./macos-shortcuts.nix ];
   fonts.fontconfig.enable = lib.mkDefault (desktop && pkgs.stdenv.isLinux);
+  targets.darwin.defaults = lib.mkIf (desktop && pkgs.stdenv.isDarwin) (
+    defaults (
+      builtins.removeAttrs (builtins.fromJSON (
+        builtins.replaceStrings [ "@HOME@" ] [ homeDirectory ] (builtins.readFile ../macos-defaults.json)
+      )) [ "com.apple.symbolichotkeys" ]
+    )
+  );
   targets.darwin.currentHostDefaults = lib.mkIf (desktop && pkgs.stdenv.isDarwin) (defaults {
     "com.apple.ImageCapture".disableHotPlug = true;
     "com.apple.controlcenter" = {

@@ -1,7 +1,9 @@
 **
 !bin/dotfiles
 !bin/bootstrap
+!bin/install
 !bin/test
+!bin/test-vm
 !.github/scripts/check-agent-references.sh
 !nix/**
 !tests/nix/**

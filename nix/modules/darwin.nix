@@ -32,6 +32,13 @@ in
   environment.etc."zshrc".knownSha256Hashes = [
     "cf0f7b7775b4c058d6085d9e7e57d58c307ca43730f8e4d921a9ef4e530e7e16"
   ];
+  system.defaults.CustomSystemPreferences."/Library/Preferences/com.apple.SoftwareUpdate" =
+    lib.mkIf desktop
+      {
+        AutomaticCheckEnabled = lib.mkDefault true;
+        AutomaticDownload = lib.mkDefault 1;
+        CriticalUpdateInstall = lib.mkDefault 1;
+      };
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
@@ -53,11 +60,4 @@ in
       cleanup = "none";
     };
   };
-  system.defaults.CustomUserPreferences = lib.mkIf desktop (
-    lib.mapAttrs (_: lib.mapAttrs (_: lib.mkDefault)) (
-      builtins.fromJSON (
-        builtins.replaceStrings [ "@HOME@" ] [ homeDirectory ] (builtins.readFile ../macos-defaults.json)
-      )
-    )
-  );
 }

@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+import argparse
+from pathlib import Path
+import platform
+import runpy
+import subprocess
+import sys
+import uuid
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Boot and provision a disposable Ubuntu VM inside Docker."
+    )
+    parser.add_argument(
+        "--arch", choices=["aarch64-linux", "x86_64-linux"], required=True
+    )
+    parser.add_argument("--storage-path", type=Path, default=Path.home())
+    parser.add_argument("--upgrade-from-previous", action="store_true")
+    args = parser.parse_args()
+    launcher = runpy.run_path(str(Path(__file__).with_name("test")))
+    launcher["require_space"](args.storage_path, 40)
+    devices = []
+    machine = {"arm64": "aarch64", "AMD64": "x86_64"}.get(
+        platform.machine(), platform.machine()
+    )
+    if Path("/dev/kvm").exists() and args.arch == machine + "-linux":
+        devices = ["--device", "/dev/kvm"]
+    name = "dotfiles-vm-" + uuid.uuid4().hex[:12]
+    try:
+        launcher["run"](
+            ["docker", "build", "-f", "tests/nix/vm.Dockerfile", "-t", name, "."],
+            args.storage_path,
+        )
+        launcher["run"](
+            [
+                "docker",
+                "run",
+                "--name",
+                name,
+                *devices,
+                "--memory=6g",
+                "--cpus=4",
+                name,
+                "--arch",
+                args.arch,
+                *(["--upgrade-from-previous"] if args.upgrade_from_previous else []),
+            ],
+            args.storage_path,
+        )
+    finally:
+        subprocess.run(["docker", "rm", "-f", name], check=False)
+        subprocess.run(["docker", "image", "rm", name], check=False)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (
+        RuntimeError,
+        OSError,
+        subprocess.CalledProcessError,
+        KeyboardInterrupt,
+    ) as error:
+        print(f"test-vm: {error}", file=sys.stderr)
+        sys.exit(1)

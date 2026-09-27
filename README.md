@@ -11,11 +11,10 @@ git clone https://github.com/hartikainen/.dotfiles.git workstation
 cd workstation
 git checkout <reviewed-commit>
 git submodule update --init --recursive
-git -C .config/doom checkout --detach "$(cat nix/doom-revision)"
 bash bin/install --host personal-macbook
 ```
 
-Start with an installed OS, an administrator account, and network access. OS installation, disk encryption, initial account creation, and credential enrollment or restoration are prerequisites. The Doom submodule requires access to the private repository. Bootstrap installs OS prerequisites, including Apple's command-line tools when offered by `softwareupdate`, and verifies the pinned Nix installer. If Git is unavailable, download and extract the reviewed repository archive first, run `bash bin/bootstrap`, then fetch the private Doom checkout. `nix-homebrew` installs Homebrew during macOS system activation. Log out and back in after installation to load shell variables and Linux group membership.
+Start with an installed OS, an administrator account, and network access. OS installation, disk encryption, initial account creation, and credential enrollment or restoration are prerequisites. The Doom submodule requires access to the private repository. Bootstrap installs OS prerequisites, including Apple's command-line tools when offered by `softwareupdate`, and verifies the pinned Nix installer. If Git is unavailable, download and extract the reviewed repository archive first, run `bash bin/bootstrap`, then clone the reviewed commit and initialize its submodule. Alternatively, transfer an archive prepared with `bin/export --private-doom` from a trusted checkout. `nix-homebrew` installs Homebrew during macOS system activation. Log out and back in after installation to load shell variables and Linux group membership.
 
 ```sh
 ./bin/dotfiles build --profile desktop
@@ -34,7 +33,7 @@ On macOS, `nix-darwin` backs up recognized OS and Nix installer files before rep
 ## Ownership
 
 - `nix/packages.nix` declares portable packages and native macOS exceptions. `nix-darwin` generates its Homebrew specification from this declaration. Emacs and its Doom packages come from Nix on every platform.
-- `nix/dotfiles.json` lists portable configuration files. Add a path to this manifest when adding managed configuration. The controller copies only declared configuration and implementation files into the Nix source snapshot.
+- `nix/dotfiles.json` lists portable configuration files. Add a path to this manifest when adding managed configuration. `nix/sources.py` selects implementation files and generates `.dockerignore`; regenerate it with `python3 nix/sources.py > .dockerignore`. The source tests check that the generated allowlist matches the declarations. The controller copies only selected configuration and implementation files into the Nix source snapshot.
 - `nix/modules/` contains platform and profile behavior. Native application configuration remains in `.config/` and the shell startup files.
 - `nix/macos-defaults.json` contains macOS preferences. Unsupported or replaced preference mechanisms are recorded in `nix/preferences-exceptions.json`.
 
@@ -116,11 +115,13 @@ Rollback restores managed configuration and Nix package selection. It does not r
 
 ## Emacs
 
-The private Doom submodule remains separate. `nix/doom-revision` records its expected revision. Update that revision after committing intentional changes in the private repository. `nix/doom-files.json` names the files copied from it into the activation snapshot.
+The private Doom submodule remains separate. Its Git submodule reference is the authoritative revision. Commit intentional changes in the private repository, stage `.config/doom` in the parent repository, and build and test before committing that reference. Deployment requires a clean private checkout matching the staged reference. All tracked Doom files, including snippets, enter the source snapshot; ignored runtime files and Git metadata do not. Keep secrets outside the private configuration as well as the public repository.
+
+`python3 bin/export /path/to/workstation.tar --private-doom` creates an archive for a disposable guest or a machine without Git authentication. It checks the private checkout against the submodule reference and includes a generated `nix/doom-source.json` receipt containing the revision and file hashes. The installer checks exported files against that receipt. The receipt detects changed or incomplete exports; it is not a signature, so transfer the archive through a trusted channel. A plain private file copy without Git metadata or an export receipt is rejected. Omit `--private-doom` to export public sources only. Archives contain configuration, not SSH keys or Git credential storage, and are created with owner-only permissions.
 
 [`nix-doom-emacs-unstraightened`](https://github.com/marienz/nix-doom-emacs-unstraightened) builds Doom and its dependencies in the Nix store. `flake.lock` pins the framework, modules, package recipes, and package overlay. `nix/doom-pins.json` pins custom recipes without editing the private submodule. Edit the configuration or pins, then build and apply; there is no separate `doom sync` installation step. A package build failure happens before activation. Rollback restores the editor package and its configuration together.
 
-The Nix build adapts the private configuration's `bazel-mode` package name to upstream's `bazel` library and its format-on-save exclusion to Doom's `+format-on-save-disabled-modes` setting. These compatibility changes apply to the store copy; the private checkout stays untouched.
+The Nix build adapts the private configuration's `bazel-mode` package name to upstream's `bazel` library and its format-on-save exclusion to Doom's `+format-on-save-disabled-modes` setting. These compatibility changes apply to the store copy; the private checkout stays untouched. The Doom module owns `~/.config/doom` and links files from the same effective configuration used to build the editor, including recipe pins and compatibility changes. Edit the source checkout and rebuild rather than editing these managed files.
 
 Nix supplies the Emacs executable on macOS as well as Linux. The macOS build does not include Homebrew's `emacs-plus` patches. The invocation aliases and tmux restoration rules retain the per-project client/server workflow; the configuration does not start a shared daemon.
 
@@ -180,17 +181,22 @@ python3 bin/test-vm --arch aarch64-linux
 # Open a clean Ubuntu guest and perform installation manually.
 python3 bin/test-vm --arch x86_64-linux --interactive
 
+# Transfer the pinned private Doom configuration at runtime.
+python3 bin/test-vm --arch x86_64-linux --interactive --private-doom
+
 # Verify automatic upgrade from the installer in `tests/nix/bootstrap-previous.json`.
 python3 bin/test-vm --arch aarch64-linux --upgrade-from-previous
 ```
 
 `bin/test` runs checks sequentially, limits guest memory and CPU use, and removes its container and image afterward. For the pinned `nixpkgs` inputs, it requires `15 GiB` free for fixture checks or `30 GiB` for `--full`, and stops if free space falls below `4 GiB`. Docker build caches remain reusable. `--storage-path` must name a path on the volume holding Docker's data (the home volume by default). `--platform linux/amd64` or `--platform linux/arm64` selects the guest architecture; cross-architecture execution requires Docker emulation support. Free space inside Docker's virtual disk must also accommodate the build.
 
-The Docker context uses an allowlist and excludes the private Doom checkout. Integration tests run under an unprivileged guest user. They cover conflicts, adoption, repeated activation, local settings, shell startup, tmux configuration and session saving, failed builds, and generation rollback. The internal `--fixture` mode uses a smaller package selection. `--public-doom` uses the public configuration with the complete package selection. Both modes require `DOTFILES_TEST_GUEST=1`.
+The Docker context uses a generated allowlist and excludes the private Doom checkout and export receipt. Integration tests run under an unprivileged guest user. They cover conflicts, adoption, repeated activation, local settings, shell startup, tmux configuration and session saving, failed builds, and generation rollback. The internal `--fixture` mode uses a smaller package selection. `--public-doom` uses a minimal smoke-test Doom configuration with the complete package selection; it does not reproduce private themes, keybindings, or modules. Both modes require `DOTFILES_TEST_GUEST=1`.
 
 `tests/nix/Dockerfile` preinstalls Nix and test dependencies. Its `/work` directory contains repository source; copying that source does not activate the dotfiles. Use `bin/test-vm --interactive` to begin before bootstrap in an Ubuntu `26.04` VM with an administrator account and network access. The runner copies public source to `~/dotfiles` and opens SSH without installing Nix or applying configuration. The shell prints the installation command and, for an `aarch64-linux` guest, the host configuration edit needed to match its architecture. `bin/install --host personal-desktop --public-doom` with `DOTFILES_TEST_GUEST=1` provisions the full system and user package selection using public Doom. Use `--fixture` instead for a smaller trial. Public-Doom mode avoids credential enrollment; the private setup requires the prerequisites above.
 
 The interactive VM has a terminal console. It supports system services, Docker's daemon, and reboots, but does not expose a graphical desktop. After leaving the guest shell, choose `r` to reconnect or `q` to delete the VM. A guest reboot disconnects SSH; choose `r` to wait for it and reconnect. The disk survives reconnections and reboots within the runner session. Exiting the runner deletes the VM and its changes. The runner shares no host directories, credentials, or Docker socket with the guest.
+
+Pass `--private-doom` with `--interactive` to transfer your pinned Doom sources into the guest. The launcher prepares a checked export and copies it into the container after image creation; private files never enter Docker build layers or build caches. The archive is deleted after transfer, and the guest and container are removed when the runner exits. Inside the guest, run `bash bin/install --host personal-desktop` without either test configuration flag. The ARM guest prints its host architecture edit. Use `--adopt` only after reviewing conflicts. This mode requires no guest GitHub credentials.
 
 `tests/nix/evaluate.sh` evaluates every named host with the fixture package selection and checks preference override behavior. `tests/nix/hosts.sh` activates the named hosts matching the guest's platform and distribution and verifies module overrides and rollback with an invalid registry. `bin/test --full` also builds each matching host with its complete package selection and public Doom configuration. Foreign-platform Doom builds require a matching builder; Linux container checks do not replace macOS VM validation.
 

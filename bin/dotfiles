@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import platform
 import pwd
+import runpy
 import shutil
 import subprocess
 import sys
@@ -15,6 +16,9 @@ import time
 
 
 ROOT = Path(__file__).resolve().parent.parent
+sources = runpy.run_path(str(ROOT / "nix/sources.py"))
+source_files = sources["source_files"]
+snapshot = sources["snapshot"]
 SYSTEM_PROFILE = Path("/nix/var/nix/profiles") / (
     "system-manager-profiles/system-manager"
     if platform.system() == "Linux"
@@ -39,52 +43,6 @@ def system_name():
     if system not in ("aarch64-darwin", "aarch64-linux", "x86_64-linux"):
         raise RuntimeError(f"Unsupported platform: {system}")
     return system
-
-
-def source_files(root):
-    files = set(read_json(root / "nix/dotfiles.json"))
-    files.update(
-        [
-            "flake.nix",
-            "flake.lock",
-            "bin/dotfiles",
-            "bin/bootstrap",
-            "bin/install",
-            "bin/test",
-            "bin/test-vm",
-            ".github/scripts/check-agent-references.sh",
-        ]
-    )
-    for directory in ("nix", "tests/nix"):
-        files.update(
-            str(p.relative_to(root))
-            for p in (root / directory).rglob("*")
-            if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
-        )
-    doom = root / ".config/doom"
-    if (doom / "config.el").exists():
-        files.update(
-            ".config/doom/" + p for p in read_json(root / "nix/doom-files.json")
-        )
-    return sorted(files)
-
-
-def snapshot(root, destination):
-    files = source_files(root)
-    for name in files:
-        source = root / name
-        if not source.exists() and name == "flake.lock":
-            continue
-        if not source.resolve().is_relative_to(root.resolve()):
-            raise RuntimeError(f"Source must be a regular repository file: {name}")
-        if (
-            source.is_symlink()
-            and str(source.resolve().relative_to(root.resolve())) not in files
-        ):
-            raise RuntimeError(f"Symlink target is outside the source manifest: {name}")
-        target = destination / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
 
 
 def nix(*args, **kwargs):
@@ -531,10 +489,6 @@ def main():
         "DOTFILES_TEST_GUEST"
     ) != "1":
         raise RuntimeError("Test configurations are restricted to disposable guests")
-    if args.public_doom and (ROOT / ".config/doom/init.el").exists():
-        raise RuntimeError(
-            "The public Doom test requires a checkout without the private submodule"
-        )
     system_attribute = "darwin" if platform.system() == "Darwin" else "linux"
     if not shutil.which("nix"):
         raise RuntimeError("Nix is missing; run bin/bootstrap, then open a login shell")
@@ -547,7 +501,7 @@ def main():
     if args.command == "hosts":
         with tempfile.TemporaryDirectory(prefix="dotfiles-hosts-") as temp:
             source = Path(temp).resolve()
-            snapshot(ROOT, source)
+            snapshot(ROOT, source, private=False)
             for name, host in sorted(host_inventory(source).items()):
                 release = host.get("osRelease", {})
                 distribution = " ".join(
@@ -570,21 +524,13 @@ def main():
         raise RuntimeError(
             "Initialize the private Doom submodule before building a complete installation"
         )
-    if (
-        not (args.fixture or args.public_doom)
-        and args.command in ("apply", "build", "diff", "update")
-        and (ROOT / ".config/doom/.git").exists()
+    if not (args.fixture or args.public_doom) and args.command in (
+        "apply",
+        "build",
+        "diff",
+        "update",
     ):
-        expected = (ROOT / "nix/doom-revision").read_text().strip()
-        actual = run(
-            ["git", "-C", ROOT / ".config/doom", "rev-parse", "HEAD"],
-            stdout=subprocess.PIPE,
-            text=True,
-        ).stdout.strip()
-        if actual != expected:
-            raise RuntimeError(
-                "Doom differs from nix/doom-revision; review the private checkout before updating its recorded revision"
-            )
+        sources["doom_receipt"](ROOT)
     state = (
         Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
         / "dotfiles"
@@ -598,7 +544,7 @@ def main():
         source = Path(temp).resolve() / "source"
         source.mkdir()
         if args.command != "rollback":
-            snapshot(ROOT, source)
+            snapshot(ROOT, source, private=not (args.fixture or args.public_doom))
             resolve_host(args, source)
         current = home_profile()
         previous = current.resolve() if current.exists() else None

@@ -20,6 +20,14 @@ emacs --daemon=dotfiles-private-b
 test "$(emacsclient --socket-name=dotfiles-private-a --eval "
   (progn
     (cl-assert (featurep 'doom))
+    (cl-assert (eq doom-theme 'doom-gruvbox))
+    (cl-assert (equal
+      (with-temp-buffer
+        (insert-file-contents (expand-file-name \"config.el\" doom-user-dir))
+        (buffer-string))
+      (with-temp-buffer
+        (insert-file-contents (expand-file-name \"~/.config/doom/config.el\"))
+        (buffer-string))))
     (require 'bazel-mode)
     (cl-assert (memq 'bazel-mode +format-on-save-disabled-modes))
     (cl-assert bazel-buildifier-before-save)

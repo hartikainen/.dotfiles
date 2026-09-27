@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+import argparse
+from pathlib import Path
+import runpy
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Export declared workstation sources without credentials"
+    )
+    parser.add_argument("output", type=Path)
+    parser.add_argument("--private-doom", action="store_true")
+    args = parser.parse_args()
+    if args.output.exists():
+        parser.error("Output already exists")
+    sources = runpy.run_path(str(ROOT / "nix/sources.py"))
+    if args.private_doom:
+        sources["doom_receipt"](ROOT)
+    with tempfile.TemporaryDirectory(prefix="dotfiles-export-") as temp:
+        source = Path(temp).resolve()
+        sources["snapshot"](ROOT, source, private=args.private_doom)
+        sources["archive"](source, args.output)
+
+
+if __name__ == "__main__":
+    main()

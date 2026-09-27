@@ -22,13 +22,6 @@ let
       builtins.filter (lib.hasPrefix ".agents/skills/") portableFiles
     )
   );
-  doomFiles =
-    if builtins.pathExists ../../.config/doom/config.el then
-      map (name: root + "/.config/doom/${name}") (
-        builtins.fromJSON (builtins.readFile ../doom-files.json)
-      )
-    else
-      [ ];
   sourceFile = path: { source = lib.mkDefault (root + "/${path}"); };
   plugin = name: source: {
     name = ".local/share/tmux/plugins/${name}";
@@ -71,12 +64,6 @@ in
           name = path;
           value = sourceFile path;
         }) selectedFiles
-      )
-      // builtins.listToAttrs (
-        map (path: {
-          name = ".config/doom/" + lib.removePrefix (toString ../../.config/doom + "/") (toString path);
-          value.source = path;
-        }) doomFiles
       )
       // builtins.listToAttrs (
         map (name: {

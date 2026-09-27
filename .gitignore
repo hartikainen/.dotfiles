@@ -17,6 +17,7 @@ bats
 enabled/*
 /enabled
 tmp/
+nix/doom-source.json
 
 # `~/.config/<tool>/` is a real directory you own, and only files tracked here
 # are symlinked into it, so runtime and local files belong under `$HOME` rather

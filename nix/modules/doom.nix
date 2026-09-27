@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   fixture,
@@ -30,6 +31,10 @@ let
       ../../tests/nix/doom;
 in
 {
+  home.file.".config/doom" = lib.mkIf (!fixture) {
+    source = config.programs.doom-emacs.doomDir;
+    recursive = true;
+  };
   programs.doom-emacs = {
     enable = !fixture;
     inherit doomDir;

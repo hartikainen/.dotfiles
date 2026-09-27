@@ -469,7 +469,7 @@ def main():
         raise RuntimeError("Nix is missing; run bin/bootstrap, then open a login shell")
     if args.command == "hosts":
         with tempfile.TemporaryDirectory(prefix="dotfiles-hosts-") as temp:
-            source = Path(temp)
+            source = Path(temp).resolve()
             snapshot(ROOT, source)
             for name, host in sorted(host_inventory(source).items()):
                 release = host.get("osRelease", {})

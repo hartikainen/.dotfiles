@@ -16,8 +16,16 @@ def main():
         "--arch", choices=["aarch64-linux", "x86_64-linux"], required=True
     )
     parser.add_argument("--storage-path", type=Path, default=Path.home())
-    parser.add_argument("--upgrade-from-previous", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--upgrade-from-previous", action="store_true")
+    mode.add_argument(
+        "--interactive",
+        action="store_true",
+        help="Open a clean Ubuntu guest before bootstrap; delete it when finished",
+    )
     args = parser.parse_args()
+    if args.interactive and not sys.stdin.isatty():
+        parser.error("--interactive requires a terminal")
     launcher = runpy.run_path(str(Path(__file__).with_name("test")))
     launcher["require_space"](args.storage_path, 40)
     devices = []
@@ -36,6 +44,7 @@ def main():
             [
                 "docker",
                 "run",
+                *(["-it"] if args.interactive else []),
                 "--name",
                 name,
                 *devices,
@@ -45,6 +54,7 @@ def main():
                 "--arch",
                 args.arch,
                 *(["--upgrade-from-previous"] if args.upgrade_from_previous else []),
+                *(["--interactive"] if args.interactive else []),
             ],
             args.storage_path,
         )

@@ -17,8 +17,16 @@ case "$(uname -s)" in
             exit 1
             ;;
         esac
-        sudo apt-get update
-        sudo env DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=300 install -y ca-certificates curl xz-utils git python3
+        missing=()
+        for package in ca-certificates curl xz-utils git python3; do
+            if [ "$(dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null || true)" != installed ]; then
+                missing+=("$package")
+            fi
+        done
+        if [ "${#missing[@]}" != 0 ]; then
+            sudo apt-get update
+            sudo env DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=300 install -y "${missing[@]}"
+        fi
         ;;
     Darwin)
         if ! xcode-select -p >/dev/null 2>&1; then
@@ -44,9 +52,10 @@ case "$(uname -s)" in
         ;;
 esac
 
+bootstrap_temp="$(mktemp -d)"
+trap 'rm -rf "$bootstrap_temp"' EXIT
 if ! command -v nix >/dev/null 2>&1 && [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
-    installer="$(mktemp)"
-    trap 'rm -f "$installer"' EXIT
+    installer="$bootstrap_temp/install"
     curl --fail --location --proto '=https' --tlsv1.2 \
         https://releases.nixos.org/nix/nix-2.34.4/install -o "$installer"
     python3 - "$installer" "$root/nix/bootstrap.json" <<'PY'
@@ -82,13 +91,15 @@ if [ "$upgrade" = 1 ]; then
         echo 'Upgrade this Nix installation with its owning installer to Nix >= 2.32.' >&2
         exit 1
     fi
-    export DOTFILES_BOOTSTRAP_ROOT="$root"
+    cp "$root/flake.nix" "$root/flake.lock" "$bootstrap_temp/"
+    export DOTFILES_BOOTSTRAP_ROOT="$bootstrap_temp"
     package="$(nix --extra-experimental-features 'nix-command flakes' build --impure --no-link --print-out-paths --expr '
       let flake = builtins.getFlake ("path:" + builtins.getEnv "DOTFILES_BOOTSTRAP_ROOT");
-      in flake.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.nix
+      in flake.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.nix.out
     ')"
     sudo "$(command -v nix-env)" --profile /nix/var/nix/profiles/default --install "$package"
     if [ "$(uname -s)" = Linux ]; then
+        sudo systemctl daemon-reload
         sudo systemctl restart nix-daemon.service
     else
         sudo launchctl kickstart -k system/org.nixos.nix-daemon

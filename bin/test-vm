@@ -9,6 +9,36 @@ import tempfile
 import uuid
 
 
+def finish(name, retain):
+    if retain:
+        state = subprocess.run(
+            ["docker", "inspect", "--format", "{{json .State}}", name],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if state.returncode == 0:
+            print(
+                f"\nRetained interactive VM container and image: {name}\n"
+                f"Container state: {state.stdout.strip()}\n"
+                f"Resume: docker start -ai {name}\n"
+                f"Inspect: docker cp {name}:/tmp/dotfiles-vm/failure.json ./vm-failure.json\n"
+                f"Delete when finished: docker rm -f {name} && docker image rm {name}\n"
+                "Retained disks can contain private sources and changes made inside the guest.",
+                flush=True,
+            )
+            return
+        if "No such" not in state.stderr:
+            print(
+                f"Could not inspect {name}; skipping cleanup to preserve the guest.\n"
+                f"Inspect with: docker inspect {name}",
+                file=sys.stderr,
+            )
+            return
+    subprocess.run(["docker", "rm", "-f", name], check=False)
+    subprocess.run(["docker", "image", "rm", name], check=False)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Boot and provision a disposable Ubuntu VM inside Docker."
@@ -22,7 +52,7 @@ def main():
     mode.add_argument(
         "--interactive",
         action="store_true",
-        help="Open a clean Ubuntu guest before bootstrap; delete it when finished",
+        help="Open a clean Ubuntu guest before bootstrap; retain it on failure",
     )
     parser.add_argument(
         "--private-doom",
@@ -47,6 +77,7 @@ def main():
     sources = runpy.run_path(str(root / "nix/sources.py"))
     if args.private_doom:
         sources["doom_receipt"](root)
+    completed = False
     try:
         launcher["run"](
             ["docker", "build", "-f", "tests/nix/vm.Dockerfile", "-t", name, "."],
@@ -87,9 +118,9 @@ def main():
                 ["docker", "start", "--attach", "--interactive", name],
                 args.storage_path,
             )
+        completed = True
     finally:
-        subprocess.run(["docker", "rm", "-f", name], check=False)
-        subprocess.run(["docker", "image", "rm", name], check=False)
+        finish(name, retain=args.interactive and not completed)
 
 
 if __name__ == "__main__":

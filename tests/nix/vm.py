@@ -6,6 +6,7 @@ import os
 import platform
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -26,6 +27,8 @@ class VM:
         self.directory = Path(directory)
         self.key = self.directory / "identity"
         self.process = None
+        self.resumed = False
+        self.memory_before = {}
         self.ssh = [
             "ssh",
             "-i",
@@ -52,7 +55,11 @@ class VM:
         deadline = time.monotonic() + 1200
         while time.monotonic() < deadline:
             if self.process and self.process.poll() is not None:
-                raise RuntimeError(f"QEMU exited; inspect {self.directory}/serial.log")
+                status = self.process.returncode
+                detail = signal.Signals(-status).name if status < 0 else str(status)
+                raise RuntimeError(
+                    f"QEMU exited ({detail}); inspect {self.directory}/failure.json and qemu.log"
+                )
             try:
                 self.remote(
                     "true", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
@@ -65,8 +72,8 @@ class VM:
             f"VM did not become ready; inspect {self.directory}/serial.log"
         )
 
-    def start(self):
-        self.directory.mkdir(parents=True, exist_ok=True)
+    def prepare(self):
+        self.directory.mkdir(parents=True)
         metadata = json.loads((ROOT / "tests/nix/vm-images.json").read_text())
         info = metadata["images"][self.arch]
         base = self.directory / info["name"]
@@ -98,6 +105,35 @@ class VM:
         disk = self.directory / "disk.qcow2"
         run(["qemu-img", "create", "-f", "qcow2", "-F", "qcow2", "-b", base, disk])
         run(["qemu-img", "resize", disk, "64G"])
+        (self.directory / "vm.json").write_text(
+            json.dumps({"arch": self.arch, "private_doom": self.private_doom}) + "\n"
+        )
+
+    def start(self):
+        self.resumed = self.directory.exists()
+        if self.resumed:
+            metadata = self.directory / "vm.json"
+            if not metadata.exists():
+                raise RuntimeError(
+                    "VM preparation was interrupted; retain the logs and start a fresh trial"
+                )
+            if json.loads(metadata.read_text()) != {
+                "arch": self.arch,
+                "private_doom": self.private_doom,
+            }:
+                raise RuntimeError(
+                    "Retained VM configuration does not match this invocation"
+                )
+        else:
+            self.prepare()
+        self.boot()
+        self.wait()
+        copied = self.directory / "source-copied"
+        if not copied.exists():
+            self.copy_source()
+
+    def boot(self):
+        disk = self.directory / "disk.qcow2"
         if self.arch == "aarch64-linux":
             machine = [
                 "qemu-system-aarch64",
@@ -121,42 +157,76 @@ class VM:
         )
         if accelerator == "kvm":
             machine[machine.index("-cpu") + 1] = "host"
-        self.process = subprocess.Popen(
-            [
-                *machine,
-                "-accel",
-                accelerator,
-                "-smp",
-                "4",
-                "-m",
-                "4096",
-                "-drive",
-                f"file={disk},if=virtio,format=qcow2",
-                "-drive",
-                f"file={self.directory}/seed.img,if=virtio,format=raw,readonly=on",
-                "-netdev",
-                "user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22",
-                "-device",
-                "virtio-net-pci,netdev=net0",
-                "-device",
-                "virtio-gpu-pci",
-                "-object",
-                "rng-random,filename=/dev/urandom,id=rng0",
-                "-device",
-                "virtio-rng-pci,rng=rng0",
-                "-display",
-                "none",
-                "-monitor",
-                "none",
-                "-serial",
-                f"file:{self.directory}/serial.log",
-            ],
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=(self.directory / "qemu.log").open("w"),
-        )
-        self.wait()
-        self.copy_source()
+        self.memory_before = self.memory_status()
+        with (self.directory / "qemu.log").open("a") as stderr:
+            self.process = subprocess.Popen(
+                [
+                    *machine,
+                    "-accel",
+                    accelerator,
+                    "-smp",
+                    "4",
+                    "-m",
+                    "4096",
+                    "-drive",
+                    f"file={disk},if=virtio,format=qcow2",
+                    "-drive",
+                    f"file={self.directory}/seed.img,if=virtio,format=raw,readonly=on",
+                    "-netdev",
+                    "user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22",
+                    "-device",
+                    "virtio-net-pci,netdev=net0",
+                    "-device",
+                    "virtio-gpu-pci",
+                    "-object",
+                    "rng-random,filename=/dev/urandom,id=rng0",
+                    "-device",
+                    "virtio-rng-pci,rng=rng0",
+                    "-display",
+                    "none",
+                    "-monitor",
+                    "none",
+                    "-chardev",
+                    f"file,id=serial0,path={self.directory}/serial.log,append=on",
+                    "-serial",
+                    "chardev:serial0",
+                ],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=stderr,
+                start_new_session=True,
+            )
+
+    @staticmethod
+    def memory_status():
+        result = {}
+        for name in ("memory.current", "memory.peak", "memory.max", "memory.events"):
+            path = Path("/sys/fs/cgroup") / name
+            try:
+                result[name] = path.read_text().strip()
+            except OSError:
+                pass
+        return result
+
+    def diagnose(self, error):
+        self.directory.mkdir(parents=True, exist_ok=True)
+        status = self.process.poll() if self.process else None
+        report = {
+            "error": str(error) or type(error).__name__,
+            "qemu_exit_status": status,
+            "qemu_signal": signal.Signals(-status).name
+            if status is not None and status < 0
+            else None,
+            "memory_before": self.memory_before,
+            "memory_after": self.memory_status(),
+        }
+        destination = self.directory / f"failure-{time.time_ns()}.json"
+        print(json.dumps(report, indent=2), flush=True)
+        try:
+            destination.write_text(json.dumps(report, indent=2) + "\n")
+            (self.directory / "failure.json").write_text(destination.read_text())
+        except OSError as failure:
+            print(f"Could not save failure diagnostics: {failure}", file=sys.stderr)
 
     def copy_source(self):
         archive = (
@@ -169,6 +239,7 @@ class VM:
         self.remote("mkdir -p /home/tester/dotfiles")
         with archive.open("rb") as stream:
             self.remote("tar -xf - -C /home/tester/dotfiles", stdin=stream)
+        (self.directory / "source-copied").touch()
         archive.unlink()
 
     def reboot(self):
@@ -185,6 +256,30 @@ class VM:
             raise RuntimeError("VM did not reboot")
 
     def explore(self):
+        if self.resumed:
+            print(
+                "\nResumed the retained Ubuntu disk. Source and configuration are preserved.\n",
+                flush=True,
+            )
+        else:
+            self.installation_instructions()
+        print(
+            "Exit the shell to reconnect or delete the VM. Reboots preserve this session's disk.\n"
+            "Choose q to delete it; interruptions and failures retain it for recovery.\n"
+            "No graphical console is attached.\n",
+            flush=True,
+        )
+        while True:
+            self.wait()
+            subprocess.run([*self.ssh[:-1], "-t", self.ssh[-1]], check=False)
+            while True:
+                choice = input("[r] Reconnect (also after reboot), [q] delete VM: ")
+                if choice.strip().lower() == "q":
+                    return
+                if choice.strip().lower() == "r":
+                    break
+
+    def installation_instructions(self):
         print(
             "\nUbuntu is ready. Nix and the workstation configuration are not installed.\n"
             "Repository source is copied to ~/dotfiles; it is not activated.\n"
@@ -208,29 +303,61 @@ class VM:
                 flush=True,
             )
         print(
-            "If user files conflict, inspect them before repeating with --adopt.\n"
-            "Exit the shell to reconnect or delete the VM. Reboots preserve this session's disk.\n"
-            "Quitting the runner deletes the VM and all changes. No graphical console is attached.\n",
+            "If user files conflict, inspect them before repeating with --adopt.\n",
             flush=True,
         )
-        while True:
-            self.wait()
-            subprocess.run([*self.ssh[:-1], "-t", self.ssh[-1]], check=False)
-            while True:
-                try:
-                    choice = input("[r] Reconnect (also after reboot), [q] delete VM: ")
-                except EOFError:
-                    return
-                if choice.strip().lower() == "q":
-                    return
-                if choice.strip().lower() == "r":
-                    break
 
     def close(self):
-        if self.process:
+        if self.process and self.process.poll() is None:
             self.process.terminate()
-            self.process.wait(timeout=30)
-        self.key.unlink(missing_ok=True)
+            try:
+                self.process.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait()
+
+
+def session(vm, interactive=False, upgrade_from_previous=False):
+    discard = not interactive
+    try:
+        vm.start()
+        if interactive:
+            vm.explore()
+            discard = True
+            return
+        if upgrade_from_previous:
+            vm.remote(
+                "cd dotfiles && DOTFILES_TEST_GUEST=1 bash tests/nix/bootstrap-previous.sh"
+            )
+        else:
+            vm.remote("cd dotfiles && bash bin/bootstrap")
+        for stage in ["install", "containers", "boot", "update", "rollback-boot"]:
+            print(f"Testing {vm.arch}: {stage}", flush=True)
+            if stage in ("boot", "rollback-boot"):
+                vm.reboot()
+            vm.remote(
+                f"cd dotfiles && DOTFILES_TEST_GUEST=1 bash tests/nix/system.sh {stage}"
+            )
+    except BaseException as error:
+        vm.diagnose(error)
+        if not interactive:
+            for name in ("qemu.log", "serial.log"):
+                path = vm.directory / name
+                if path.exists():
+                    print(
+                        json.dumps({name: path.read_text(errors="replace")[-16000:]}),
+                        flush=True,
+                    )
+        raise
+    finally:
+        vm.close()
+        if discard:
+            shutil.rmtree(vm.directory, ignore_errors=True)
+        else:
+            print(
+                f"Retained VM disk and logs in {vm.directory} inside this container.",
+                flush=True,
+            )
 
 
 def main():
@@ -250,36 +377,13 @@ def main():
     if args.interactive and not sys.stdin.isatty():
         parser.error("--interactive requires a terminal")
     directory = Path("/tmp/dotfiles-vm")
-    if directory.exists():
+    if directory.exists() and not args.interactive:
         raise RuntimeError("Use a fresh runner for each VM test")
-    vm = VM(args.arch, directory, private_doom=args.private_doom)
-    try:
-        vm.start()
-        if args.interactive:
-            vm.explore()
-            return
-        if args.upgrade_from_previous:
-            vm.remote(
-                "cd dotfiles && DOTFILES_TEST_GUEST=1 bash tests/nix/bootstrap-previous.sh"
-            )
-        else:
-            vm.remote("cd dotfiles && bash bin/bootstrap")
-        for stage in ["install", "containers", "boot", "update", "rollback-boot"]:
-            print(f"Testing {args.arch}: {stage}", flush=True)
-            if stage in ("boot", "rollback-boot"):
-                vm.reboot()
-            vm.remote(
-                f"cd dotfiles && DOTFILES_TEST_GUEST=1 bash tests/nix/system.sh {stage}"
-            )
-    except BaseException:
-        for name in ("qemu.log", "serial.log"):
-            path = directory / name
-            if path.exists():
-                print(path.read_text(errors="replace")[-16000:], flush=True)
-        raise
-    finally:
-        vm.close()
-        shutil.rmtree(directory, ignore_errors=True)
+    session(
+        VM(args.arch, directory, private_doom=args.private_doom),
+        interactive=args.interactive,
+        upgrade_from_previous=args.upgrade_from_previous,
+    )
 
 
 if __name__ == "__main__":

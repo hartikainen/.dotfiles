@@ -3,18 +3,18 @@ name: maintaining-pr-stacks
 description: >-
   Maintain named GitHub pull requests in a local linear stack until tests pass,
   Codex reviews complete, and feedback is addressed. Create and reorder fixups
-  on their owning branches, rebase descendants, push with exact leases, and
-  resolve addressed threads. Use when the user asks to maintain their PR stack
-  or handle comments on their stacked PR branches.
+  on their owning branches, rebase descendants, push with exact leases,
+  resolve addressed threads, and refresh PR descriptions. Use when the user
+  asks to maintain their PR stack or handle comments on their stacked PR branches.
 ---
 
 # Maintain a pull request stack
 
-A request to maintain named PRs authorizes repeated correction, fixup commit, reordering, descendant rebase, exact-lease push, and silent thread resolution cycles for those PRs until the completion conditions below hold. The user need not repeat those permissions or approve each follow-up cycle. Explicit limits in the user's request take precedence. This does not authorize merging, closing PRs, submitting reviews, publishing replies, or touching other branches.
+A request to maintain named PRs authorizes repeated correction, fixup commit, reordering, descendant rebase, exact-lease push, silent thread resolution, and PR description updates for those PRs until the completion conditions below hold. The user need not repeat those permissions or approve each follow-up cycle. Explicit limits in the user's request take precedence. This does not authorize merging, closing PRs, submitting reviews, publishing replies, or touching other branches.
 
 ## Establish the stack boundary
 
-Read every named PR with `gh pr view`, including `baseRefName`, `headRefName`, `headRefOid`, `reviews`, `comments`, and `statusCheckRollup`. Read all paginated review threads through GraphQL, including each thread's `id`, `isResolved`, `path`, `line`, `comments`, `author`, `createdAt`, and `updatedAt`. Timeline comments and review bodies must be assessed, but only review threads can be resolved.
+Read every named PR with `gh pr view`, including `body`, `baseRefName`, `headRefName`, `headRefOid`, `reviews`, `comments`, and `statusCheckRollup`. Read all paginated review threads through GraphQL, including each thread's `id`, `isResolved`, `path`, `line`, `comments`, `author`, `createdAt`, and `updatedAt`. Timeline comments and review bodies must be assessed, but only review threads can be resolved.
 
 Identify the repository's Codex review integration and how it records a review request, an in-progress review, and completion for a head commit. Track check runs and Codex review state against each PR's head OID. A review or passing check on an earlier head does not establish completion for the pushed head.
 
@@ -92,7 +92,14 @@ Finish only after a fresh read confirms all of the following for every named PR 
 - Tests and required checks pass, with no pending or failing applicable runs. Accept skipped or neutral checks only when the repository treats them as non-blocking; they are not evidence that a required test ran successfully.
 - Codex review has completed for that head, with no review still queued or running. Use the integration's completion evidence, including a supported no-findings outcome.
 - All actionable review feedback is addressed, addressed threads are resolved, and no comment remains awaiting a correction or the user's judgment.
+- Every PR description has passed the final check below and matches its final base-relative diff.
 
 Do not impose a fixed watch deadline unless the user supplies one. Stop early for a user interruption or a blocker requiring input or unavailable access (including an unresolvable check failure, ambiguous feedback, a rebase conflict, or a review integration whose completion state cannot be obtained). A queued or running review is a reason to keep monitoring. Complete independent work first. If review requires a public trigger comment, request authorization for that comment instead of publishing it under the maintenance permission. If monitoring cannot continue, report the incomplete state and the condition needed to resume; do not claim completion.
 
-Restore the initial checkout when safe. In the final response, list every fixup with its full resulting OID, target branch, and change. Name the rebased and pushed branches, test and Codex review results with their head OIDs, resolved threads, and any unresolved comments or blockers with the next action.
+## Update PR descriptions and report
+
+After checks, Codex reviews, and feedback are settled, check every named PR's description against its final base-relative diff before declaring completion. Read `writing-as-hartikainen` and its `references/github.md` register before editing a description. Refresh stale statements about the problem, resulting behavior, scope, stack dependencies, and any validation claims. Describe the final implementation, preserving the author's relevant context, links, and required template sections. Leave an accurate description unchanged.
+
+Re-read the PR body, base, and head before writing. If they changed during drafting, reconcile the description with those changes instead of overwriting another edit. Apply body updates with a structured API argument or `gh pr edit --body-file <path>` using a temporary text file that preserves actual newlines. Fetch the saved body to verify the update. If a head or base changes, or a description update triggers checks, reviews, or actionable feedback, resume monitoring and repeat the final description check after that work settles. Report an unverified or blocked update as incomplete.
+
+Restore the initial checkout when safe. In the final response, list every fixup with its full resulting OID, target branch, and change. Name the rebased and pushed branches, test and Codex review results with their head OIDs, resolved threads, descriptions updated or verified unchanged, and any unresolved comments or blockers with the next action.

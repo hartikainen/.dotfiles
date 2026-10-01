@@ -23,8 +23,8 @@ Before writing a commit message, a code comment, a docstring, documentation, a p
 
 # Writing conventions
 
-- Wrap every identifier, path, flag, and value in backticks. Use parentheses, not em dashes, and never use bolding for emphasis.
-- Write invariant prose. Do not use `currently`, `for now`, `recently`, or `new`, and do not appeal to what the code used to do. Prefer an invariant to a measurement. Anchor every number to a version, image tag, or linked pull request that rots visibly beside it.
+- Use backticks for code identifiers, commands, flags, paths, and configuration literals when exact syntax matters. Ordinary numbers, measurements, units, dates, hardware and product names, and version mentions stay in plain text, including in tables. Use parentheses, not em dashes, and never use bolding for emphasis.
+- In durable technical documentation, prefer stable behavior and constraints over time-relative commentary. In commit and PR descriptions, include before/after context when it explains the change. Ground measurements in relevant sources or experimental conditions.
 - Never create a plan, summary, report, or migration Markdown file unless I ask.
 
 # Responses to me in this chat

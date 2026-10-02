@@ -20,6 +20,7 @@ EXTRA_FILES = [
     "bin/export",
     "bin/test",
     "bin/test-vm",
+    "bin/macos-vm",
     ".github/scripts/check-agent-references.sh",
 ]
 

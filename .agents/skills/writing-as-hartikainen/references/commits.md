@@ -2,7 +2,7 @@
 
 Read [change-descriptions.md](change-descriptions.md) for content and tone. Drop courtesy hedges while preserving factual uncertainty.
 
-- Use a concise, declarative subject line in sentence case, without a trailing period, within the 60-character limit. Name the actor and what it does (e.g. "The launcher reuses cached images"). Do not add a conventional-commit prefix or scope.
+- Use a concise, imperative subject line in sentence case, without a trailing period, within the 60-character limit. Start with a verb. Do not add a conventional-commit prefix or scope.
 - Give the subject line a concrete change and scope. Name the affected component when enumerating individual edits would obscure their shared purpose.
 - Omit the body when the subject communicates the change and no rationale is needed. Otherwise separate it with a blank line.
 - Hard-wrap the body at 72 characters to match `magit`'s `git-commit-mode`. Leave long URLs and fenced blocks intact.

@@ -14,5 +14,5 @@ Use a courteous, collaborative tone. A greeting or context link can orient a com
 
 Read [change-descriptions.md](change-descriptions.md) for content and tone.
 
-- Use a concise, declarative title that names the affected component and what it does. In the body, give changes an explicit subject, such as "This PR" or the affected component. Do not turn descriptions of changes into instructions to the reader.
+- Use a concise, imperative title that starts with a verb and names the change. In the body, give changes an explicit subject, such as "This PR" or the affected component. Do not turn descriptions of changes into instructions to the reader.
 - Follow the repository's PR template when present. Otherwise let the material determine whether paragraphs need additional structure.

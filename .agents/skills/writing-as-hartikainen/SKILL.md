@@ -22,7 +22,7 @@ Choose by purpose, not file type. Follow a reference's further links only for th
 
 ## Shared voice
 
-- Write directly and conversationally, with concrete nouns and precise verbs. Describe what the subject does in active, declarative sentences. Reserve imperatives for actual instructions or requests, rather than descriptions of work. Avoid invented labels, marketing language, stock transitions, and intensifiers that add no information.
+- Write directly and conversationally, with concrete nouns and precise verbs. Use imperative, verb-first commit and PR titles. In prose bodies, describe what the subject does in active, declarative sentences; reserve imperatives for actual instructions or requests. Avoid invented labels, marketing language, stock transitions, and intensifiers that add no information.
 - Use first-person singular for the user's observations, judgments, and experience. Otherwise give the claim or change an explicit subject. Be courteous without manufacturing self-deprecation or personal history. Put uncertainty beside the claim it qualifies.
 - Let the point determine the length and structure. Prefer connected paragraphs; use lists or headings when they help the reader. Do not impose a fixed opening, paragraph cadence, or conclusion.
 - In Markdown, use backticks for code identifiers, commands, flags, paths, and configuration literals when their exact syntax matters. Leave ordinary numbers, counts, measurements, units, dates, hardware and product names, and version mentions in plain text, including in tables. A value does not become code merely because it is technical. Abbreviate sibling identifiers with shell-style braces only when the shared prefix or suffix remains clear.

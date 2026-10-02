@@ -143,7 +143,7 @@ in
       "mactex-no-gui"
       "obsidian"
       "meshlab"
-      "openscad"
+      "openscad@snapshot"
       "spotify"
       "temurin"
       "telegram"

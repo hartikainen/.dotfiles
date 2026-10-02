@@ -253,8 +253,8 @@ Continue only after bootstrap succeeds. If Apple does not offer Command Line Too
 
 ```sh
 git clone --branch refactor \
-  https://github.com/hartikainen/.dotfiles.git ~/dotfiles
-cd ~/dotfiles
+  https://github.com/hartikainen/.dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
 git rev-parse HEAD
 git -c 'url.https://github.com/.insteadOf=git@github.com:' \
   submodule update --init --recursive

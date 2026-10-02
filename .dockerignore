@@ -75,6 +75,7 @@
 !bin/dotfiles
 !bin/export
 !bin/install
+!bin/macos-vm
 !bin/test
 !bin/test-vm
 !flake.lock

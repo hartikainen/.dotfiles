@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+"""Install and run a macOS VM with Apple's Virtualization sample."""
+
+import argparse
+import fcntl
+import hashlib
+import os
+from pathlib import Path
+import platform
+import secrets
+import shlex
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+import zipfile
+
+
+# Apple's archive includes its source history. Use the macOS 14 revision to
+# retain Setup Assistant without the macOS 27 provisioning and USB APIs.
+# https://developer.apple.com/documentation/virtualization/running-macos-in-a-virtual-machine-on-apple-silicon
+SAMPLE_URL = (
+    "https://docs-assets.developer.apple.com/published/bcec04487547/"
+    "RunningMacOSInAVirtualMachineOnAppleSilicon.zip"
+)
+SAMPLE_SHA256 = "6f59fe7e8e6d8eef98832f4e7b82556707f9a17e1d4c78c0d0b1c3daa8783a15"
+SAMPLE_REVISION = "e0612c2d39d1c4b32aaf1f935f1a3b978003749c"
+DEFAULT_DIRECTORY = Path.home() / "Virtual Machines" / "dotfiles-macos"
+
+
+def run(command, **kwargs):
+    subprocess.run([str(arg) for arg in command], check=True, **kwargs)
+
+
+def replace_once(path, old, new):
+    content = path.read_text()
+    if content.count(old) != 1:
+        raise RuntimeError(f"Unexpected Apple sample contents: {path}")
+    path.write_text(content.replace(old, new))
+
+
+def prepare_source(archive, source):
+    if hashlib.sha256(archive.read_bytes()).hexdigest() != SAMPLE_SHA256:
+        raise RuntimeError("Apple sample checksum mismatch; refusing to build")
+    with tempfile.TemporaryDirectory(prefix="apple-vm-") as temporary:
+        upstream = Path(temporary)
+        with zipfile.ZipFile(archive) as bundle:
+            bundle.extractall(upstream)
+        snapshot = upstream / "source.tar"
+        run(["git", "-C", upstream, "archive", SAMPLE_REVISION, "-o", snapshot])
+        # Both archives are covered by the pinned digest above.
+        with tarfile.open(snapshot) as bundle:
+            bundle.extractall(source)
+
+    replace_once(
+        source / "Swift/Common/Path.swift",
+        'let vmBundlePath = NSHomeDirectory() + "/VM.bundle/"',
+        'let vmBundlePath = ProcessInfo.processInfo.environment["DOTFILES_VM_BUNDLE"]!',
+    )
+    helper = source / "Swift/Common/MacOSVirtualMachineConfigurationHelper.swift"
+    replace_once(
+        helper,
+        "var virtualCPUCount = totalAvailableCPUs <= 1 ? 1 : totalAvailableCPUs - 1",
+        "var virtualCPUCount = min(4, max(1, totalAvailableCPUs - 1))",
+    )
+    replace_once(helper, "memory to 4 GB", "memory to 8 GB")
+    replace_once(helper, "(4 * 1024 * 1024 * 1024)", "(8 * 1024 * 1024 * 1024)")
+    mac = "02:" + ":".join(f"{byte:02x}" for byte in secrets.token_bytes(5))
+    replace_once(helper, "d6:a7:58:8e:78:d4", mac)
+    installer = source / "Swift/InstallationTool/MacOSVirtualMachineInstaller.swift"
+    app = source / "Swift/macOSVirtualMachineSampleApp/AppDelegate.swift"
+    for path in (installer, app):
+        replace_once(
+            path,
+            "virtualMachineConfiguration.audioDevices = [MacOSVirtualMachineConfigurationHelper.createSoundDeviceConfiguration()]",
+            "virtualMachineConfiguration.audioDevices = []",
+        )
+    # The sample otherwise leaves dispatchMain running after installation.
+    replace_once(
+        installer,
+        'NSLog("Installation succeeded.")',
+        'NSLog("Installation succeeded.")\n                exit(0)',
+    )
+
+
+def build(directory):
+    source = directory / "source"
+    archive = directory / "apple-sample.zip"
+    run(["/usr/bin/curl", "-fL", "--retry", "3", SAMPLE_URL, "-o", archive])
+    prepare_source(archive, source)
+    for scheme in ("InstallationTool-Swift", "macOSVirtualMachineSampleApp-Swift"):
+        run(
+            [
+                "xcodebuild",
+                "-quiet",
+                "-project",
+                source / "macOSVirtualMachineSampleApp.xcodeproj",
+                "-scheme",
+                scheme,
+                "-configuration",
+                "Release",
+                "-derivedDataPath",
+                directory / "build",
+                "CODE_SIGN_IDENTITY=-",
+                "CODE_SIGN_STYLE=Manual",
+                "DEVELOPMENT_TEAM=",
+                "ARCHS=arm64",
+                "build",
+            ]
+        )
+
+
+def create(directory, ipsw):
+    if directory.exists():
+        raise RuntimeError(
+            f"Refusing to overwrite {directory}. Use start for an installed VM, "
+            "or choose a new --directory. Failed installations are kept for inspection."
+        )
+    if ipsw and not ipsw.is_file():
+        raise RuntimeError(f"Restore image does not exist: {ipsw}")
+    directory.parent.mkdir(parents=True, exist_ok=True)
+    if shutil.disk_usage(directory.parent).free < 60 * 1024**3:
+        raise RuntimeError("Keep at least 60 GiB free for installation and builds")
+    directory.mkdir(mode=0o700)
+    build(directory)
+    installer = directory / "build/Build/Products/Release/InstallationTool-Swift"
+    environment = dict(os.environ, DOTFILES_VM_BUNDLE=str(directory / "VM.bundle"))
+    run([installer, *([ipsw] if ipsw else [])], env=environment)
+    (directory / "installed").touch()
+    command = shlex.join([sys.argv[0], "start", "--directory", str(directory)])
+    print(f"macOS installed. Start it with: {command}")
+
+
+def start(directory):
+    if not (directory / "installed").is_file():
+        raise RuntimeError(
+            f"No completed installation in {directory}; run create first"
+        )
+    with (directory / "run.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise RuntimeError("This VM is already running") from None
+        executable = directory / (
+            "build/Build/Products/Release/macOSVirtualMachineSampleApp.app/"
+            "Contents/MacOS/macOSVirtualMachineSampleApp"
+        )
+        environment = dict(os.environ, DOTFILES_VM_BUNDLE=str(directory / "VM.bundle"))
+        print(
+            "Complete Setup Assistant in the VM window. No host folders are shared.",
+            flush=True,
+        )
+        print("Enable Remote Login inside the guest to connect over SSH.", flush=True)
+        print(
+            "Shut down inside the guest for a cold boot; closing the window saves its state.",
+            flush=True,
+        )
+        run([executable], env=environment)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""Requires Apple silicon, macOS 14 or later, Python 3.9 or later, and full Xcode 15 or later
+with its license accepted and components installed. Set DEVELOPER_DIR to
+an Xcode.app/Contents/Developer path if it is not your selected Xcode.
+
+create downloads a verified Apple source archive, builds and locally signs
+the sample, then installs macOS onto a new 128 GiB sparse disk. The guest
+uses up to 4 CPUs and 8 GiB RAM. Allow more free space as the guest grows.
+Without --ipsw, Apple selects the latest supported restore image; use a
+local IPSW to choose a specific release. New guests may need newer Xcode.
+
+start opens the VM console. Create a test administrator in Setup Assistant,
+skip Apple Account enrollment, and enable System Settings > General >
+Sharing > Remote Login. In the guest, run `ipconfig getifaddr en0`, then
+connect from the host with `ssh <guest-user>@<guest-ip>`.
+
+Run dotfiles installation only in that guest. No host files or credentials
+are copied. macOS guests cannot validate Colima's nested Virtualization
+backend; disable Colima in the guest's host configuration for that trial.
+
+For a baseline copy, shut down the guest, quit the VM app, then copy the
+entire directory with Finder's Duplicate. Start the copy using --directory.
+Run only one copy at a time; copies share the same guest and network identity.
+To delete a trial, quit its app and move its directory to the Trash.
+Failed creation keeps all artifacts; retry with a new --directory.
+""",
+    )
+    parser.add_argument("command", choices=("create", "start"))
+    parser.add_argument("--directory", type=Path, default=DEFAULT_DIRECTORY)
+    parser.add_argument(
+        "--ipsw", type=Path, help="local macOS restore image (create only)"
+    )
+    args = parser.parse_args()
+    if args.command == "start" and args.ipsw:
+        parser.error("--ipsw is only valid with create")
+    if platform.system() != "Darwin" or platform.machine() != "arm64":
+        parser.error("Run this launcher on an Apple silicon Mac")
+    if int(platform.mac_ver()[0].split(".")[0]) < 14:
+        parser.error("macOS 14 or later is required")
+    if os.geteuid() == 0:
+        parser.error("Run as your regular macOS user, without sudo")
+    directory = args.directory.expanduser().resolve()
+    if args.command == "create":
+        run(["xcrun", "--find", "xcodebuild"], stdout=subprocess.DEVNULL)
+        create(directory, args.ipsw.expanduser().resolve() if args.ipsw else None)
+    else:
+        start(directory)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
+        sys.exit(f"macos-vm: {error}")
+    except KeyboardInterrupt:
+        sys.exit("macos-vm: interrupted; VM files have been kept")

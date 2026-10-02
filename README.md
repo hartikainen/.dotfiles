@@ -4,6 +4,8 @@ Nix manages the shared user environment on `aarch64-darwin`, `x86_64-linux`, and
 
 ## Install
 
+For an installation trial over SSH without transferring a local checkout, see [Install from GitHub in a macOS VM](#install-from-github-in-a-macos-vm).
+
 Use a separate checkout. Do not unpack an archive over an existing installation. Check out the reviewed commit before running any setup command:
 
 ```sh
@@ -215,6 +217,75 @@ For a manual macOS installation trial, start a separate fresh guest from [Tart's
 In a disposable VM with the private Doom sources available, `DOTFILES_TEST_GUEST=1 bash tests/nix/private-doom.sh` verifies the full home activation, Bazel mode, Copilot's executable, and independent named Emacs daemons. This check requires the private configuration; public Docker images exclude it.
 
 The installation entry point is `bin/install`; `bin/bootstrap` and `bin/dotfiles` expose its bootstrap and configuration steps separately. The repository contains no parallel application installers or preference scripts.
+
+### Install from GitHub in a macOS VM
+
+Start with a running Apple silicon macOS guest, a test administrator account, network access, and Remote Login enabled in System Settings > General > Sharing. `bin/macos-vm start --directory PATH` opens an existing VM created with the native launcher. Keep that process running while using the guest. Before installing anything, shut down the guest and duplicate its entire VM directory to retain a clean baseline. Start the copy for each trial and run only one copy at a time, since copies share the guest's machine and network identity.
+
+From a second terminal on the physical Mac, connect using the account and address shown by Remote Login. The address below is an example. These options use the guest account's password and avoid offering host agent keys, which can cause `Too many authentication failures`:
+
+```sh
+ssh -t \
+  -o PubkeyAuthentication=no \
+  -o PreferredAuthentications=keyboard-interactive,password \
+  hartikainen@192.168.64.5
+```
+
+Run all remaining commands inside the guest's SSH session. Use a fresh checkout directory; do not overwrite an existing installation. This walkthrough selects the `refactor` branch.
+
+#### Bootstrap without Git or a graphical installer
+
+`xcode-select --install` can fail over SSH because it cannot request a graphical installer. Download the repository archive with the OS-provided tools, then run its bootstrap. Bootstrap uses `softwareupdate` to install Command Line Tools before installing Nix. It may prompt for the guest administrator's password.
+
+```sh
+bootstrap_dir="$(mktemp -d)"
+curl --fail --location \
+  https://github.com/hartikainen/.dotfiles/archive/refs/heads/refactor.tar.gz \
+  --output "$bootstrap_dir/dotfiles.tar.gz" &&
+  tar -xzf "$bootstrap_dir/dotfiles.tar.gz" \
+    --strip-components=1 -C "$bootstrap_dir" &&
+  bash "$bootstrap_dir/bin/bootstrap"
+```
+
+Continue only after bootstrap succeeds. If Apple does not offer Command Line Tools through `softwareupdate`, complete their installation from Terminal in the VM window or [Apple's developer downloads](https://developer.apple.com/download/all/), then rerun bootstrap. Keep failed bootstrap output for diagnosis.
+
+#### Clone the configuration and private Doom sources
+
+```sh
+git clone --branch refactor \
+  https://github.com/hartikainen/.dotfiles.git ~/dotfiles
+cd ~/dotfiles
+git rev-parse HEAD
+git -c 'url.https://github.com/.insteadOf=git@github.com:' \
+  submodule update --init --recursive
+```
+
+Record the printed commit when reporting a trial. To test a specific reviewed commit, check it out before initializing the submodule. The HTTPS rewrite applies only to that Git command. The private `.doom.d` repository requires authentication: enter your GitHub username and a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with read access to the repository when prompted for a password. A GitHub account password does not authenticate HTTPS Git operations. Keep the token out of URLs, shell commands, and configuration files. Stop if cloning or submodule initialization fails.
+
+#### Apply the VM configuration
+
+Disable Colima in the guest checkout before applying the full desktop configuration. Apple's nested virtualization support does not let a macOS guest run Colima's `vz` backend; see [Tart's explanation of the framework limitation](https://tart.run/faq/). This trial therefore leaves Docker's macOS backend unverified. Apply this override only in the guest's copy of `nix/hosts/personal-macbook.nix`:
+
+```sh
+cat > nix/hosts/personal-macbook.nix <<'EOF'
+{
+  system = "aarch64-darwin";
+  profile = "desktop";
+  homeModules = [
+    ({ lib, ... }: {
+      services.colima.enable = lib.mkForce false;
+    })
+  ];
+  darwinModules = [ ];
+}
+EOF
+
+bash bin/install --host personal-macbook
+```
+
+If the installer reports unmanaged file conflicts, inspect the paths and repeat with `bash bin/install --host personal-macbook --adopt` to back up and adopt those files. The macOS system-file exceptions described under [Install](#install) still apply. Keep the VM console available for macOS prompts. After a successful installation, log out and back in inside the guest before checking Ghostty, tmux, and the Emacs project/server workflow.
+
+For a clean retry, shut down the guest with `sudo /sbin/shutdown -h now`, wait for the VM launcher to exit, and create another copy of the untouched baseline. A new guest user does not reset Nix, services, or system preferences. A baseline copy avoids reinstalling macOS; packages downloaded after the baseline may need downloading again.
 
 ## Agent instructions
 

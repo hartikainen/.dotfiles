@@ -37,6 +37,10 @@ in
         bash-completion
         bazel-watcher
         bazelisk
+        (runCommand "bazel-bazelisk" { } ''
+          mkdir -p "$out/bin"
+          ln -s ${bazelisk}/bin/bazelisk "$out/bin/bazel"
+        '')
         bc
         buildifier
         buildozer

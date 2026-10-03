@@ -122,9 +122,9 @@ The Doom configuration remains in a separate public submodule. Its Git submodule
 
 `python3 bin/export /path/to/workstation.tar --private-doom` creates an archive for a disposable guest or a machine without Git authentication. It checks the private checkout against the submodule reference and includes a generated `nix/doom-source.json` receipt containing the revision and file hashes. The installer checks exported files against that receipt. The receipt detects changed or incomplete exports; it is not a signature, so transfer the archive through a trusted channel. A plain private file copy without Git metadata or an export receipt is rejected. Omit `--private-doom` to export public sources only. Archives contain configuration, not SSH keys or Git credential storage, and are created with owner-only permissions.
 
-[`nix-doom-emacs-unstraightened`](https://github.com/marienz/nix-doom-emacs-unstraightened) builds Doom and its dependencies in the Nix store. `flake.lock` pins the framework, modules, package recipes, and package overlay. `nix/doom-pins.json` pins custom recipes without editing the private submodule. Edit the configuration or pins, then build and apply; there is no separate `doom sync` installation step. A package build failure happens before activation. Rollback restores the editor package and its configuration together.
+[`nix-doom-emacs-unstraightened`](https://github.com/marienz/nix-doom-emacs-unstraightened) builds Doom and its dependencies in the Nix store. `flake.lock` pins the framework, modules, package recipes, and package overlay. `nix/doom-pins.json` pins custom recipes without editing the Doom submodule. Edit the configuration or pins, then build and apply; there is no separate `doom sync` installation step. A package build failure happens before activation. Rollback restores the editor package and its configuration together.
 
-The Nix build adapts the private configuration's `bazel-mode` package name to upstream's `bazel` library and its format-on-save exclusion to Doom's `+format-on-save-disabled-modes` setting. These compatibility changes apply to the store copy; the private checkout stays untouched. The Doom module owns `~/.config/doom` and links files from the same effective configuration used to build the editor, including recipe pins and compatibility changes. Edit the source checkout and rebuild rather than editing these managed files.
+The Nix build adapts the personal configuration's `bazel-mode` package name to upstream's `bazel` library and its format-on-save exclusion to Doom's `+format-on-save-disabled-modes` setting. These compatibility changes apply to the store copy; the source checkout stays untouched. The Doom module owns `~/.config/doom` and links files from the same effective configuration used to build the editor, including recipe pins and compatibility changes. Edit the source checkout and rebuild rather than editing these managed files.
 
 Nix supplies the Emacs executable on macOS as well as Linux. The macOS build does not include Homebrew's `emacs-plus` patches. The invocation aliases and tmux restoration rules retain the per-project client/server workflow; the configuration does not start a shared daemon.
 
@@ -164,7 +164,7 @@ Repair restores the preceding managed generation. Inspect the retained transacti
 
 Rollback does not uninstall Ubuntu packages or Apple command-line tools, reverse maintainer scripts, remove added group memberships, downgrade the OS or bootstrap-owned Linux Nix daemon, restore Docker volumes or Colima disks, downgrade Homebrew applications, or erase every preference written by an earlier configuration. A Docker data-format upgrade can require a data backup to downgrade its daemon safely. Removing a Colima profile from Nix does not delete its VM. Back up application data separately and review service-specific upgrade notes. Interrupted Ubuntu package transactions can require `sudo dpkg --configure -a` before reapplying.
 
-SSH private keys, agent authentication, and GitHub account enrollment remain machine-owned. Configure authentication before fetching the private Doom submodule. Activation does not generate, upload, replace, or import keys. Neither Nix sources nor test guests include `~/.ssh` or the host agent socket.
+SSH private keys, agent authentication, and GitHub account enrollment remain machine-owned. Fetching the public Doom submodule over HTTPS requires no GitHub credentials. Configure GitHub authentication separately for SSH access or pushing changes. Activation does not generate, upload, replace, or import keys. Neither Nix sources nor test guests include `~/.ssh` or the host agent socket.
 
 ## Isolated validation
 
@@ -174,7 +174,7 @@ Run executable checks in disposable containers or VMs. Do not share the host hom
 python3 bin/test --base ubuntu:26.04
 python3 bin/test --base debian:13
 
-# Complete package selection and public Doom (no private credentials).
+# Complete package selection and the minimal Doom test configuration.
 python3 bin/test --full
 
 # Boot Ubuntu, install, reboot, update, and recover.
@@ -215,7 +215,7 @@ For a manual macOS installation trial, start a separate fresh guest from [Tart's
 
 [Tart documents Apple's nested virtualization support for Linux guests only](https://tart.run/faq/); the Colima `vz` backend cannot be validated inside its macOS guests. The macOS fixture excludes Colima. Keep that runtime check outstanding rather than substituting a passing Linux result or macOS evaluation. Personal Doom startup, desktop rendering, keyboard handling, and clipboard interaction also require their matching isolated integration checks before a workstation rollout.
 
-In a disposable VM with the private Doom sources available, `DOTFILES_TEST_GUEST=1 bash tests/nix/private-doom.sh` verifies the full home activation, Bazel mode, Copilot's executable, and independent named Emacs daemons. This check requires the private configuration; public Docker images exclude it.
+In a disposable VM with the personal Doom sources available, `DOTFILES_TEST_GUEST=1 bash tests/nix/private-doom.sh` verifies the full home activation, Bazel mode, Copilot's executable, and independent named Emacs daemons. This check requires the personal configuration; test Docker images exclude it.
 
 The installation entry point is `bin/install`; `bin/bootstrap` and `bin/dotfiles` expose its bootstrap and configuration steps separately. The repository contains no parallel application installers or preference scripts.
 

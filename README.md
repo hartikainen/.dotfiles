@@ -250,7 +250,7 @@ curl --fail --location \
 
 Continue only after bootstrap succeeds. If Apple does not offer Command Line Tools through `softwareupdate`, complete their installation from Terminal in the VM window or [Apple's developer downloads](https://developer.apple.com/download/all/), then rerun bootstrap. Keep failed bootstrap output for diagnosis.
 
-#### Clone the configuration and private Doom sources
+#### Clone the configuration and Doom sources
 
 ```sh
 git clone --branch refactor \
@@ -261,7 +261,7 @@ git -c 'url.https://github.com/.insteadOf=git@github.com:' \
   submodule update --init --recursive
 ```
 
-Record the printed commit when reporting a trial. To test a specific reviewed commit, check it out before initializing the submodule. The HTTPS rewrite applies only to that Git command. The private `.doom.d` repository requires authentication: enter your GitHub username and a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with read access to the repository when prompted for a password. A GitHub account password does not authenticate HTTPS Git operations. Keep the token out of URLs, shell commands, and configuration files. Stop if cloning or submodule initialization fails.
+Record the printed commit when reporting a trial. To test a specific reviewed commit, check it out before initializing the submodule. The HTTPS rewrite applies only to that Git command. The [`.doom.d` repository](https://github.com/hartikainen/.doom.d) is public, so this HTTPS clone requires no GitHub credentials. The SSH URL in `.gitmodules` requires GitHub SSH authentication if used without the rewrite. Stop if cloning or submodule initialization fails.
 
 #### Apply the VM configuration
 

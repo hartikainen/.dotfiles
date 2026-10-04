@@ -23,6 +23,7 @@ host_config() {
   homeModules = [ {
     home.file.".dotfiles-system-test".text = "$marker";
     targets.darwin.defaults."org.dotfiles.test".generation = "$marker";
+    workstation.macos.symbolicHotKeys."60".enabled = "$marker" == "b";
   } ];
   darwinModules = [ {
     environment.etc."dotfiles-vm-marker".text = "$marker";
@@ -38,6 +39,7 @@ apply() {
 
 verify() {
     local marker="$1"
+    python3 tests/nix/macos-preferences.py verify "$marker"
     test "$(cat /etc/dotfiles-vm-marker)" = "$marker"
     test "$(cat "$HOME/.dotfiles-system-test")" = "$marker"
     test "$(defaults read org.dotfiles.test generation)" = "$marker"
@@ -71,6 +73,7 @@ case "${1:-}" in
         cp nix/hosts/default.nix nix/hosts/default.nix.original
         printf '(import ./default.nix.original) // { vm = import ./vm.nix; }\n' >nix/hosts/default.nix
         host_config a
+        python3 tests/nix/macos-preferences.py seed
         printf 'unmanaged fixture\n' >"$HOME/.bashrc"
         if bash bin/install --host vm --fixture; then
             echo 'Unmanaged home file was overwritten without adoption.' >&2

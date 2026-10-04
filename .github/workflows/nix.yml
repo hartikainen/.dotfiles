@@ -49,7 +49,11 @@ jobs:
       - name: Activate macOS settings in the disposable runner
         run: |
           . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          python3 tests/nix/macos-preferences.py seed
           ./bin/dotfiles apply --profile desktop --system --fixture --adopt
+          python3 tests/nix/macos-preferences.py verify a
+          ./bin/dotfiles apply --profile desktop --system --fixture
+          python3 tests/nix/macos-preferences.py verify a
           test "$(defaults read com.apple.dock autohide)" = 1
           /Applications/Ghostty.app/Contents/MacOS/ghostty +validate-config
   linux-system:

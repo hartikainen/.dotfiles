@@ -14,6 +14,7 @@ let
         {
           targets.darwin.defaults."com.apple.dock".autohide = false;
           targets.darwin.currentHostDefaults."com.apple.controlcenter".Bluetooth = 24;
+          workstation.macos.symbolicHotKeys."60".enabled = true;
         }
       ];
     }
@@ -77,6 +78,14 @@ let
 in
 assert macHome.config.targets.darwin.defaults."com.apple.dock".autohide == false;
 assert macHome.config.targets.darwin.defaults.NSGlobalDomain.KeyRepeat == 1;
+assert !(macHome.config.targets.darwin.defaults ? "com.apple.symbolichotkeys");
+assert macHome.config.workstation.macos.symbolicHotKeys."60".enabled;
+assert
+  macHome.config.workstation.macos.symbolicHotKeys."60".value.parameters == [
+    32
+    49
+    262144
+  ];
 assert linuxHome.config.home.file ? "Pictures/Screenshots";
 assert !(macHome.config.home.file ? "Pictures/Screenshots");
 assert macHome.config.targets.darwin.defaults.NSGlobalDomain."com.apple.mouse.scaling" == 3.0;

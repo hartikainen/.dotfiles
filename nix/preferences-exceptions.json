@@ -3,13 +3,9 @@
     "currentHost": "Applied by the desktop Home Manager activation.",
     "Night Shift": "Configure the schedule and warmth in System Settings > Displays > Night Shift. macOS owns these settings; Home Manager does not install or run a Night Shift helper.",
     "display scaling": "Select More Space in System Settings > Displays. Display modes depend on the connected hardware; no resolution or display identifier is forced by the shared configuration.",
-    "restartfreeze": "Legacy systemsetup option; not applied to Apple Silicon.",
     "application restarts": "Preferences take effect on application restart or next login; activation does not kill applications."
   },
   "linux": {
-    "Unity remote-content-search": "Unity schema is not part of GNOME; no remote-search setting is applied.",
-    "libgnomekbd": "Layouts and Caps Lock mapping use org.gnome.desktop.input-sources.",
-    "GConf terminal palette": "GConf is unsupported; Ghostty retains its configured theme.",
     "GNOME screenshot directory": "Home Manager links Pictures/Screenshots to Desktop/screenshots for GNOME Shell's English folder name. Existing folders require conflict review and explicit migration. The gnome-screenshot application preference is retained."
   }
 }

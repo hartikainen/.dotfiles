@@ -30,6 +30,7 @@ for host in $compatible; do
     fi
     if [ "$(uname -s)" = Linux ]; then
         dbus-run-session -- ./bin/dotfiles apply --host "$host" --fixture --adopt --home-only
+        dbus-run-session -- /usr/bin/python3 tests/nix/linux-preferences.py a
     else
         ./bin/dotfiles apply --host "$host" --fixture --adopt "${system_flags[@]}"
     fi

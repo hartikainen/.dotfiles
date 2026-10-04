@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   profile,
@@ -30,6 +31,9 @@ in
       "com.apple.trackpad.trackpadCornerClickBehavior" = 0;
     };
   });
+  home.file."Pictures/Screenshots" = lib.mkIf (desktop && pkgs.stdenv.isLinux) {
+    source = lib.mkDefault (config.lib.file.mkOutOfStoreSymlink "${homeDirectory}/Desktop/screenshots");
+  };
   dconf = lib.mkIf (desktop && pkgs.stdenv.isLinux) {
     enable = true;
     settings = defaults {

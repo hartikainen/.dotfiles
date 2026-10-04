@@ -78,6 +78,7 @@ def main():
         checks = "nix flake check --no-write-lock-file && bash tests/nix/evaluate.sh && bash tests/nix/integration.sh && bash tests/nix/hosts.sh"
         if args.full:
             checks += " --full && bash tests/nix/full.sh"
+        checks += " && bash tests/nix/preferences.sh"
         run(
             [
                 "docker",

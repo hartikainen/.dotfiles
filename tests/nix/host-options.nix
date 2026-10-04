@@ -77,6 +77,8 @@ let
 in
 assert macHome.config.targets.darwin.defaults."com.apple.dock".autohide == false;
 assert macHome.config.targets.darwin.defaults.NSGlobalDomain.KeyRepeat == 1;
+assert linuxHome.config.home.file ? "Pictures/Screenshots";
+assert !(macHome.config.home.file ? "Pictures/Screenshots");
 assert macHome.config.targets.darwin.defaults.NSGlobalDomain."com.apple.mouse.scaling" == 3.0;
 assert macHome.config.targets.darwin.defaults.NSGlobalDomain."com.apple.trackpad.scaling" == 1.5;
 assert macHome.config.targets.darwin.defaults."com.apple.WindowManager".StandardHideWidgets;

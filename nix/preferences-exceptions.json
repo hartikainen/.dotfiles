@@ -10,6 +10,6 @@
     "Unity remote-content-search": "Unity schema is not part of GNOME; no remote-search setting is applied.",
     "libgnomekbd": "Layouts and Caps Lock mapping use org.gnome.desktop.input-sources.",
     "GConf terminal palette": "GConf is unsupported; Ghostty retains its configured theme.",
-    "GNOME screenshot directory": "Written to the gnome-screenshot schema; GNOME Shell capture behavior is desktop-version dependent."
+    "GNOME screenshot directory": "Home Manager links Pictures/Screenshots to Desktop/screenshots for GNOME Shell's English folder name. Existing folders require conflict review and explicit migration. The gnome-screenshot application preference is retained."
   }
 }

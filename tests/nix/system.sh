@@ -20,7 +20,10 @@ host_config() {
   system = "$system";
   profile = "desktop";
   osRelease = { ID = "ubuntu"; VERSION_ID = "26.04"; };
-  homeModules = [ { home.file.".dotfiles-system-test".text = "$marker"; } ];
+  homeModules = [ {
+    home.file.".dotfiles-system-test".text = "$marker";
+    dconf.settings."org/gnome/desktop/interface".clock-show-date = "$marker" == "a";
+  } ];
   linuxModules = [ {
     environment.etc."dotfiles-vm-marker".text = "$marker";
     workstation.docker.settings.labels = if "$marker" == "b" then [ "dotfiles-generation=b" ] else [ ];
@@ -48,6 +51,7 @@ wait_boot_services() {
 
 verify() {
     local marker="$1"
+    dbus-run-session -- /usr/bin/python3 tests/nix/linux-preferences.py "$marker"
     test "$(cat /etc/dotfiles-vm-marker)" = "$marker"
     test "$(cat "$HOME/.dotfiles-system-test")" = "$marker"
     systemctl is-active --quiet docker.service

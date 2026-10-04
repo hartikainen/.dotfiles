@@ -1,7 +1,7 @@
 ARG BASE=ubuntu:26.04
 FROM ${BASE}
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    ca-certificates curl xz-utils git python3 sudo locales dbus dconf-service libarchive-tools \
+    ca-certificates curl xz-utils git python3 python3-gi gsettings-desktop-schemas sudo locales dbus dconf-service libarchive-tools \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m -s /bin/bash tester \
     && mkdir /nix && chown tester /nix \

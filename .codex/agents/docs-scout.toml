@@ -1,6 +1,6 @@
 name = "docs-scout"
 description = "Researches upstream documentation and release notes for a project's dependencies. Delegate here instead of pulling long documentation pages into the main context."
-model = "gpt-5.6-terra"
+model = "gpt-6-luna"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """

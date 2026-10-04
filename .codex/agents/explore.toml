@@ -1,6 +1,6 @@
 name = "explore"
 description = "Broad or token-heavy read-only codebase discovery. Returns paths, line ranges, minimal evidence, contradictions, and bounded uncertainty. Verify what it returns against every file you then change."
-model = "gpt-5.6-sol"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = """

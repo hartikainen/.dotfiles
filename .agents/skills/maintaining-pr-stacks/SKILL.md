@@ -12,6 +12,12 @@ description: >-
 
 A request to maintain named PRs authorizes repeated correction, fixup commit, reordering, descendant rebase, exact-lease push, silent thread resolution, and PR description updates for those PRs until the completion conditions below hold. The user need not repeat those permissions or approve each follow-up cycle. Explicit limits in the user's request take precedence. This does not authorize merging, closing PRs, submitting reviews, publishing replies, or touching other branches.
 
+## Delegate review and verification
+
+This skill requests a local review subagent for the named stack when project policy permits delegation. Respect explicit user limits and stricter project policies. If delegation is unavailable or prohibited, perform the local inspection in the coordinating agent and report that independent local review did not run. This fallback does not waive the GitHub review completion requirement.
+
+Keep edits, commits, rebases, pushes, thread resolution, and PR body updates in the coordinating agent. Use the configured `reviewer` role and its model settings. If no reviewer role is available, use a read-only agent with the review brief below and the inherited model settings. Delegate check execution or substantial CI diagnosis to a configured build role when useful. Do not change a shared checkout while an agent reads or tests it; use an isolated checkout when those operations must overlap. Reviewers return findings, and build agents return exact commands, exit codes, and concise failure evidence. Neither publishes feedback or applies fixes.
+
 ## Establish the stack boundary
 
 Read every named PR with `gh pr view`, including `body`, `baseRefName`, `headRefName`, `headRefOid`, `reviews`, `comments`, and `statusCheckRollup`. Read all paginated review threads through GraphQL, including each thread's `id`, `isResolved`, `path`, `line`, `comments`, `author`, `createdAt`, and `updatedAt`. Timeline comments and review bodies must be assessed, but only review threads can be resolved.
@@ -60,13 +66,25 @@ Verify the reordered branch's final tree matches the tree before reordering, and
 
 A conflict means the automatic propagation is no longer trustworthy. Abort the rebase you started, restore the initial branch when safe, and report the conflict without resolving it by guesswork.
 
+Complete [local review](#review-the-local-revisions) before pushing. Resolve accepted findings through the owning-branch fixup and descendant propagation procedure above.
+
 Re-read every local ref and fetch every remote ref before pushing. Compare local refs with the recorded results of this cycle and remote refs with the observed remote OIDs. If either moved outside this cycle, discard the stale assumptions and audit the stack again. Preserve this cycle's work and never reset over the movement.
 
 Push all affected branches to the verified remote in one atomic command. Use one exact lease per destination ref, `--force-with-lease=refs/heads/<head-branch>:<observed-remote-oid>`, and explicit `<local-branch>:refs/heads/<head-branch>` refspecs. Use the PR's head branch name for the destination even when its local branch has a different name. The pushed difference may contain only fixups created in this cycle and rewrites required to reorder and propagate them. Do not push a pre-existing local commit. Fetch and verify that every named local tip matches its remote tip and every descendant contains its updated parent. If a ref moved independently, repeat the audit without overwriting it. Record the accepted remote OIDs as the baseline for the next cycle.
 
+## Review the local revisions
+
+After focused checks and descendant propagation, review each named PR against its actual parent before the first push, or before declaring completion if no push is needed. Give the reviewer the checkout path, immutable base and head OIDs, intended behavior, applicable constraints, and available verification results. Start with one reviewer at a time and a fresh context containing that brief rather than the repair conversation. Add parallel reviewers only for independent scopes that justify the extra work.
+
+Require each finding to identify a changed line, triggering condition, concrete consequence, and supporting code trace or test evidence. Convention findings must cite the applicable repository rule. Accept an explicit no-findings result with verification limits. The coordinator checks findings against the code, rejects unsupported claims, and maps accepted corrections to their owning branch and non-fixup commit. Keep uncertain findings visible for judgment rather than silently treating them as resolved.
+
+Record the reviewed base and head OIDs. After further edits or rebases, recheck affected behavior and interactions against the new revisions before pushing. A fixup-only diff is not sufficient when a changed parent alters a descendant's assumptions. Reuse prior review evidence only after establishing that its scope and relevant surrounding code are unchanged, and record that comparison. Wait for active review and build agents before mutating their checkout. Local review supplements the GitHub review required under [completion](#monitor-until-complete).
+
+Keep diagnostic findings in the agent handoff. Read [the review writing register](../writing-as-hartikainen/references/code-review.md) when turning an accepted finding into a comment, and follow [pending review handling](#keep-review-comments-pending) if such a comment is needed.
+
 ## Keep review comments pending
 
-Read `reviewing-pull-requests` before writing any review finding of your own. Add every such comment to an existing or created `PENDING` review, verify that the review remains `PENDING`, and never submit it. Report anything that cannot anchor to the PR diff in chat instead of publishing it elsewhere.
+Read `reviewing-pull-requests` before drafting a review comment for GitHub. Add every such comment to an existing or created `PENDING` review, verify that the review remains `PENDING`, and never submit it. Report anything that cannot anchor to the PR diff in chat instead of publishing it elsewhere.
 
 Replies to existing review threads have no pending mode on GitHub. Never reply to a thread, including with a fixed revision, because the reply would publish immediately.
 
@@ -90,6 +108,7 @@ Snapshot head OIDs, check runs, thread IDs, comment IDs, review IDs, and timesta
 Finish only after a fresh read confirms all of the following for every named PR at its observed head:
 
 - Tests and required checks pass, with no pending or failing applicable runs. Accept skipped or neutral checks only when the repository treats them as non-blocking; they are not evidence that a required test ran successfully.
+- Local inspection covers the final revisions, with accepted findings addressed. Record whether it used an independent reviewer or the fallback above.
 - Codex review has completed for that head, with no review still queued or running. Use the integration's completion evidence, including a supported no-findings outcome.
 - All actionable review feedback is addressed, addressed threads are resolved, and no comment remains awaiting a correction or the user's judgment.
 - Every PR description has passed the final check below and matches its final base-relative diff.
@@ -102,4 +121,4 @@ After checks, Codex reviews, and feedback are settled, check every named PR's de
 
 Re-read the PR body, base, and head before writing. If they changed during drafting, reconcile the description with those changes instead of overwriting another edit. Apply body updates with a structured API argument or `gh pr edit --body-file <path>` using a temporary text file that preserves actual newlines. Fetch the saved body to verify the update. If a head or base changes, or a description update triggers checks, reviews, or actionable feedback, resume monitoring and repeat the final description check after that work settles. Report an unverified or blocked update as incomplete.
 
-Restore the initial checkout when safe. In the final response, list every fixup with its full resulting OID, target branch, and change. Name the rebased and pushed branches, test and Codex review results with their head OIDs, resolved threads, descriptions updated or verified unchanged, and any unresolved comments or blockers with the next action.
+Restore the initial checkout when safe. In the final response, list every fixup with its full resulting OID, target branch, and change. Name the rebased and pushed branches, test, local review, and GitHub Codex review results with their revision OIDs, resolved threads, descriptions updated or verified unchanged, and any unresolved comments or blockers with the next action.

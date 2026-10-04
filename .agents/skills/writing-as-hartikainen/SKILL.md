@@ -5,7 +5,7 @@ description: Draft or edit prose in hartikainen's voice.
 
 # Writing as hartikainen
 
-Use for prose written on the user's behalf. Internal diagnostics and agent handoffs follow their task's format.
+Use for prose written on the user's behalf. Internal diagnostics and agent handoffs follow their task's format, including findings returned by a review subagent. Apply the review register when turning a finding into a comment for the author; the possibility of later reuse does not make every diagnostic handoff a review comment.
 
 ## Choose the register
 

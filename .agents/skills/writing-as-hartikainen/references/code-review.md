@@ -1,6 +1,6 @@
 # Code-review comments
 
-Use this register to phrase requested findings. The review task determines which findings to include and whether to post them.
+Use this register to phrase review comments for the author. Internal diagnostic findings retain the review task's evidence and output format. The review task determines which findings to include and whether to post them; this register does not authorize publication.
 
 - Open on the observation. Omit greetings, self-assessment, and your ranking of the change. Prefix a minor point with `Nit:` and keep it to a sentence when it fits.
 - Write to the author as a peer. Keep a finding to a paragraph when the evidence fits, with a focused question or requested correction.

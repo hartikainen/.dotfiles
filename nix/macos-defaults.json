@@ -128,9 +128,6 @@
     "DSDontWriteNetworkStores": true,
     "DSDontWriteUSBStores": true
   },
-  "com.apple.controlcenter": {
-    "NSStatusItem Visible Bluetooth": true
-  },
   "com.apple.CrashReporter": {
     "UseUNC": "1"
   },

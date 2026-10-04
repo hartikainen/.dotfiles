@@ -1,6 +1,10 @@
 {
   system = "aarch64-darwin";
   profile = "desktop";
-  homeModules = [ ];
+  homeModules = [
+    {
+      workstation.macos.nightShift.enable = false;
+    }
+  ];
   darwinModules = [ ];
 }

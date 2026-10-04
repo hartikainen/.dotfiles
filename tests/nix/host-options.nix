@@ -46,6 +46,11 @@ let
     }
   );
   macSystem = flake.lib.mkDarwin identity;
+  workMacbook = flake.lib.mkHostHome {
+    host = "work-macbook";
+    inherit (identity) username homeDirectory;
+    fixture = false;
+  };
   macOverrides = flake.lib.mkHome (
     identity
     // {
@@ -102,6 +107,9 @@ assert macDocker.config.workstation.macos.nightShift.start == "17:00";
 assert macDocker.config.workstation.macos.nightShift.end == "06:00";
 assert macDocker.config.workstation.macos.nightShift.temperature == 100;
 assert macDocker.config.launchd.agents.dotfiles-night-shift.enable;
+assert !workMacbook.config.workstation.macos.nightShift.enable;
+assert !(workMacbook.config.home.activation ? nightShift);
+assert !(workMacbook.config.launchd.agents ? dotfiles-night-shift);
 assert !(macHome.config.launchd.agents ? dotfiles-night-shift);
 assert macHome.config.launchd.agents.dotfiles-keyboard.config.RunAtLoad;
 assert macHome.config.launchd.agents.dotfiles-keyboard.config.StartInterval == 60;

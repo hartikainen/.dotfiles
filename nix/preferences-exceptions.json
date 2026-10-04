@@ -1,7 +1,8 @@
 {
   "macos": {
     "currentHost": "Applied by the desktop Home Manager activation.",
-    "Night Shift": "Private CoreBrightness schema; configure in System Settings. The installer does not edit root-owned private preference files.",
+    "Night Shift": "Home Manager uses the pinned nightlight package and its private CoreBrightness API. Fixtures omit it because virtual displays may not support Night Shift. Validate the schedule and warmth on supported macOS displays; no root-owned preference files are edited.",
+    "display scaling": "Select More Space in System Settings > Displays. Display modes depend on the connected hardware; no resolution or display identifier is forced by the shared configuration.",
     "restartfreeze": "Legacy systemsetup option; not applied to Apple Silicon.",
     "application restarts": "Preferences take effect on application restart or next login; activation does not kill applications."
   },

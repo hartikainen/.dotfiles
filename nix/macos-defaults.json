@@ -50,6 +50,8 @@
     "ShowRecentTags": false
   },
   "NSGlobalDomain": {
+    "com.apple.mouse.scaling": 3.0,
+    "com.apple.trackpad.scaling": 1.5,
     "NSNavPanelExpandedStateForSaveMode": true,
     "NSNavPanelExpandedStateForSaveMode2": true,
     "PMPrintingExpandedStateForPrint": true,
@@ -97,6 +99,9 @@
     "TrackpadThreeFingerDrag": true
   },
   "com.apple.AppleMultitouchTrackpad": {
+    "FirstClickThreshold": 1,
+    "SecondClickThreshold": 1,
+    "ActuateDetents": 1,
     "Clicking": 0,
     "TrackpadRightClick": 1,
     "TrackpadCornerSecondaryClick": 0,
@@ -105,6 +110,19 @@
     "TrackpadThreeFingerHorizSwipeGesture": 0,
     "TrackpadThreeFingerVertSwipeGesture": 0,
     "TrackpadThreeFingerDrag": true
+  },
+  "com.apple.driver.AppleBluetoothMultitouch.mouse": {
+    "MouseButtonMode": "OneButton",
+    "MouseHorizontalScroll": true,
+    "MouseVerticalScroll": true,
+    "MouseMomentumScroll": true,
+    "MouseOneFingerDoubleTapGesture": 0,
+    "MouseTwoFingerDoubleTapGesture": 3,
+    "MouseTwoFingerHorizSwipeGesture": 2
+  },
+  "com.apple.WindowManager": {
+    "StandardHideWidgets": true,
+    "StageManagerHideWidgets": true
   },
   "com.apple.desktopservices": {
     "DSDontWriteNetworkStores": true,

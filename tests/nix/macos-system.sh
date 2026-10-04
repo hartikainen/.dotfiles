@@ -43,6 +43,20 @@ verify() {
     test "$(defaults read org.dotfiles.test generation)" = "$marker"
     test "$(sudo defaults read /Library/Preferences/org.dotfiles.test generation)" = "$marker"
     test "$(defaults read com.apple.dock autohide)" = 1
+    test "$(defaults read com.apple.WindowManager StandardHideWidgets)" = 1
+    test "$(defaults read com.apple.WindowManager StageManagerHideWidgets)" = 1
+    test "$(defaults read -g com.apple.mouse.scaling)" = 3
+    test "$(defaults read -g com.apple.trackpad.scaling)" = 1.5
+    test -f "$HOME/Library/LaunchAgents/org.nix-community.home.dotfiles-keyboard.plist"
+    local mapping _attempt
+    for _attempt in {1..70}; do
+        mapping=$(/usr/bin/hidutil property --get UserKeyMapping)
+        if [[ "$mapping" == *HIDKeyboardModifierMappingSrc* ]]; then
+            break
+        fi
+        sleep 1
+    done
+    [[ "$mapping" == *HIDKeyboardModifierMappingSrc* ]]
     LC_ALL=C /usr/sbin/softwareupdate --schedule | grep -q 'turned on'
     test "$(sudo defaults read /Library/Preferences/com.apple.SoftwareUpdate AutomaticDownload)" = 1
     test "$(sudo defaults read /Library/Preferences/com.apple.SoftwareUpdate CriticalUpdateInstall)" = 1

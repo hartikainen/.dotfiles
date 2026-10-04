@@ -97,6 +97,16 @@ Module lists accept file paths, so related machines can import a shared work or 
 
 All hosts share `flake.lock`. Review and test lockfile updates together, then apply the reviewed repository commit to each machine when ready. The named `homeConfigurations`, macOS `darwinConfigurations`, and Linux `systemConfigs` exports use the placeholder account `dotfiles` for evaluation; use `bin/dotfiles` to build for the actual account.
 
+### macOS preferences
+
+The desktop profile hides desktop widgets, swaps Caps Lock and left Control, and sets mouse speed to 3.0 and trackpad speed to 1.5. The input values match the source Mac's preferences; hosts can override individual keys in `targets.darwin.defaults`. The keyboard mapping applies at activation and graphical login. A user LaunchAgent reapplies it every minute because macOS loses HID mappings after reboot or the last keyboard disconnects. `workstation.macos.keyMappings` owns the complete `hidutil` mapping list; set it to `[ ]` to clear this swap without adding another keyboard configuration owner.
+
+Home Manager configures Night Shift for 17:00–06:00 at maximum warmth through the pinned [`nightlight`](https://github.com/smudge/nightlight) package. Override `workstation.macos.nightShift.{enable,start,end,temperature}` in a host's `homeModules`. Temperature ranges from 0 to 100. The helper uses Apple's private CoreBrightness API; compatibility and visual behavior require macOS validation. Fixtures omit Night Shift. On a supported macOS guest, enable it explicitly in the fixture host with `workstation.macos.nightShift.enable = true`, then check `nightlight schedule`, `nightlight temp`, and System Settings after activation and reboot. Logs are under `~/.local/state/macos-preferences/`.
+
+Display scaling remains a manual setting: choose More Space in System Settings > Displays on the new MacBook Air. A VM cannot establish the built-in panel's supported modes. The shared configuration does not force a resolution or reuse the old Mac's display identifier.
+
+Rollback reapplies input and Night Shift values when the selected generation manages them. Disabling Night Shift management or rolling back to a generation without it leaves the last schedule and warmth in place; restore those in System Settings. Rolling back to a generation without keyboard management leaves the current mapping until reboot. Preference activation does not capture these private API settings for first-install recovery.
+
 ## Update and recover
 
 ```sh

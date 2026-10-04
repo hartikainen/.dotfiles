@@ -38,6 +38,7 @@ jq -e '.authInfo.fixture' "$HOME/.config/cursor/cli-config.json"
 tmux -L dotfiles-test -f "$HOME/.config/tmux/tmux.conf" new-session -d
 trap 'tmux -L dotfiles-test kill-server 2>/dev/null || true' EXIT
 test "$(tmux -L dotfiles-test show-option -gv set-clipboard)" = on
+test "$(tmux -L dotfiles-test show-option -gwv pane-scrollbars)" = off
 test "$(tmux -L dotfiles-test show-option -gv prefix)" = 'C-\'
 socket="$(tmux -L dotfiles-test display-message -p '#{socket_path},#{pid},0')"
 TMUX="$socket" bash "$HOME/.local/share/tmux/plugins/tmux-resurrect/scripts/save.sh"

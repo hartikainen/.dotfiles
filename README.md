@@ -109,6 +109,8 @@ Home Manager configures Night Shift for 17:00–06:00 at maximum warmth through 
 
 Display scaling remains a manual setting: choose More Space in System Settings > Displays on the new MacBook Air. A VM cannot establish the built-in panel's supported modes. The shared configuration does not force a resolution or reuse the old Mac's display identifier.
 
+`workstation.macos.finderSidebarPaths` adds the home directory and `~/Development` to Finder favorites on macOS desktop activation. Activation creates missing folders and appends missing favorites, preserving existing entries and their order. Hosts can override the list or set it to `[ ]` to disable management. Removing a path from the list leaves its sidebar entry in place. Sidebar service failures produce a warning so they do not abort home activation; retry activation from a graphical session if needed.
+
 Rollback reapplies input and Night Shift values when the selected generation manages them. Disabling Night Shift management or rolling back to a generation without it leaves the last schedule and warmth in place; restore those in System Settings. Rolling back to a generation without keyboard management leaves the current mapping until reboot. Preference activation does not capture these private API settings for first-install recovery.
 
 ## Update and recover

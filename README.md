@@ -101,6 +101,16 @@ Module lists accept file paths, so related machines can import a shared work or 
 
 All hosts share `flake.lock`. Review and test lockfile updates together, then apply the reviewed repository commit to each machine when ready. The named `homeConfigurations`, macOS `darwinConfigurations`, and Linux `systemConfigs` exports use the placeholder account `dotfiles` for evaluation; use `bin/dotfiles` to build for the actual account.
 
+### macOS preferences
+
+The desktop profile hides desktop widgets, swaps Caps Lock and left Control, and sets mouse speed to 3.0 and trackpad speed to 1.5. The input values match the source Mac's preferences; hosts can override individual keys in `targets.darwin.defaults`. The keyboard mapping applies at activation and graphical login. A user LaunchAgent reapplies it every minute because macOS loses HID mappings after reboot or the last keyboard disconnects. `workstation.macos.keyMappings` owns the complete `hidutil` mapping list; set it to `[ ]` to clear this swap without adding another keyboard configuration owner.
+
+Night Shift remains a manual setting in System Settings > Displays > Night Shift. macOS owns its schedule and warmth. Home Manager does not install a Night Shift helper or change these settings during activation. [Apple's Night Shift settings guide](https://support.apple.com/guide/mac-help/mchl9d976e85/mac) describes the native controls.
+
+Display scaling remains a manual setting: choose More Space in System Settings > Displays on the new MacBook Air. A VM cannot establish the built-in panel's supported modes. The shared configuration does not force a resolution or reuse the old Mac's display identifier.
+
+Rollback reapplies input values when the selected generation manages them. Rolling back to a generation without keyboard management leaves the mapping until reboot. Retained generations that include Night Shift automation can reapply its settings or fail in that helper during rollback.
+
 ## Update and recover
 
 ```sh

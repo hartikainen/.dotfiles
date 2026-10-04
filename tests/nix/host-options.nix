@@ -46,10 +46,33 @@ let
     }
   );
   macSystem = flake.lib.mkDarwin identity;
+  workMacbook = flake.lib.mkHostHome {
+    host = "work-macbook";
+    inherit (identity) username homeDirectory;
+    fixture = false;
+  };
+  macOverrides = flake.lib.mkHome (
+    identity
+    // {
+      system = "aarch64-darwin";
+      modules = [
+        {
+          workstation.macos.keyMappings = [ ];
+          targets.darwin.defaults.NSGlobalDomain."com.apple.mouse.scaling" = 2.0;
+        }
+      ];
+    }
+  );
+  macHeadless = flake.lib.mkHome (
+    identity
+    // {
+      system = "aarch64-darwin";
+      profile = "headless";
+      fixture = false;
+    }
+  );
 
 in
-assert linuxHome.config.home.file ? "Pictures/Screenshots";
-assert !(macHome.config.home.file ? "Pictures/Screenshots");
 assert macHome.config.targets.darwin.defaults."com.apple.dock".autohide == false;
 assert macHome.config.targets.darwin.defaults.NSGlobalDomain.KeyRepeat == 1;
 assert !(macHome.config.targets.darwin.defaults ? "com.apple.symbolichotkeys");
@@ -60,6 +83,37 @@ assert
     49
     262144
   ];
+assert linuxHome.config.home.file ? "Pictures/Screenshots";
+assert !(macHome.config.home.file ? "Pictures/Screenshots");
+assert macHome.config.targets.darwin.defaults.NSGlobalDomain."com.apple.mouse.scaling" == 3.0;
+assert macHome.config.targets.darwin.defaults.NSGlobalDomain."com.apple.trackpad.scaling" == 1.5;
+assert macHome.config.targets.darwin.defaults."com.apple.WindowManager".StandardHideWidgets;
+assert macHome.config.targets.darwin.defaults."com.apple.WindowManager".StageManagerHideWidgets;
+assert macOverrides.config.targets.darwin.defaults.NSGlobalDomain."com.apple.mouse.scaling" == 2.0;
+assert macOverrides.config.workstation.macos.keyMappings == [ ];
+assert !(macDocker.config.home.activation ? nightShift);
+assert !(macDocker.config.launchd.agents ? dotfiles-night-shift);
+assert builtins.all (package: (package.pname or "") != "nightlight") macDocker.config.home.packages;
+assert !(workMacbook.config.home.activation ? nightShift);
+assert !(workMacbook.config.launchd.agents ? dotfiles-night-shift);
+assert !(macHome.config.launchd.agents ? dotfiles-night-shift);
+assert macHome.config.launchd.agents.dotfiles-keyboard.config.RunAtLoad;
+assert macHome.config.launchd.agents.dotfiles-keyboard.config.StartInterval == 60;
+assert
+  macHome.config.workstation.macos.keyMappings == [
+    {
+      HIDKeyboardModifierMappingSrc = 30064771129;
+      HIDKeyboardModifierMappingDst = 30064771296;
+    }
+    {
+      HIDKeyboardModifierMappingSrc = 30064771296;
+      HIDKeyboardModifierMappingDst = 30064771129;
+    }
+  ];
+assert !(macHeadless.config.launchd.agents ? dotfiles-keyboard);
+assert !(macHeadless.config.launchd.agents ? dotfiles-night-shift);
+assert !(linuxHome.config.launchd.agents ? dotfiles-keyboard);
+assert !(linuxHome.config.launchd.agents ? dotfiles-night-shift);
 assert !(macHome.config.targets.darwin.defaults ? "com.apple.SoftwareUpdate");
 assert
   macSystem.config.system.defaults.CustomSystemPreferences."/Library/Preferences/com.apple.SoftwareUpdate".AutomaticCheckEnabled;

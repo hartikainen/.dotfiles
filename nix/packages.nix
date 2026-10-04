@@ -46,6 +46,7 @@ in
         buildozer
         clang-tools
         cmake
+        codex
         coreutils
         curl
         delta

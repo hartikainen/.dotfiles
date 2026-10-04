@@ -16,5 +16,6 @@ test "$(emacsclient --socket-name=dotfiles-full --eval "(featurep 'doom)")" = t
 command -v docker
 command -v shellcheck
 command -v gemini
+codex --version
 command -v devcontainer
 printf '\nFull package selection and public Doom startup passed.\n'

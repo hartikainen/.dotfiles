@@ -57,15 +57,7 @@ let
       system = "aarch64-darwin";
       modules = [
         {
-          workstation.macos = {
-            keyMappings = [ ];
-            nightShift = {
-              enable = true;
-              start = "18:30";
-              end = "07:15";
-              temperature = 80;
-            };
-          };
+          workstation.macos.keyMappings = [ ];
           targets.darwin.defaults.NSGlobalDomain."com.apple.mouse.scaling" = 2.0;
         }
       ];
@@ -99,15 +91,9 @@ assert macHome.config.targets.darwin.defaults."com.apple.WindowManager".Standard
 assert macHome.config.targets.darwin.defaults."com.apple.WindowManager".StageManagerHideWidgets;
 assert macOverrides.config.targets.darwin.defaults.NSGlobalDomain."com.apple.mouse.scaling" == 2.0;
 assert macOverrides.config.workstation.macos.keyMappings == [ ];
-assert macOverrides.config.workstation.macos.nightShift.start == "18:30";
-assert macOverrides.config.workstation.macos.nightShift.end == "07:15";
-assert macOverrides.config.workstation.macos.nightShift.temperature == 80;
-assert macOverrides.config.launchd.agents.dotfiles-night-shift.enable;
-assert macDocker.config.workstation.macos.nightShift.start == "17:00";
-assert macDocker.config.workstation.macos.nightShift.end == "06:00";
-assert macDocker.config.workstation.macos.nightShift.temperature == 100;
-assert macDocker.config.launchd.agents.dotfiles-night-shift.enable;
-assert !workMacbook.config.workstation.macos.nightShift.enable;
+assert !(macDocker.config.home.activation ? nightShift);
+assert !(macDocker.config.launchd.agents ? dotfiles-night-shift);
+assert builtins.all (package: (package.pname or "") != "nightlight") macDocker.config.home.packages;
 assert !(workMacbook.config.home.activation ? nightShift);
 assert !(workMacbook.config.launchd.agents ? dotfiles-night-shift);
 assert !(macHome.config.launchd.agents ? dotfiles-night-shift);

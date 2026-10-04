@@ -3,7 +3,6 @@
   lib,
   pkgs,
   profile,
-  fixture,
   ...
 }:
 let
@@ -17,11 +16,6 @@ let
         }
       )
     }
-  '';
-  nightShift = pkgs.writeShellScript "dotfiles-night-shift" ''
-    set -eu
-    ${pkgs.nightlight}/bin/nightlight schedule ${lib.escapeShellArg cfg.nightShift.start} ${lib.escapeShellArg cfg.nightShift.end}
-    ${pkgs.nightlight}/bin/nightlight temp ${toString cfg.nightShift.temperature}
   '';
 in
 {
@@ -40,32 +34,9 @@ in
       ];
       description = "User key mappings, defaulting to a Caps Lock and left Control swap.";
     };
-    nightShift = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        default = !fixture;
-        description = "Manage the Night Shift schedule and warmth through CoreBrightness.";
-      };
-      start = lib.mkOption {
-        type = lib.types.strMatching "([01][0-9]|2[0-3]):[0-5][0-9]";
-        default = "17:00";
-        description = "Local time when Night Shift starts.";
-      };
-      end = lib.mkOption {
-        type = lib.types.strMatching "([01][0-9]|2[0-3]):[0-5][0-9]";
-        default = "06:00";
-        description = "Local time when Night Shift ends.";
-      };
-      temperature = lib.mkOption {
-        type = lib.types.ints.between 0 100;
-        default = 100;
-        description = "Night Shift warmth, from 0 (least warm) to 100 (most warm).";
-      };
-    };
   };
 
   config = lib.mkIf desktop {
-    home.packages = lib.optionals cfg.nightShift.enable [ pkgs.nightlight ];
     home.activation = {
       macosPreferenceLogs = lib.hm.dag.entryBetween [ "setupLaunchAgents" ] [ "writeBoundary" ] ''
         run mkdir -p "${config.xdg.stateHome}/macos-preferences"
@@ -73,11 +44,6 @@ in
       keyboardMapping = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
         run ${keyboard}
       '';
-      nightShift = lib.mkIf cfg.nightShift.enable (
-        lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
-          run ${nightShift}
-        ''
-      );
     };
     launchd.agents = {
       dotfiles-keyboard = {
@@ -91,16 +57,6 @@ in
           LimitLoadToSessionType = "Aqua";
           StandardOutPath = "${config.xdg.stateHome}/macos-preferences/keyboard.log";
           StandardErrorPath = "${config.xdg.stateHome}/macos-preferences/keyboard.log";
-        };
-      };
-      dotfiles-night-shift = lib.mkIf cfg.nightShift.enable {
-        enable = true;
-        config = {
-          ProgramArguments = [ "${nightShift}" ];
-          RunAtLoad = true;
-          LimitLoadToSessionType = "Aqua";
-          StandardOutPath = "${config.xdg.stateHome}/macos-preferences/night-shift.log";
-          StandardErrorPath = "${config.xdg.stateHome}/macos-preferences/night-shift.log";
         };
       };
     };

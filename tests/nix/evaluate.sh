@@ -36,6 +36,10 @@ nix eval --json --impure --expr '
 '
 
 nix eval --json --impure --expr '
+  import ./tests/nix/finder-sidebar.nix (builtins.getFlake ("path:" + toString ./.))
+'
+
+nix eval --json --impure --expr '
   let flake = builtins.getFlake ("path:" + toString ./.);
   in map (system: (flake.lib.mkLinux {
     inherit system; username = "dotfiles"; homeDirectory = "/home/dotfiles";

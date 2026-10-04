@@ -32,6 +32,7 @@ in
   imports = [
     ./desktop.nix
     ./macos-preferences.nix
+    ./finder-sidebar.nix
     ./colima.nix
     ./doom.nix
   ];

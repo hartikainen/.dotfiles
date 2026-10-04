@@ -189,6 +189,9 @@
         };
     in
     {
+      packages = forAll (system: {
+        codex = (pkgsFor system).callPackage ./nix/packages/codex.nix { };
+      });
       lib = {
         inherit
           mkHome
@@ -256,6 +259,7 @@
           pkgs = pkgsFor system;
         in
         {
+          codex = self.packages.${system}.codex;
           lint =
             pkgs.runCommand "dotfiles-lint"
               {

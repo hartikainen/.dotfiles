@@ -46,7 +46,7 @@ in
         buildozer
         clang-tools
         cmake
-        codex
+        (callPackage ./packages/codex.nix { })
         coreutils
         curl
         delta

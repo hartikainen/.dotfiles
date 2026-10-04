@@ -39,6 +39,9 @@ in
         AutomaticDownload = lib.mkDefault 1;
         CriticalUpdateInstall = lib.mkDefault 1;
       };
+  system.defaults.CustomSystemPreferences."/Library/Preferences/com.apple.timezone.auto" =
+    lib.mkIf desktop
+      { Active = lib.mkDefault true; };
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"

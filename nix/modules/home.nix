@@ -31,6 +31,7 @@ in
 {
   imports = [
     ./desktop.nix
+    ./macos-preferences.nix
     ./colima.nix
     ./doom.nix
   ];

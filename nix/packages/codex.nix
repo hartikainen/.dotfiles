@@ -8,19 +8,19 @@
   jq,
 }:
 let
-  version = "0.160.0";
+  version = "0.164.0";
   releases = {
     aarch64-darwin = {
       target = "aarch64-apple-darwin";
-      hash = "sha256-AH30G2B9u8jSBLl0bOf+0tTObIE/RMMs7uVBdcp5ZSU=";
+      hash = "sha256-3ZnpCSJwaRpnvd574ErCg96p2o6Gy941bCzIUaeSBfo=";
     };
     aarch64-linux = {
       target = "aarch64-unknown-linux-musl";
-      hash = "sha256-fw/kL/Iuz6Oke8SjT1sixCGLQxpOwKulHH2YKZ8HkAw=";
+      hash = "sha256-WRit1sfpzx4Uqa8bTA9L8dJKQ5A/qsJt9dxMAZ6pG9U=";
     };
     x86_64-linux = {
       target = "x86_64-unknown-linux-musl";
-      hash = "sha256-T8xHq1f1L/dTY5Uah2EUbNEMgoi9hv7UVIfbsgSha3E=";
+      hash = "sha256-PsVQUxCWCNUDj35QdQ99Jfdo39dA/vBxqnEOJVm2Oqw=";
     };
   };
   release = releases.${stdenvNoCC.hostPlatform.system};
@@ -67,11 +67,9 @@ stdenvNoCC.mkDerivation {
     ' "$out/codex-package.json" > /dev/null
     test -x "$out/bin/codex-code-mode-host"
     test -x "$out/codex-path/rg"
-    test -x "$out/codex-resources/zsh/bin/zsh"
     test -x "$out/codex-resources/voice/bin/codex-voice-host"
     "$out/bin/codex-code-mode-host" --help > /dev/null
     "$out/codex-path/rg" --version > /dev/null
-    "$out/codex-resources/zsh/bin/zsh" --version > /dev/null
     ${lib.optionalString stdenvNoCC.hostPlatform.isLinux ''
       test -x "$out/codex-resources/bwrap"
       "$out/codex-resources/bwrap" --version > /dev/null

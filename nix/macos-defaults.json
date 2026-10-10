@@ -168,6 +168,28 @@
           ],
           "type": "standard"
         }
+      },
+      "79": {
+        "enabled": true,
+        "value": {
+          "parameters": [
+            65535,
+            123,
+            262144
+          ],
+          "type": "standard"
+        }
+      },
+      "81": {
+        "enabled": true,
+        "value": {
+          "parameters": [
+            65535,
+            124,
+            262144
+          ],
+          "type": "standard"
+        }
       }
     }
   },

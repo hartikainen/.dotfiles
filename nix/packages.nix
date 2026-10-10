@@ -134,6 +134,7 @@ in
     ];
     casks = lib.optionals desktop [
       "android-commandlinetools"
+      "antigravity-cli"
       "claude-code"
       "font-fira-code-nerd-font"
       "font-fira-mono-nerd-font"

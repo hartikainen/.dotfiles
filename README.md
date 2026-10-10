@@ -144,7 +144,7 @@ The Doom configuration remains in a separate public submodule. Its Git submodule
 
 The Nix build adapts the personal configuration's `bazel-mode` package name to upstream's `bazel` library and its format-on-save exclusion to Doom's `+format-on-save-disabled-modes` setting. These compatibility changes apply to the store copy; the source checkout stays untouched. The Doom module owns `~/.config/doom` and links files from the same effective configuration used to build the editor, including recipe pins and compatibility changes. Edit the source checkout and rebuild rather than editing these managed files.
 
-Nix supplies the Emacs executable on macOS as well as Linux. The macOS build does not include Homebrew's `emacs-plus` patches. The invocation aliases and tmux restoration rules retain the per-project client/server workflow; the configuration does not start a shared daemon.
+Nix supplies the Emacs executable on macOS as well as Linux. macOS uses `emacs-git` from Doom's locked `emacs-overlay` input, with Doom packages built against the same editor. This development build does not include Homebrew's `emacs-plus` patches. Linux uses the stable Nixpkgs builds. The invocation aliases and tmux restoration rules retain the per-project client/server workflow; the configuration does not start a shared daemon.
 
 Doom uses the `nix` profile and stores writable state beneath the XDG cache, data, and state directories. State outside these locations is not migrated automatically. Copy state such as bookmarks or save history deliberately after validating the editor; package rollback does not roll back that data.
 

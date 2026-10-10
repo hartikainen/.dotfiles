@@ -2,12 +2,14 @@
   config,
   lib,
   pkgs,
+  inputs,
   fixture,
   profile,
   homeDirectory,
   ...
 }:
 let
+  darwinEmacs = (pkgs.extend inputs.doom-nix.inputs.emacs-overlay.overlays.emacs).emacs-git;
   hasPrivate = builtins.pathExists ../../.config/doom/init.el;
   pins = builtins.fromJSON (builtins.readFile ../doom-pins.json);
   pinDeclarations = pkgs.writeText "doom-pins.el" (
@@ -41,7 +43,7 @@ in
     doomLocalDir = "${homeDirectory}/.local/share/nix-doom";
     emacs =
       if pkgs.stdenv.isDarwin then
-        pkgs.emacs
+        darwinEmacs
       else if profile == "desktop" then
         pkgs.emacs-pgtk
       else
@@ -60,6 +62,6 @@ in
     extraPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
   };
   home.packages = lib.optionals fixture [
-    (if pkgs.stdenv.isDarwin then pkgs.emacs else pkgs.emacs-nox)
+    (if pkgs.stdenv.isDarwin then darwinEmacs else pkgs.emacs-nox)
   ];
 }

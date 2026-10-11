@@ -66,6 +66,7 @@
   ".cursor/hooks/block-review-mcp.py",
   ".cursor/hooks/block-review-submission.py",
   ".cursor/rules/writing.mdc",
+  ".local/bin/video-share",
   ".profile",
   ".zshenv"
 ]

@@ -69,6 +69,7 @@
 !.cursor/rules/writing.mdc
 !.dockerignore
 !.github/scripts/check-agent-references.sh
+!.local/bin/video-share
 !.profile
 !.zshenv
 !bin/bootstrap

@@ -134,6 +134,17 @@ System and home activation are separate transactions. A power failure between th
 
 Rollback restores managed configuration and Nix package selection. It does not restore application data, remove every preference side effect, or downgrade Homebrew applications. `nix-homebrew` pins Homebrew itself and adopts an existing installation during `apply --system`. Homebrew activation disables automatic upgrades and cleanup. Upgrade native applications separately with Homebrew after reviewing its proposed changes.
 
+## Video sharing
+
+`video-share INPUT [OUTPUT]` creates an H.264/AAC MP4 beside the original, with `-share.mp4` appended to its stem. It converts HLG/PQ HDR to SDR, fits landscape or portrait video within 1280 × 720 or 720 × 1280 without upscaling, limits the frame rate to 30 fps, and removes source metadata, including location. Existing files are never replaced. Home Manager installs the command in `~/.local/bin`; Nix supplies Python and FFmpeg.
+
+```console
+video-share ~/Downloads/clip.mp4
+video-share ~/Downloads/clip.mp4 ~/Downloads/clip-small.mp4 --max-mb 25
+```
+
+The default size budget is 9.5 MB. The command caps the video bitrate according to duration, checks the encoded size, and fully decodes the result before publishing it. Longer clips may need a larger `--max-mb` budget to retain useful detail. The MP4 index is placed at the start for streaming playback.
+
 ## Emacs
 
 The Doom configuration remains in a separate public submodule. Its Git submodule reference is the authoritative revision. Commit intentional changes in the Doom repository, stage `.config/doom` in the parent repository, and build and test before committing that reference. Deployment requires a clean Doom checkout matching the staged reference. All tracked Doom files, including snippets, enter the source snapshot; ignored runtime files and Git metadata do not. Keep secrets outside both repositories.

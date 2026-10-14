@@ -1,0 +1,26 @@
+{
+  "review-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "^run_command$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env python3 \"$HOME/.codex/hooks/block-review-submission.py\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "^call_mcp_tool$|^mcp_.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env python3 \"$HOME/.codex/hooks/block-review-mcp.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -24,7 +24,7 @@ Before writing a commit message, a code comment, a docstring, documentation, a p
 # Writing conventions
 
 - Do not hard-wrap non-code text, including Markdown, plain text, and GitHub text. Keep each prose paragraph on one physical line and let editors soft-wrap; preserve structural line breaks. Commit bodies are the exception: follow the repository's commit-body wrapping convention, using 72 characters when none is specified. Leave long URLs and fenced blocks intact.
-- Use backticks for code identifiers, commands, flags, paths, and configuration literals when exact syntax matters. Ordinary numbers, measurements, units, dates, hardware and product names, and version mentions stay in plain text, including in tables. Use parentheses, not em dashes, and never use bolding for emphasis.
+- Use backticks for code identifiers, commands, flags, paths, and configuration literals when exact syntax matters. Ordinary numbers, measurements, units, dates, hardware and product names, and version mentions stay in plain text, including in tables. Use parentheses, not em dashes, and never use bolding for emphasis. Separate independent sentences with periods, and reserve semicolons for complex lists.
 - In durable technical documentation, prefer stable behavior and constraints over time-relative commentary. In commit and PR descriptions, include before/after context when it explains the change. Ground measurements in relevant sources or experimental conditions.
 - Never create a plan, summary, report, or migration Markdown file unless I ask.
 

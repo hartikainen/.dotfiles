@@ -68,6 +68,14 @@
 !.cursor/hooks/block-review-submission.py
 !.cursor/rules/writing.mdc
 !.dockerignore
+!.gemini/GEMINI.md
+!.gemini/config/AGENTS.md
+!.gemini/config/agents/build-doctor.md
+!.gemini/config/agents/docs-scout.md
+!.gemini/config/agents/explore.md
+!.gemini/config/agents/reviewer.md
+!.gemini/config/hooks.json
+!.gemini/config/mcp_config.json
 !.github/scripts/check-agent-references.sh
 !.local/bin/video-share
 !.profile

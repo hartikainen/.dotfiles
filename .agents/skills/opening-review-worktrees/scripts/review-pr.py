@@ -63,7 +63,21 @@ def expected_paths(checkout: Path, pr: int) -> tuple[Path, Path]:
     return common_dir, parent / str(pr)
 
 
-def invoke_bootstrap(checkout: Path, expected: Path, pr: int) -> dict[str, object]:
+def required_executables(agent: str) -> tuple[str, ...]:
+    if agent in ("codex", "agy"):
+        return (agent,)
+    return ("codex", agent)
+
+
+def interactive_command(agent: str, prompt: str) -> tuple[str, ...]:
+    if agent == "agy":
+        return ("agy", "-i", prompt)
+    return (agent, prompt)
+
+
+def invoke_bootstrap(
+    checkout: Path, expected: Path, pr: int, agent: str = "codex"
+) -> dict[str, object]:
     script_dir = Path(__file__).resolve().parent
     schema = script_dir / "bootstrap-output.schema.json"
     expected.parent.mkdir(parents=True, exist_ok=True)
@@ -73,32 +87,58 @@ def invoke_bootstrap(checkout: Path, expected: Path, pr: int) -> dict[str, objec
         f"`{expected}`. Create or inspect the worktree, do not review the "
         "change, and return only the schema-constrained result."
     )
-    with tempfile.TemporaryDirectory(prefix="review-pr-") as temporary:
-        output = Path(temporary) / "bootstrap.json"
+    if agent == "agy":
         command = (
-            "codex",
-            "exec",
-            "--ephemeral",
-            "--approve-for-me",
-            "-C",
-            str(checkout),
+            "agy",
+            "--print",
+            "--dangerously-skip-permissions",
             "--add-dir",
             str(expected.parent),
-            "--output-schema",
+            "--json-schema",
             str(schema),
-            "--output-last-message",
-            str(output),
             prompt,
         )
-        result = subprocess.run(command, check=False)
+        result = subprocess.run(
+            command,
+            cwd=checkout,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+        )
         if result.returncode != 0:
-            raise LauncherError(f"`codex exec` exited with `{result.returncode}`")
+            raise LauncherError(f"`agy --print` exited with `{result.returncode}`")
         try:
-            payload = json.loads(output.read_text(encoding="utf-8"))
-        except (OSError, ValueError) as error:
-            raise LauncherError("`codex exec` did not return valid JSON") from error
+            payload = json.loads(result.stdout)
+        except ValueError as error:
+            raise LauncherError("`agy --print` did not return valid JSON") from error
+    else:
+        with tempfile.TemporaryDirectory(prefix="review-pr-") as temporary:
+            output = Path(temporary) / "bootstrap.json"
+            command = (
+                "codex",
+                "exec",
+                "--ephemeral",
+                "--approve-for-me",
+                "-C",
+                str(checkout),
+                "--add-dir",
+                str(expected.parent),
+                "--output-schema",
+                str(schema),
+                "--output-last-message",
+                str(output),
+                prompt,
+            )
+            result = subprocess.run(command, check=False)
+            if result.returncode != 0:
+                raise LauncherError(f"`codex exec` exited with `{result.returncode}`")
+            try:
+                payload = json.loads(output.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as error:
+                raise LauncherError("`codex exec` did not return valid JSON") from error
     if not isinstance(payload, dict):
-        raise LauncherError("`codex exec` returned a non-object result")
+        runner = "`agy --print`" if agent == "agy" else "`codex exec`"
+        raise LauncherError(f"{runner} returned a non-object result")
     return payload
 
 
@@ -177,7 +217,7 @@ def verify_result(
 def main() -> int:
     args = parse_args()
     checkout = Path.cwd().resolve()
-    for executable in ("codex", args.agent):
+    for executable in required_executables(args.agent):
         if shutil.which(executable) is None:
             print(
                 f"review-pr: `{executable}` is not available on `PATH`", file=sys.stderr
@@ -185,7 +225,7 @@ def main() -> int:
             return 1
     try:
         common_dir, expected = expected_paths(checkout, args.pr)
-        payload = invoke_bootstrap(checkout, expected, args.pr)
+        payload = invoke_bootstrap(checkout, expected, args.pr, args.agent)
         worktree = verify_result(payload, checkout, common_dir, expected, args.pr)
     except (LauncherError, OSError) as error:
         print(f"review-pr: {error}", file=sys.stderr)
@@ -193,7 +233,7 @@ def main() -> int:
     prompt = f"Please review PR #{args.pr}."
     os.chdir(worktree)
     try:
-        os.execvp(args.agent, (args.agent, prompt))
+        os.execvp(args.agent, interactive_command(args.agent, prompt))
     except OSError as error:
         print(f"review-pr: {error}", file=sys.stderr)
     return 1

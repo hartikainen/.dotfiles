@@ -12,7 +12,8 @@ memory of it.
 # Bans that hold without reading anything
 
 - Wrap every identifier, path, flag, and value in backticks. Use parentheses,
-  not em dashes, and never use bolding for emphasis.
+  not em dashes, and never use bolding for emphasis. Separate independent
+  sentences with periods, and reserve semicolons for complex lists.
 - Write invariant prose. Do not use `currently`, `for now`, `recently`, or
   `new`, and do not appeal to what the code used to do. Prefer an invariant to
   a measurement. Anchor every number to a version, image tag, or linked pull

@@ -78,6 +78,9 @@ in
         (plugin "tmux-continuum" inputs.continuum)
       ]
       // {
+        ".gemini/config/skills.json".text = builtins.toJSON {
+          entries = [ { path = "${homeDirectory}/.agents/skills"; } ];
+        };
         ".local/share/oh-my-zsh".source = inputs.oh-my-zsh;
       };
     activation.localConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -97,6 +100,8 @@ in
         "''${CODEX_HOME:-$HOME/.codex}/config.toml" ${../settings/codex.toml}
       run ${(pkgs.python3.withPackages (p: [ p.tomli-w ]))}/bin/python3 ${../merge-settings.py} \
         "''${CURSOR_CONFIG_DIR:-$HOME/.config/cursor}/cli-config.json" ${../settings/cursor.json}
+      run ${(pkgs.python3.withPackages (p: [ p.tomli-w ]))}/bin/python3 ${../merge-settings.py} \
+        "$HOME/.gemini/config/config.json" ${../settings/antigravity.json}
     '';
   };
   programs.home-manager.enable = true;

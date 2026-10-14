@@ -21,6 +21,8 @@ declare -r -a SCANNED=(
     ".agents"
     ".cursor"
     ".codex"
+    ".gemini/GEMINI.md"
+    ".gemini/config"
     "agent.md"
 )
 

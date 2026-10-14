@@ -1,4 +1,5 @@
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -46,6 +47,21 @@ class MergeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.module.apply(target, seed)
         self.assertEqual(target.read_text(), 'model = "personal"\n')
+
+    def test_antigravity_disables_imported_review_and_preserves_local_settings(self):
+        target = self.root / "config.json"
+        existing = {
+            "plugins": {
+                "code-review": {"enabled": True},
+                "conductor": {"enabled": True},
+            },
+            "userSettings": {"remoteControlHostname": "workstation"},
+        }
+        target.write_text(json.dumps(existing))
+        seed = Path(__file__).resolve().parents[2] / "nix/settings/antigravity.json"
+        self.module.apply(target, seed)
+        existing["plugins"]["code-review"]["enabled"] = False
+        self.assertEqual(json.loads(target.read_text()), existing)
 
     def test_symlinked_parent_is_rejected(self):
         (self.root / "real").mkdir()

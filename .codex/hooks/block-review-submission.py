@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Deny shell commands that would submit or publish a pull request review.
 
-Codex runs this as a `PreToolUse` hook for `Bash`. Reviews have to stay in
-GitHub's `PENDING` state so that a human submits them by hand, so anything that
-submits a review, publishes a comment, merges, or closes a pull request is
-denied. Creating a pending review is deliberately left alone.
+Codex and Antigravity run this as a `PreToolUse` hook for shell commands.
+Reviews have to stay in GitHub's `PENDING` state so that a human submits them
+by hand, so anything that submits a review, publishes a comment, merges, or
+closes a pull request is denied. Creating a pending review is deliberately left
+alone.
 
 GitHub distinguishes the two by a single field: `POST /pulls/{n}/reviews`
 leaves the review `PENDING` when `event` is absent and submits it the moment
@@ -24,9 +25,9 @@ Thread maintenance goes through the idempotent helper in
 `maintaining-pr-stacks`, which resolves without publishing a comment. Direct
 reply and resolution mutations stay blocked here.
 
-Commands that are not a review submission return an empty decision so the
-normal permission system still applies. This hook only ever removes
-permissions, it never grants them.
+Commands that are not a review submission return an empty decision in Codex
+and `ask` in Antigravity, which respects cached user approvals. This hook
+only ever removes permissions, it never grants them.
 """
 
 import json
@@ -227,15 +228,16 @@ def fallback_reason(raw: str) -> str:
     return ""
 
 
-def deny(reason: str) -> dict[str, object]:
-    """Return Codex's `PreToolUse` denial shape."""
+def deny(reason: str, *, antigravity: bool = False) -> dict[str, object]:
+    """Return the `PreToolUse` denial shape for Codex or Antigravity."""
+    message = f"Blocked a review submission because {reason} {GUIDANCE}"
+    if antigravity:
+        return {"decision": "deny", "reason": message}
     return {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": (
-                f"Blocked a review submission because {reason} {GUIDANCE}"
-            ),
+            "permissionDecisionReason": message,
         }
     }
 
@@ -244,6 +246,7 @@ def main() -> int:
     raw = sys.stdin.read()
 
     command = ""
+    antigravity = False
     try:
         payload = json.loads(raw)
         if isinstance(payload, dict):
@@ -252,6 +255,14 @@ def main() -> int:
                 candidate = tool_input.get("command")
                 if isinstance(candidate, str):
                     command = candidate
+            tool_call = payload.get("toolCall")
+            if isinstance(tool_call, dict):
+                antigravity = True
+                args = tool_call.get("args")
+                if isinstance(args, dict):
+                    candidate = args.get("CommandLine")
+                    if isinstance(candidate, str):
+                        command = candidate
     except ValueError:
         pass
 
@@ -260,7 +271,13 @@ def main() -> int:
     except Exception:
         reason = fallback_reason(raw)
 
-    print(json.dumps(deny(reason) if reason else {}))
+    print(
+        json.dumps(
+            deny(reason, antigravity=antigravity)
+            if reason
+            else ({"decision": "ask"} if antigravity else {})
+        )
+    )
     return 0
 
 

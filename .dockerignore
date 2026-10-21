@@ -18,6 +18,7 @@
 !.bash_logout
 !.bash_profile
 !.bashrc
+!.bazelrc
 !.codex/AGENTS.md
 !.codex/agents/build-doctor.toml
 !.codex/agents/docs-scout.toml

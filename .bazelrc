@@ -1,0 +1,26 @@
+# Shut down idle daemons after 30 minutes.
+startup --max_idle_secs=1800
+
+# Local disk cache and automatic background garbage collection
+build --disk_cache=~/.cache/bazel_disk_cache
+build --experimental_disk_cache_gc_max_size=30G
+build --experimental_disk_cache_gc_max_age=14d
+build --experimental_disk_cache_gc_idle_delay=1m
+
+# Cross-workspace repository caching optimizations
+common --repository_cache=~/.cache/bazel/bazel-repo-cache
+common --repo_contents_cache=~/.cache/bazel/bazel-repo-cache/contents
+common --experimental_repository_cache_hardlinks=true
+
+common --repo_contents_cache_gc_max_age=3d
+common --repo_contents_cache_gc_idle_delay=1m
+
+build --experimental_install_base_gc_max_age=30d
+
+build --noreuse_sandbox_directories
+# build --reuse_sandbox_directories
+
+build --noannounce_rc
+build --ui_event_filters=-info
+build --noshow_progress
+build --show_result=0

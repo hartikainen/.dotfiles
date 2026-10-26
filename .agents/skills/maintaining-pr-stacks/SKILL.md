@@ -12,6 +12,10 @@ description: >-
 
 A request to maintain named PRs authorizes repeated correction, fixup commit, reordering, descendant rebase, exact-lease push, silent thread resolution, and PR description updates for those PRs until the completion conditions below hold. The user need not repeat those permissions or approve each follow-up cycle. Explicit limits in the user's request take precedence. This does not authorize merging, closing PRs, submitting reviews, publishing replies, or touching other branches.
 
+## Model selection
+
+Use GPT-6.1 Sol (`gpt-6.1-sol`) with high reasoning effort for the coordinating agent. Select the model and effort through the session's model picker or `/model`, or start Codex with `codex --model gpt-6.1-sol -c 'model_reasoning_effort="high"'`. Loading this skill does not switch the active session's model. Review and build agents use their configured model settings as described below.
+
 ## Delegate review and verification
 
 This skill requests a local review subagent for the named stack when project policy permits delegation. Respect explicit user limits and stricter project policies. If delegation is unavailable or prohibited, perform the local inspection in the coordinating agent and report that independent local review did not run. This fallback does not waive the GitHub review completion requirement.

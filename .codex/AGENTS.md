@@ -7,6 +7,13 @@ Work within the agreed scope and applicable safety and approval requirements.
 - Complete required checks, then broaden verification only for an unresolved concern. A prose edit does not need an unrelated test suite.
 - Use context for routine choices. Ask when missing input changes correctness, scope, or authorization. If an instruction requires a pause, quote and link its source, and continue any preparation it permits.
 
+# Implementation simplicity
+
+- Prefer the simplest implementation that satisfies the current requirements and follows established repository patterns. Add abstractions, dependencies, configuration, and fallback behavior only when justified by the task's requirements. Do not design for hypothetical future needs.
+- Prefer readable control flow and clear names over compact expressions or fewer lines. Preserve required validation, error handling, security checks, and compatibility.
+- For substantial code changes, use the `simplify` skill for one cleanup pass over the task's diff before final verification and committing. Keep cleanup within the requested scope and leave the code unchanged when there is no clear improvement.
+- Run the relevant checks after cleanup edits. Use a separate reviewer only when the change warrants one and the project's delegation policy allows it.
+
 # Branches and commits
 
 A request to implement, add, or fix something authorizes local commits for that work. Do not ask for commit approval again unless the user limits that permission.

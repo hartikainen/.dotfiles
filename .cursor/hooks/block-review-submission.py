@@ -31,14 +31,22 @@ Thread maintenance goes through the idempotent helper in
 `maintaining-pr-stacks`, which resolves without publishing a comment. Direct
 reply and resolution mutations stay blocked here.
 
-Commands that are not a review submission return an empty decision so the
-normal permission system still applies. This hook only ever removes
-permissions, it never grants them.
+The exact `@codex review.` trigger has standing user approval. Other commands
+that are not a review submission return an empty decision so the normal
+permission system still applies.
 """
 
 import json
 import re
 import sys
+
+# Match the entire command so extra arguments and shell operations stay guarded.
+CODEX_REVIEW_REQUEST = re.compile(
+    r"gh[ \t]+api[ \t]+--method[ \t]+POST[ \t]+--raw-field[ \t]+"
+    r"(['\"])body=@codex review\.\1[ \t]+"
+    r"repos/[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_][A-Za-z0-9_.-]*"
+    r"/issues/[1-9][0-9]*/comments"
+)
 
 # `gh pr review` has no pending mode, so every form of it submits.
 SUBMITTING_COMMANDS = (
@@ -188,6 +196,8 @@ def writes(command: str) -> bool:
 
 def evaluate(command: str) -> str:
     """Returns a denial reason for `command`, or an empty string to defer."""
+    if CODEX_REVIEW_REQUEST.fullmatch(command):
+        return ""
     if not GITHUB_CLIENT.search(command):
         return ""
 
@@ -283,13 +293,14 @@ def main() -> int:
     except ValueError:
         pass
 
+    trigger = isinstance(command, str) and bool(CODEX_REVIEW_REQUEST.fullmatch(command))
     try:
         reason = evaluate(command) if command else fallback_reason(raw)
     except Exception:
         reason = fallback_reason(raw)
 
     if not reason:
-        print("{}")
+        print(json.dumps({"permission": "allow"} if trigger else {}))
         return 0
 
     print(

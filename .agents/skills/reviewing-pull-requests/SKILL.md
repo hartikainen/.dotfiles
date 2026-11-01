@@ -16,13 +16,15 @@ Every review you write stays `PENDING`. Omit `event` and the top-level `body`, l
 
 Keep existing pending reviews and their comments. Read the user's comments before drafting yours, omit duplicates, and reuse their phrasing for the same class of issue. Never delete a pending review to make room for another. Ask the user before resolving an existing review thread.
 
+The exact public comment `@codex review.` has standing authorization to request a review of a PR within the current task. Check for an existing request or completed review for its current head first. Use `gh api --method POST --raw-field 'body=@codex review.' repos/OWNER/REPO/issues/NUMBER/comments` as a standalone command with literal repository and PR values. This exception does not permit extra prose or review submission.
+
 These operations publish or change the pull request's status and are forbidden:
 
 - `gh pr review`, including `--approve`, `--request-changes`, and `--comment`.
 - `gh pr comment`.
 - `POST /pulls/{n}/reviews/{id}/events`.
 - `POST /pulls/{n}/comments` and `POST /pulls/comments/{id}/replies`.
-- `POST /issues/{n}/comments`.
+- `POST /issues/{n}/comments`, except for the exact trigger command above.
 - The GraphQL `submitPullRequestReview` mutation, or `addPullRequestReview` with an `event` argument.
 - `gh pr merge` and `gh pr close`.
 

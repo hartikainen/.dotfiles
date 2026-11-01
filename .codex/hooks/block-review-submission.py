@@ -5,7 +5,7 @@ Codex and Antigravity run this as a `PreToolUse` hook for shell commands.
 Reviews have to stay in GitHub's `PENDING` state so that a human submits them
 by hand, so anything that submits a review, publishes a comment, merges, or
 closes a pull request is denied. Creating a pending review is deliberately left
-alone.
+alone. The exact `@codex review.` trigger has standing user approval.
 
 GitHub distinguishes the two by a single field: `POST /pulls/{n}/reviews`
 leaves the review `PENDING` when `event` is absent and submits it the moment
@@ -25,14 +25,22 @@ Thread maintenance goes through the idempotent helper in
 `maintaining-pr-stacks`, which resolves without publishing a comment. Direct
 reply and resolution mutations stay blocked here.
 
-Commands that are not a review submission return an empty decision in Codex
-and `ask` in Antigravity, which respects cached user approvals. This hook
-only ever removes permissions, it never grants them.
+Other commands return an empty decision in Codex and `ask` in Antigravity,
+which respects cached user approvals. Only the exact trigger command is
+approved automatically, including through Codex's `PermissionRequest` hook.
 """
 
 import json
 import re
 import sys
+
+# Match the entire command so extra arguments and shell operations stay guarded.
+CODEX_REVIEW_REQUEST = re.compile(
+    r"gh[ \t]+api[ \t]+--method[ \t]+POST[ \t]+--raw-field[ \t]+"
+    r"(['\"])body=@codex review\.\1[ \t]+"
+    r"repos/[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_][A-Za-z0-9_.-]*"
+    r"/issues/[1-9][0-9]*/comments"
+)
 
 SUBMITTING_COMMANDS = (
     (
@@ -149,6 +157,8 @@ def writes(command: str) -> bool:
 
 def evaluate(command: str) -> str:
     """Return a denial reason for `command`, or an empty string to defer."""
+    if CODEX_REVIEW_REQUEST.fullmatch(command):
+        return ""
     if not GITHUB_CLIENT.search(command):
         return ""
 
@@ -247,9 +257,11 @@ def main() -> int:
 
     command = ""
     antigravity = False
+    permission_request = False
     try:
         payload = json.loads(raw)
         if isinstance(payload, dict):
+            permission_request = payload.get("hook_event_name") == "PermissionRequest"
             tool_input = payload.get("tool_input")
             if isinstance(tool_input, dict):
                 candidate = tool_input.get("command")
@@ -266,6 +278,22 @@ def main() -> int:
     except ValueError:
         pass
 
+    trigger = bool(CODEX_REVIEW_REQUEST.fullmatch(command))
+    if permission_request:
+        print(
+            json.dumps(
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "PermissionRequest",
+                        "decision": {"behavior": "allow"},
+                    }
+                }
+                if trigger
+                else {}
+            )
+        )
+        return 0
+
     try:
         reason = evaluate(command) if command else fallback_reason(raw)
     except Exception:
@@ -275,7 +303,7 @@ def main() -> int:
         json.dumps(
             deny(reason, antigravity=antigravity)
             if reason
-            else ({"decision": "ask"} if antigravity else {})
+            else ({"decision": "allow" if trigger else "ask"} if antigravity else {})
         )
     )
     return 0

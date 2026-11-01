@@ -1,6 +1,19 @@
 {
   "description": "Keep pull request reviews pending until the user submits them.",
   "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env python3 \"$HOME/.codex/hooks/block-review-submission.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking Codex review trigger authorization"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "^Bash$",

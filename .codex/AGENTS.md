@@ -23,6 +23,7 @@ A request to implement, add, or fix something authorizes local commits for that 
 - For independent work starting from `main`, fetch the intended remote and create a clean worktree and topic branch from its `main` tip before editing. Use the repository's branch and worktree naming conventions. Keep the user's existing checkout and local changes intact.
 - Keep commits limited to a coherent, reviewable change. Inspect the diff, stage only the task's files or hunks, and run the relevant checks before committing. Preserve unrelated staged and unstaged changes. Do not include temporary artifacts or unfinished work in a completion commit.
 - Commit permission alone does not authorize pushing. Outside the stack maintenance workflow, push only when the user has authorized it.
+- Posting the exact comment `@codex review.` to request a review of a pull request within the current task has standing authorization. Use `gh api --method POST --raw-field 'body=@codex review.' repos/OWNER/REPO/issues/NUMBER/comments` as a standalone command with literal repository and PR values. Check for an existing request or completed review for the current head before posting. Other published comments and review submissions still require explicit permission.
 
 # Prose written on my behalf
 

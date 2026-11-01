@@ -10,9 +10,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ReviewHookTests(unittest.TestCase):
-    def invoke(self, script, payload):
+    def invoke(self, script, payload, agent="codex"):
         result = subprocess.run(
-            [sys.executable, str(ROOT / ".codex/hooks" / script)],
+            [sys.executable, str(ROOT / f".{agent}/hooks" / script)],
             input=json.dumps(payload),
             text=True,
             capture_output=True,
@@ -20,6 +20,138 @@ class ReviewHookTests(unittest.TestCase):
         )
         self.assertEqual(result.stderr, "")
         return json.loads(result.stdout)
+
+    def shell_payload(self, command, agent, event="PreToolUse"):
+        if agent == "cursor":
+            return {"command": command}
+        if agent == "antigravity":
+            return {
+                "toolCall": {"name": "run_command", "args": {"CommandLine": command}}
+            }
+        return {
+            "hook_event_name": event,
+            "tool_name": "Bash",
+            "tool_input": {"command": command},
+        }
+
+    def test_exact_codex_review_trigger_is_allowed(self):
+        for agent in ("codex", "antigravity", "cursor"):
+            for quote in ("'", '"'):
+                command = (
+                    f"gh api --method POST --raw-field {quote}body=@codex review.{quote} "
+                    "repos/Eka-Robotics/eka-robotics/issues/3874/comments"
+                )
+                with self.subTest(agent=agent, quote=quote):
+                    result = self.invoke(
+                        "block-review-submission.py",
+                        self.shell_payload(command, agent),
+                        "cursor" if agent == "cursor" else "codex",
+                    )
+                    self.assertEqual(
+                        result,
+                        {"permission": "allow"}
+                        if agent == "cursor"
+                        else {"decision": "allow"}
+                        if agent == "antigravity"
+                        else {},
+                    )
+
+    def test_trigger_exception_does_not_allow_other_publication(self):
+        trigger = (
+            "gh api --method POST --raw-field 'body=@codex review.' "
+            "repos/o/r/issues/3874/comments"
+        )
+        commands = [
+            trigger.replace("review.", "review"),
+            trigger.replace("review.", "review. Extra prose"),
+            trigger.replace("review.", "review.\nExtra prose"),
+            trigger.replace("@codex", "@someone"),
+            trigger.replace("POST", "PATCH"),
+            trigger.replace("/issues/", "/pulls/"),
+            trigger.replace("'body=@codex review.'", '"body=$(cat /tmp/body)"'),
+            trigger.replace("'body=@codex review.'", '"body=`cat /tmp/body`"'),
+            trigger.replace(
+                "--raw-field 'body=@codex review.'", "--input /tmp/body.json"
+            ),
+            trigger.replace("/o/r/", "/$OWNER/$REPO/"),
+            trigger + " --raw-field body=extra",
+            trigger + " --input /tmp/body.json",
+            trigger + " > /tmp/output",
+            trigger + " # extra",
+            "echo " + trigger,
+            "GH_HOST=example.com " + trigger,
+            trigger + "; gh pr merge 3874",
+            trigger + " && gh pr comment 3874 --body extra",
+            trigger + "\ngh pr close 3874",
+            trigger + " | sh",
+            "gh pr comment 3874 --body '@codex review.'",
+            "gh pr review 3874 --comment --body '@codex review.'",
+        ]
+        for agent in ("codex", "antigravity", "cursor"):
+            for command in commands:
+                with self.subTest(agent=agent, command=command):
+                    result = self.invoke(
+                        "block-review-submission.py",
+                        self.shell_payload(command, agent),
+                        "cursor" if agent == "cursor" else "codex",
+                    )
+                    if agent == "cursor":
+                        self.assertEqual(result["permission"], "deny")
+                    else:
+                        self.assert_decision(result, agent == "antigravity", True)
+
+    def test_codex_permission_request_approves_only_exact_trigger(self):
+        trigger = (
+            "gh api --method POST --raw-field 'body=@codex review.' "
+            "repos/o/r/issues/3874/comments"
+        )
+        for command in (
+            trigger,
+            trigger + " -f body=extra",
+            "git status --short",
+            "git push",
+        ):
+            with self.subTest(command=command):
+                result = self.invoke(
+                    "block-review-submission.py",
+                    self.shell_payload(command, "codex", "PermissionRequest"),
+                )
+                self.assertEqual(
+                    result,
+                    {
+                        "hookSpecificOutput": {
+                            "hookEventName": "PermissionRequest",
+                            "decision": {"behavior": "allow"},
+                        }
+                    }
+                    if command == trigger
+                    else {},
+                )
+
+    def test_codex_permission_hook_is_registered_for_shell_only(self):
+        config = json.loads((ROOT / ".codex/hooks.json").read_text())
+        handlers = config["hooks"]["PermissionRequest"]
+        self.assertEqual(len(handlers), 1)
+        self.assertIsNotNone(re.fullmatch(handlers[0]["matcher"], "Bash"))
+        self.assertIsNone(re.fullmatch(handlers[0]["matcher"], "apply_patch"))
+        self.assertIn("block-review-submission.py", handlers[0]["hooks"][0]["command"])
+
+    def test_malformed_inputs_do_not_receive_trigger_approval(self):
+        for payload, agent in (
+            ({"command": ["unexpected"]}, "cursor"),
+            (
+                {"hook_event_name": "PermissionRequest", "tool_input": "unexpected"},
+                "codex",
+            ),
+            (
+                {"hook_event_name": "PermissionRequest", "tool_input": {"command": []}},
+                "codex",
+            ),
+        ):
+            with self.subTest(payload=payload, agent=agent):
+                self.assertEqual(
+                    self.invoke("block-review-submission.py", payload, agent), {}
+                )
 
     def assert_decision(self, result, antigravity, denied):
         if antigravity:

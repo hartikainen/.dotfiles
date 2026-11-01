@@ -7,6 +7,7 @@
   ".agents/skills/opening-review-worktrees/scripts/review-pr.py",
   ".agents/skills/reviewing-pull-requests/SKILL.md",
   ".agents/skills/reviewing-pull-requests/references/pending-reviews.md",
+  ".agents/skills/simplify/SKILL.md",
   ".agents/skills/writing-as-hartikainen/SKILL.md",
   ".agents/skills/writing-as-hartikainen/references/academic.md",
   ".agents/skills/writing-as-hartikainen/references/change-descriptions.md",
